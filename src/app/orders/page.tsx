@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle, Star, MapPin, Calendar } from "lucide-react";
-import MainNavbar from "@/components/MainNavbar";
+
 
 interface User {
   id: string;
@@ -12,6 +13,7 @@ interface User {
 }
 
 export default function CustomerOrdersPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -210,7 +212,7 @@ export default function CustomerOrdersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <MainNavbar />
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -236,7 +238,7 @@ export default function CustomerOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MainNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
@@ -414,7 +416,9 @@ export default function CustomerOrdersPage() {
                           </button>
                         )}
                         
-                        <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <button
+                          onClick={() => router.push(`/orders/${order.id}`)}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                           <Eye className="w-4 h-4 inline mr-1" />
                           Detail
                         </button>
