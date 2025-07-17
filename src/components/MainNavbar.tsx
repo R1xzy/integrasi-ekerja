@@ -15,7 +15,10 @@ interface User {
 export default function MainNavbar() {
   const pathname = usePathname();
   // Disable MainNavbar on admin and provider dashboards
-  if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/provider')) {
+  if (
+    pathname?.startsWith('/dashboard') ||
+    (pathname?.startsWith('/provider') && !pathname?.startsWith('/providers'))
+  ) {
     return null;
   }
   const router = useRouter();
