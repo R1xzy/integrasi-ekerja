@@ -4,11 +4,14 @@ Platform digital yang menghubungkan masyarakat Karawang dengan penyedia jasa pro
 
 ## 🚀 Fitur Utama
 
-- **Dashboard Admin**: Kelola pengguna, penyedia jasa, dan pesanan
-- **Manajemen Penyedia**: Verifikasi dan kelola penyedia jasa
-- **Sistem Pesanan**: Lacak dan kelola pesanan layanan
+- **Dashboard Admin Lengkap**: Kelola pengguna, penyedia jasa, pesanan, dan layanan
+- **Manajemen Layanan**: Dashboard untuk mengelola semua layanan dengan filter dan search
+- **Manajemen Pelanggan**: Dashboard untuk mengelola data pelanggan dan riwayat transaksi
+- **Manajemen Penyedia**: Verifikasi dan kelola penyedia jasa dengan sistem rating
+- **Sistem Pesanan**: Lacak dan kelola pesanan layanan dengan status tracking
 - **Kategori Layanan**: Berbagai kategori jasa seperti AC, kebersihan, konstruksi, dll
-- **Sistem Rating & Review**: Penilaian kualitas layanan
+- **Sistem Login & Authentication**: Login dengan role-based access (admin, customer, provider)
+- **Sistem Rating & Review**: Penilaian kualitas layanan dari pelanggan
 - **Responsive Design**: Optimized untuk desktop dan mobile
 
 ## 🛠️ Tech Stack
@@ -32,8 +35,8 @@ Pastikan Anda telah menginstall:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/username/e-kerja-karawang.git
-cd e-kerja-karawang
+git clone https://github.com/kyeiki/next-ekerja.git
+cd next-ekerja
 ```
 
 ### 2. Install Dependencies
@@ -82,6 +85,8 @@ npm run dev
 
 Buka [http://localhost:3000](http://localhost:3000) di browser Anda.
 
+> **Note**: Jika port 3000 sudah digunakan, Next.js akan otomatis menggunakan port 3001 atau port lain yang tersedia.
+
 ## 👥 Akun Default
 
 Setelah menjalankan seed, Anda dapat login dengan akun berikut:
@@ -90,6 +95,7 @@ Setelah menjalankan seed, Anda dapat login dengan akun berikut:
 - **Email**: `admin@ekerjakarawang.com`
 - **Password**: `admin123`
 - **Dashboard**: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+- **Akses**: Dashboard lengkap dengan manajemen layanan, pelanggan, penyedia, dan pesanan
 
 ### Customer
 - **Email**: `customer@example.com`
@@ -102,20 +108,28 @@ Setelah menjalankan seed, Anda dapat login dengan akun berikut:
 ## 📁 Struktur Project
 
 ```
-e-kerja-karawang/
+next-ekerja/
 ├── src/
 │   ├── app/                 # Next.js App Router
 │   │   ├── dashboard/       # Admin dashboard
-│   │   ├── services/        # Halaman layanan
-│   │   ├── providers/       # Halaman penyedia
+│   │   │   ├── page.tsx     # Dashboard utama
+│   │   │   ├── services/    # Manajemen layanan
+│   │   │   ├── customers/   # Manajemen pelanggan
+│   │   │   ├── providers/   # Manajemen penyedia
+│   │   │   └── orders/      # Manajemen pesanan
+│   │   ├── services/        # Halaman layanan publik
+│   │   ├── providers/       # Halaman penyedia publik
 │   │   ├── about/          # Halaman tentang
 │   │   ├── login/          # Halaman login
-│   │   └── register/       # Halaman register
+│   │   ├── register/       # Halaman register
+│   │   └── api/            # API routes
+│   │       └── auth/       # Authentication endpoints
 │   ├── components/         # Reusable components
 │   └── lib/               # Utilities dan helpers
 ├── prisma/
 │   ├── schema.prisma      # Database schema
-│   └── seed.ts           # Database seeder
+│   ├── seed.ts           # Database seeder
+│   └── dev.db            # SQLite database file
 ├── public/               # Static assets
 └── ...
 ```
@@ -132,6 +146,39 @@ Database menggunakan SQLite dengan Prisma ORM. Schema utama:
 - **Reviews**: Review dan rating
 - **Portfolios**: Portfolio provider
 - **Certifications**: Sertifikat provider
+
+## 📊 Halaman Dashboard Admin
+
+Dashboard admin telah dilengkapi dengan halaman-halaman berikut:
+
+### 1. Dashboard Utama (`/dashboard`)
+- Overview statistik platform
+- Grafik dan metrics penting
+- Quick actions untuk admin
+
+### 2. Manajemen Layanan (`/dashboard/services`)
+- Tabel lengkap semua layanan
+- Filter berdasarkan kategori dan status
+- Search layanan, penyedia, atau kategori
+- Stats: Total layanan, aktif, pending, tidak aktif
+- Aksi: View, Edit, Delete layanan
+
+### 3. Manajemen Pelanggan (`/dashboard/customers`)
+- Tabel lengkap data pelanggan
+- Search berdasarkan nama, email, telepon
+- Filter berdasarkan status akun
+- Stats: Total pelanggan, aktif, total transaksi, rating rata-rata
+- Riwayat transaksi dan informasi kontak
+
+### 4. Manajemen Penyedia (`/dashboard/providers`)
+- Tabel penyedia jasa terdaftar
+- Verifikasi dan approval penyedia
+- Manajemen status dan rating
+
+### 5. Manajemen Pesanan (`/dashboard/orders`)
+- Tracking semua pesanan
+- Update status pesanan
+- Laporan transaksi
 
 ## 🚀 Development
 
@@ -206,7 +253,7 @@ Project ini menggunakan MIT License. Lihat file `LICENSE` untuk detail.
 
 Jika Anda mengalami masalah atau memiliki pertanyaan:
 
-1. Cek [Issues](https://github.com/username/e-kerja-karawang/issues) yang sudah ada
+1. Cek [Issues](https://github.com/kyeiki/next-ekerja/issues) yang sudah ada
 2. Buat issue baru jika diperlukan
 3. Hubungi tim development
 

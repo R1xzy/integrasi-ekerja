@@ -126,7 +126,7 @@ export default function Home() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Mengapa Memilih Sejasa?
+            Mengapa Memilih E-Kerja Karawang?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
@@ -167,9 +167,9 @@ export default function Home() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">S</span>
+                  <span className="text-white font-bold text-lg">E</span>
                 </div>
-                <span className="text-xl font-bold">Sejasa</span>
+                <span className="text-xl font-bold">E-Kerja Karawang</span>
               </div>
               <p className="text-gray-400">
                 Platform terpercaya untuk menemukan penyedia jasa profesional di Indonesia.
@@ -203,7 +203,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Sejasa Clone. Semua hak dilindungi.</p>
+            <p>&copy; 2024 E-Kerja Karawang. Semua hak dilindungi.</p>
           </div>
         </div>
       </footer>

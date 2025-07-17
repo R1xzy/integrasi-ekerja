@@ -1,17 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import { Search, Filter, Star, MapPin, Clock, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useState, useMemo } from "react";
 
 export default function ServicesPage() {
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+
   const categories = [
-    { id: 1, name: "Semua", count: 1234, active: true },
-    { id: 2, name: "Service AC", count: 156, active: false },
-    { id: 3, name: "Jasa Kebersihan", count: 234, active: false },
-    { id: 4, name: "Tukang Bangunan", count: 189, active: false },
-    { id: 5, name: "Elektronik", count: 145, active: false },
-    { id: 6, name: "Plumbing", count: 98, active: false },
-    { id: 7, name: "Tukang Kayu", count: 76, active: false },
-    { id: 8, name: "Taman & Kebun", count: 67, active: false }
+    { id: 1, name: "Semua", count: 1234 },
+    { id: 2, name: "Service AC", count: 156 },
+    { id: 3, name: "Jasa Kebersihan", count: 234 },
+    { id: 4, name: "Tukang Bangunan", count: 189 },
+    { id: 5, name: "Elektronik", count: 145 },
+    { id: 6, name: "Plumbing", count: 98 },
+    { id: 7, name: "Tukang Kayu", count: 76 },
+    { id: 8, name: "Taman & Kebun", count: 67 }
   ];
 
   const services = [
@@ -95,6 +103,31 @@ export default function ServicesPage() {
     }
   ];
 
+  // Filter services based on selected category, search query, location, and price range
+  const filteredServices = useMemo(() => {
+    return services.filter(service => {
+      // Category filter
+      const categoryMatch = selectedCategory === "Semua" || service.category === selectedCategory;
+      
+      // Search filter
+      const searchMatch = searchQuery === "" || 
+        service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Location filter
+      const locationMatch = selectedLocation === "" || 
+        service.location.toLowerCase().includes(selectedLocation.toLowerCase());
+      
+      // Price range filter
+      const minPrice = priceRange.min ? parseInt(priceRange.min) : 0;
+      const maxPrice = priceRange.max ? parseInt(priceRange.max) : Infinity;
+      const priceMatch = service.price >= minPrice && service.price <= maxPrice;
+      
+      return categoryMatch && searchMatch && locationMatch && priceMatch;
+    });
+  }, [selectedCategory, searchQuery, selectedLocation, priceRange, services]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -148,8 +181,9 @@ export default function ServicesPage() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
+                    onClick={() => setSelectedCategory(category.name)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                      category.active
+                      selectedCategory === category.name
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
@@ -169,7 +203,11 @@ export default function ServicesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lokasi
                   </label>
-                  <select className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="">Semua Lokasi</option>
                     <option value="jakarta">Jakarta</option>
                     <option value="bekasi">Bekasi</option>
@@ -187,12 +225,16 @@ export default function ServicesPage() {
                     <input
                       type="number"
                       placeholder="Min"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <span className="text-gray-500">-</span>
                     <input
                       type="number"
                       placeholder="Max"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -211,9 +253,22 @@ export default function ServicesPage() {
                   </select>
                 </div>
 
-                <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
-                  Terapkan Filter
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedCategory("Semua");
+                      setSearchQuery("");
+                      setSelectedLocation("");
+                      setPriceRange({ min: "", max: "" });
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200"
+                  >
+                    Reset
+                  </button>
+                  <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                    Terapkan Filter
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -229,6 +284,8 @@ export default function ServicesPage() {
                     <input
                       type="text"
                       placeholder="Cari layanan..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -245,9 +302,19 @@ export default function ServicesPage() {
               </div>
             </div>
 
+            {/* Results Info */}
+            <div className="mb-6">
+              <p className="text-gray-600">
+                Menampilkan {filteredServices.length} layanan
+                {selectedCategory !== "Semua" && ` dalam kategori "${selectedCategory}"`}
+                {searchQuery && ` untuk pencarian "${searchQuery}"`}
+              </p>
+            </div>
+
             {/* Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {services.map((service) => (
+            {filteredServices.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredServices.map((service) => (
                 <div key={service.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
                   <div className="relative">
                     <img
@@ -326,28 +393,52 @@ export default function ServicesPage() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <Search className="w-16 h-16 mx-auto mb-4" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada layanan ditemukan</h3>
+                <p className="text-gray-500 mb-4">
+                  Coba ubah filter atau kata kunci pencarian Anda
+                </p>
+                <button 
+                  onClick={() => {
+                    setSelectedCategory("Semua");
+                    setSearchQuery("");
+                    setSelectedLocation("");
+                    setPriceRange({ min: "", max: "" });
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
 
             {/* Pagination */}
-            <div className="mt-8 flex justify-center">
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                  2
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  3
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Next
-                </button>
-              </nav>
-            </div>
+            {filteredServices.length > 0 && (
+              <div className="mt-8 flex justify-center">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Previous
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    1
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    2
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    3
+                  </button>
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Next
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </div>

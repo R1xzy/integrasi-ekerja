@@ -71,7 +71,7 @@ export default function Dashboard() {
         {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Selamat datang di panel admin Sejasa</p>
+          <p className="text-gray-600 mt-2">Selamat datang di panel admin E-Kerja Karawang</p>
         </div>
 
         {/* Stats Grid */}
