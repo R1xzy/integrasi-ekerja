@@ -110,27 +110,27 @@ Setelah menjalankan seed, Anda dapat login dengan akun berikut:
 ```
 next-ekerja/
 ├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── dashboard/       # Admin dashboard
-│   │   │   ├── page.tsx     # Dashboard utama
-│   │   │   ├── services/    # Manajemen layanan
-│   │   │   ├── customers/   # Manajemen pelanggan
-│   │   │   ├── providers/   # Manajemen penyedia
-│   │   │   └── orders/      # Manajemen pesanan
-│   │   ├── services/        # Halaman layanan publik
-│   │   ├── providers/       # Halaman penyedia publik
-│   │   ├── about/          # Halaman tentang
-│   │   ├── login/          # Halaman login
-│   │   ├── register/       # Halaman register
-│   │   └── api/            # API routes
-│   │       └── auth/       # Authentication endpoints
-│   ├── components/         # Reusable components
-│   └── lib/               # Utilities dan helpers
-├── prisma/
-│   ├── schema.prisma      # Database schema
-│   ├── seed.ts           # Database seeder
-│   └── dev.db            # SQLite database file
-├── public/               # Static assets
+│   ├── app/                         # Next.js App Router
+│   │   ├── (auth)/                  # Halaman login & register (route-group)
+│   │   │   ├── login/
+│   │   │   └── register/
+│   │   ├── (dev)/                   # Halaman debugging (diabaikan URL)
+│   │   │   └── test-auth/
+│   │   ├── dashboard/               # Admin dashboard (protected)
+│   │   ├── provider/                # Provider dashboard (protected)
+│   │   ├── customer/                # Namespace customer (orders)
+│   │   ├── services/                # Halaman layanan publik
+│   │   ├── providers/               # Halaman penyedia publik
+│   │   ├── about/                   # Halaman tentang
+│   │   ├── orders/                  # Halaman pesanan customer
+│   │   ├── layout.tsx               # Root layout (MainNavbar)
+│   │   ├── page.tsx                 # Home page
+│   │   └── api/                     # API routes
+│   │       └── auth/                # Authentication endpoints
+│   ├── components/                  # Reusable components (MainNavbar, DashboardNavbar, dll.)
+│   └── lib/                         # Utilities dan helpers
+├── prisma/                          # Skema & seeder database
+├── public/                          # Static assets
 └── ...
 ```
 
