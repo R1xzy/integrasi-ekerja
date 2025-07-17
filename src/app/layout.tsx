@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description: "Platform terpercaya untuk menemukan dan menyediakan berbagai layanan jasa profesional di Karawang, di Indonesia",
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{

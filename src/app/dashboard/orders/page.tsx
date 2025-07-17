@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 
 export default function OrdersPage() {
   const orders = [
@@ -87,30 +88,7 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">E-Kerja Karawang Admin</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600">Dashboard</Link>
-              <Link href="/dashboard/orders" className="text-blue-600 font-medium">Pesanan</Link>
-              <Link href="/dashboard/providers" className="text-gray-700 hover:text-blue-600">Penyedia</Link>
-              <Link href="/dashboard/customers" className="text-gray-700 hover:text-blue-600">Pelanggan</Link>
-              <Link href="/dashboard/services" className="text-gray-700 hover:text-blue-600">Layanan</Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Admin</span>
-              <Link href="/logout" className="text-red-600 hover:text-red-700">Keluar</Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardNavbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}

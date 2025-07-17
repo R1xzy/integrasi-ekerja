@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Search, Star, Shield, Clock, Users } from "lucide-react";
+import MainNavbar from "../components/MainNavbar";
 
 export default function Home() {
+
   const categories = [
     { name: "Service AC", icon: "❄️", count: "150+ Penyedia" },
     { name: "Jasa Kebersihan", icon: "🧹", count: "200+ Penyedia" },
@@ -36,38 +40,21 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">E-Kerja Karawang</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-blue-600">Beranda</Link>
-              <Link href="/services" className="text-gray-700 hover:text-blue-600">Layanan</Link>
-              <Link href="/providers" className="text-gray-700 hover:text-blue-600">Penyedia</Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600">Tentang</Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-gray-700 hover:text-blue-600">Masuk</Link>
-              <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Daftar</Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Main Navbar */}
+      <MainNavbar />
 
       {/* Hero Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Temukan Jasa Terbaik di <span className="text-blue-600">E-Kerja Karawang</span>
+            Temukan Jasa Terpercaya di
+            <span className="text-blue-600"> Karawang</span>
           </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Platform terpercaya untuk menghubungkan Anda dengan penyedia jasa profesional di Karawang
+          </p>
+
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Platform terpercaya untuk menemukan penyedia jasa profesional di Karawang. 
             Dari service AC hingga renovasi rumah, semua ada di sini.
           </p>
           

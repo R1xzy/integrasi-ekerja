@@ -34,12 +34,39 @@ export default function Login() {
 
       if (response.ok) {
         setSuccess(`Login berhasil! Selamat datang, ${data.user.fullName}`);
-        // Redirect based on role
-        if (data.user.role.roleName === 'admin') {
-          window.location.href = '/dashboard';
-        } else {
-          window.location.href = '/';
-        }
+        
+        console.log('Login page: Received user data:', data.user);
+        
+        // Store user data in localStorage for client-side access
+        const userDataForStorage = {
+          id: data.user.id.toString(),
+          name: data.user.fullName,
+          email: data.user.email,
+          role: data.user.role?.roleName || data.user.role
+        };
+        
+        console.log('Login page: Storing in localStorage:', userDataForStorage);
+        localStorage.setItem('user', JSON.stringify(userDataForStorage));
+
+        // Dispatch custom event to notify components of login
+        window.dispatchEvent(new CustomEvent('userLogin', {
+          detail: userDataForStorage
+        }));
+
+        // Add delay to ensure cookies are set
+        setTimeout(() => {
+          // Determine role string (could be object)
+          const roleName = data.user.role?.roleName || data.user.role;
+          console.log('Login page: Redirecting based on role', roleName);
+          if (roleName === 'admin') {
+            window.location.href = '/dashboard';
+          } else if (roleName === 'provider') {
+            window.location.href = '/provider/dashboard';
+          } else {
+            // Customer goes to homepage
+            window.location.href = '/';
+          }
+        }, 100);
       } else {
         setError(data.error || 'Login gagal');
       }

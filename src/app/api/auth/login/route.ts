@@ -48,11 +48,54 @@ export async function POST(request: NextRequest) {
 
     // Return user data (without password)
     const { passwordHash, ...userWithoutPassword } = user;
+    
+    console.log('Login: Full user object:', JSON.stringify(user, null, 2));
+    console.log('Login: User role:', user.role);
+    console.log('Login: Role name:', user.role?.roleName);
 
-    return NextResponse.json({
+    // Create response with user data
+    const response = NextResponse.json({
       message: 'Login berhasil',
       user: userWithoutPassword
     });
+
+    // Set authentication cookies
+    const cookieOptions = {
+      httpOnly: true,
+      secure: false, // Set to false for development
+      sameSite: 'lax' as const,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    };
+
+    // For development, also set non-httpOnly cookies for client access
+    const clientCookieOptions = {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'lax' as const,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/'
+    };
+
+    // Set auth token cookie (simplified - in production use JWT)
+    console.log('Login: Setting auth-token cookie for user:', user.id);
+    response.cookies.set('auth-token', user.id.toString(), cookieOptions);
+    response.cookies.set('auth-token-client', user.id.toString(), clientCookieOptions);
+    
+    // Set user session cookie with basic user info
+    const sessionData = {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role.roleName
+    };
+    console.log('Login: Setting user-session cookie:', sessionData);
+    const sessionDataString = JSON.stringify(sessionData);
+    response.cookies.set('user-session', sessionDataString, cookieOptions);
+    response.cookies.set('user-session-client', encodeURIComponent(sessionDataString), clientCookieOptions);
+
+    console.log('Login: Cookies set successfully');
+    return response;
 
   } catch (error) {
     console.error('Login error:', error);
