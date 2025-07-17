@@ -1,16 +1,30 @@
+"use client";
+
 import Link from "next/link";
 import { Search, Filter, Star, MapPin, Clock, ChevronRight, Award, Shield } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export default function ProvidersPage() {
+  // State for filters
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedRating, setSelectedRating] = useState("");
+  const [verificationFilters, setVerificationFilters] = useState({
+    verified: false,
+    topRated: false,
+    fastResponse: false
+  });
+  const [sortBy, setSortBy] = useState("relevance");
   const categories = [
-    { id: 1, name: "Semua", count: 456, active: true },
-    { id: 2, name: "Service AC", count: 89, active: false },
-    { id: 3, name: "Jasa Kebersihan", count: 76, active: false },
-    { id: 4, name: "Tukang Bangunan", count: 65, active: false },
-    { id: 5, name: "Elektronik", count: 54, active: false },
-    { id: 6, name: "Plumbing", count: 43, active: false },
-    { id: 7, name: "Tukang Kayu", count: 32, active: false },
-    { id: 8, name: "Taman & Kebun", count: 28, active: false }
+    { id: 1, name: "Semua", count: 456 },
+    { id: 2, name: "Service AC", count: 89 },
+    { id: 3, name: "Jasa Kebersihan", count: 76 },
+    { id: 4, name: "Tukang Bangunan", count: 65 },
+    { id: 5, name: "Elektronik", count: 54 },
+    { id: 6, name: "Plumbing", count: 43 },
+    { id: 7, name: "Tukang Kayu", count: 32 },
+    { id: 8, name: "Taman & Kebun", count: 28 }
   ];
 
   const providers = [
@@ -135,6 +149,85 @@ export default function ProvidersPage() {
     }
   };
 
+  // Filter and sort providers
+  const filteredProviders = useMemo(() => {
+    let filtered = providers.filter(provider => {
+      // Category filter
+      if (selectedCategory !== "Semua") {
+        if (!provider.specialties.includes(selectedCategory)) {
+          return false;
+        }
+      }
+
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        if (!provider.name.toLowerCase().includes(query) &&
+            !provider.specialties.some(s => s.toLowerCase().includes(query)) &&
+            !provider.bio.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+
+      // Location filter
+      if (selectedLocation) {
+        if (!provider.location.toLowerCase().includes(selectedLocation.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Rating filter
+      if (selectedRating) {
+        if (provider.rating < parseFloat(selectedRating)) {
+          return false;
+        }
+      }
+
+      // Verification filters
+      if (verificationFilters.verified && !provider.isVerified) {
+        return false;
+      }
+      if (verificationFilters.topRated && !provider.badges.includes("Top Rated")) {
+        return false;
+      }
+      if (verificationFilters.fastResponse && !provider.badges.includes("Fast Response")) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Sort providers
+    switch (sortBy) {
+      case "rating":
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case "orders":
+        filtered.sort((a, b) => b.completedOrders - a.completedOrders);
+        break;
+      case "response":
+        filtered.sort((a, b) => a.responseTime.localeCompare(b.responseTime));
+        break;
+      case "newest":
+        filtered.sort((a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime());
+        break;
+      default:
+        // Keep original order for relevance
+        break;
+    }
+
+    return filtered;
+  }, [providers, selectedCategory, searchQuery, selectedLocation, selectedRating, verificationFilters, sortBy]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -188,8 +281,9 @@ export default function ProvidersPage() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
+                    onClick={() => setSelectedCategory(category.name)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                      category.active
+                      selectedCategory === category.name
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
@@ -209,7 +303,11 @@ export default function ProvidersPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lokasi
                   </label>
-                  <select className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="">Semua Lokasi</option>
                     <option value="karawang-barat">Karawang Barat</option>
                     <option value="karawang-timur">Karawang Timur</option>
@@ -222,7 +320,11 @@ export default function ProvidersPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Rating Minimum
                   </label>
-                  <select className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={selectedRating}
+                    onChange={(e) => setSelectedRating(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="">Semua Rating</option>
                     <option value="4.5">4.5+ ⭐</option>
                     <option value="4.0">4.0+ ⭐</option>
@@ -237,23 +339,52 @@ export default function ProvidersPage() {
                   </label>
                   <div className="space-y-2">
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <input 
+                        type="checkbox" 
+                        checked={verificationFilters.verified}
+                        onChange={(e) => setVerificationFilters(prev => ({ ...prev, verified: e.target.checked }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                      />
                       <span className="ml-2 text-sm text-gray-700">Terverifikasi</span>
                     </label>
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <input 
+                        type="checkbox" 
+                        checked={verificationFilters.topRated}
+                        onChange={(e) => setVerificationFilters(prev => ({ ...prev, topRated: e.target.checked }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                      />
                       <span className="ml-2 text-sm text-gray-700">Top Rated</span>
                     </label>
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <input 
+                        type="checkbox" 
+                        checked={verificationFilters.fastResponse}
+                        onChange={(e) => setVerificationFilters(prev => ({ ...prev, fastResponse: e.target.checked }))}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                      />
                       <span className="ml-2 text-sm text-gray-700">Fast Response</span>
                     </label>
                   </div>
                 </div>
 
-                <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
-                  Terapkan Filter
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedCategory("Semua");
+                      setSearchQuery("");
+                      setSelectedLocation("");
+                      setSelectedRating("");
+                      setVerificationFilters({ verified: false, topRated: false, fastResponse: false });
+                    }}
+                    className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                  >
+                    Reset
+                  </button>
+                  <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                    Terapkan Filter
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -268,13 +399,19 @@ export default function ProvidersPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                       type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Cari penyedia jasa..."
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="relevance">Paling Relevan</option>
                     <option value="rating">Rating Tertinggi</option>
                     <option value="orders">Pesanan Terbanyak</option>
@@ -285,9 +422,19 @@ export default function ProvidersPage() {
               </div>
             </div>
 
+            {/* Results Info */}
+            <div className="mb-6">
+              <p className="text-gray-600">
+                Menampilkan {filteredProviders.length} dari {providers.length} penyedia jasa
+                {selectedCategory !== "Semua" && ` dalam kategori "${selectedCategory}"`}
+                {searchQuery && ` dengan pencarian "${searchQuery}"`}
+              </p>
+            </div>
+
             {/* Providers Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {providers.map((provider) => (
+            {filteredProviders.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredProviders.map((provider) => (
                 <div key={provider.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
                   <div className="p-6">
                     <div className="flex items-start space-x-4 mb-4">
@@ -361,7 +508,7 @@ export default function ProvidersPage() {
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Mulai dari</p>
                         <p className="text-lg font-bold text-blue-600">
-                          Rp {provider.startingPrice.toLocaleString('id-ID')}
+                          {formatCurrency(provider.startingPrice)}
                         </p>
                       </div>
                     </div>
@@ -381,27 +528,50 @@ export default function ProvidersPage() {
                 </div>
               ))}
             </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-500 mb-4">
+                  <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada penyedia jasa ditemukan</h3>
+                  <p className="text-gray-500 mb-4">Coba ubah filter atau kata kunci pencarian Anda</p>
+                  <button 
+                    onClick={() => {
+                      setSelectedCategory("Semua");
+                      setSearchQuery("");
+                      setSelectedLocation("");
+                      setSelectedRating("");
+                      setVerificationFilters({ verified: false, topRated: false, fastResponse: false });
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Reset Semua Filter
+                  </button>
+                </div>
+              </div>
+            )}
 
-            {/* Pagination */}
-            <div className="mt-8 flex justify-center">
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                  2
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  3
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Next
-                </button>
-              </nav>
-            </div>
+            {/* Pagination - only show if there are results */}
+            {filteredProviders.length > 0 && (
+              <div className="mt-8 flex justify-center">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Previous
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    1
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    2
+                  </button>
+                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    3
+                  </button>
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Next
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </div>

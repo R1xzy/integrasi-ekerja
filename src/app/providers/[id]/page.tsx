@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Star, MapPin, Clock, Shield, Award, MessageCircle, Calendar, ChevronRight, Phone, Mail, CheckCircle, Users, Trophy } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
-export default function ProviderDetailPage({ params }: { params: { id: string } }) {
+export default async function ProviderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Mock data - in real app, fetch from database using params.id
   const provider = {
     id: 1,
