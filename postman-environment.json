@@ -1,0 +1,75 @@
+{
+  "id": "e-kerja-environment-bearer",
+  "name": "E-Kerja Development Environment - Bearer Token Ready",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "enabled": true,
+      "description": "Base URL for E-Kerja API (updated to port 3001)"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "enabled": true,
+      "description": "Bearer token untuk customer - auto-extracted dari login"
+    },
+    {
+      "key": "provider_token",
+      "value": "",
+      "enabled": true,
+      "description": "Bearer token untuk provider - auto-extracted dari login"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "enabled": true,
+      "description": "Bearer token untuk admin - auto-extracted dari login"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "enabled": true,
+      "description": "Customer ID - auto-extracted dari login response"
+    },
+    {
+      "key": "provider_id",
+      "value": "",
+      "enabled": true,
+      "description": "Provider ID - auto-extracted dari login response"
+    },
+    {
+      "key": "admin_id",
+      "value": "",
+      "enabled": true,
+      "description": "Admin ID - auto-extracted dari login response"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "enabled": true,
+      "description": "Service ID - auto-extracted dari create service response"
+    },
+    {
+      "key": "portfolio_id",
+      "value": "",
+      "enabled": true,
+      "description": "Portfolio ID - auto-extracted dari create portfolio response"
+    },
+    {
+      "key": "document_id",
+      "value": "",
+      "enabled": true,
+      "description": "Document ID - auto-extracted dari upload document response"
+    },
+    {
+      "key": "category_id",
+      "value": "1",
+      "enabled": true,
+      "description": "Default category ID for testing (Service AC = 1)"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2025-07-22T02:40:00.000Z",
+  "_postman_exported_using": "Postman/Bearer Token Update"
+}

@@ -140,11 +140,12 @@ async function main() {
     }
   })
 
-  // Create sample certification
-  await prisma.providerCertification.create({
+  // Create sample document
+  await prisma.providerDocument.create({
     data: {
       providerId: provider.id,
-      certificateName: 'Sertifikat Teknisi AC',
+      documentType: 'SERTIFIKAT_PELATIHAN',
+      documentName: 'Sertifikat Teknisi AC',
       issuingOrganization: 'Asosiasi Teknisi Indonesia',
       credentialId: 'ATI-2023-001',
       fileUrl: '/certificates/cert1.pdf',
