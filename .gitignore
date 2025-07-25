@@ -40,4 +40,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma
 /src/generated/prisma
+
+# sqlite database files (not needed with MariaDB)
+*.db
+*.db-journal
+
+# MariaDB dumps and backups
+*.sql
+*.dump
+
+# macOS
+.DS_Store
+
+# Test files
+test-*.js
+test-*.ts

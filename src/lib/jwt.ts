@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 // JWT Secret - dalam production harus di environment variable
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-super-secret-jwt-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 const JWT_EXPIRES_IN = '2h'; // Sesuai constraint [C-19] - 2 jam
 
 export interface JWTPayload {

@@ -1,12 +1,12 @@
 {
-  "id": "e-kerja-environment-bearer",
-  "name": "E-Kerja Development Environment - Bearer Token Ready",
+  "id": "e-kerja-environment-complete",
+  "name": "E-Kerja Development Environment - Complete API Testing",
   "values": [
     {
       "key": "base_url",
-      "value": "http://localhost:3001",
+      "value": "http://localhost:3000",
       "enabled": true,
-      "description": "Base URL for E-Kerja API (updated to port 3001)"
+      "description": "Base URL for E-Kerja API"
     },
     {
       "key": "customer_token",
@@ -18,13 +18,19 @@
       "key": "provider_token",
       "value": "",
       "enabled": true,
-      "description": "Bearer token untuk provider - auto-extracted dari login"
+      "description": "Bearer token untuk provider (Fanza) - auto-extracted dari login"
     },
     {
       "key": "admin_token",
       "value": "",
       "enabled": true,
       "description": "Bearer token untuk admin - auto-extracted dari login"
+    },
+    {
+      "key": "other_provider_token",
+      "value": "",
+      "enabled": true,
+      "description": "Bearer token untuk provider lain (Budi) - untuk testing review reports"
     },
     {
       "key": "customer_id",
@@ -36,7 +42,7 @@
       "key": "provider_id",
       "value": "",
       "enabled": true,
-      "description": "Provider ID - auto-extracted dari login response"
+      "description": "Provider ID (Fanza) - auto-extracted dari login response"
     },
     {
       "key": "admin_id",
@@ -63,13 +69,85 @@
       "description": "Document ID - auto-extracted dari upload document response"
     },
     {
+      "key": "order_id",
+      "value": "",
+      "enabled": true,
+      "description": "Order ID - auto-extracted dari order creation response"
+    },
+    {
+      "key": "order_detail_id",
+      "value": "",
+      "enabled": true,
+      "description": "Order Detail ID - auto-extracted dari detail creation"
+    },
+    {
+      "key": "review_id",
+      "value": "",
+      "enabled": true,
+      "description": "Review ID - auto-extracted dari review creation"
+    },
+    {
+      "key": "review_report_id",
+      "value": "",
+      "enabled": true,
+      "description": "Review Report ID - auto-extracted dari report creation"
+    },
+    {
       "key": "category_id",
       "value": "1",
       "enabled": true,
       "description": "Default category ID for testing (Service AC = 1)"
+    },
+    {
+      "key": "customer_email",
+      "value": "customer@example.com",
+      "enabled": true,
+      "description": "Email customer untuk login testing"
+    },
+    {
+      "key": "customer_password",
+      "value": "customer123",
+      "enabled": true,
+      "description": "Password customer untuk login testing"
+    },
+    {
+      "key": "provider_email",
+      "value": "fanza.atsilatif423@example.com",
+      "enabled": true,
+      "description": "Email provider Fanza untuk login testing"
+    },
+    {
+      "key": "provider_password",
+      "value": "Atsla123!!",
+      "enabled": true,
+      "description": "Password provider Fanza untuk login testing"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@ekerjakarawang.com",
+      "enabled": true,
+      "description": "Email admin untuk login testing"
+    },
+    {
+      "key": "admin_password",
+      "value": "admin123",
+      "enabled": true,
+      "description": "Password admin untuk login testing"
+    },
+    {
+      "key": "other_provider_email",
+      "value": "budi.teknisi@example.com",
+      "enabled": true,
+      "description": "Email provider lain (Budi) untuk testing review reports"
+    },
+    {
+      "key": "other_provider_password",
+      "value": "Budi123!!",
+      "enabled": true,
+      "description": "Password provider lain (Budi) untuk testing review reports"
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-07-22T02:40:00.000Z",
-  "_postman_exported_using": "Postman/Bearer Token Update"
+  "_postman_exported_at": "2025-07-24T09:50:00.000Z",
+  "_postman_exported_using": "Postman/Complete API Testing"
 }

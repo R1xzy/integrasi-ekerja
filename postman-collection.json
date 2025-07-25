@@ -168,14 +168,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"provider@example.com\",\n  \"password\": \"provider123\"\n}"
+              "raw": "{\n  \"email\": \"fanza.atsilatif423@example.com\",\n  \"password\": \"Atsla123!!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "login"]
             },
-            "description": "✅ Login provider dengan seeded credentials dan auto-save Bearer token"
+            "description": "✅ Login provider Fanza dan auto-save Bearer token"
           }
         },
         {
@@ -217,6 +217,46 @@
               "path": ["api", "auth", "login"]
             },
             "description": "✅ Login admin dengan seeded credentials dan auto-save Bearer token"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login Other Provider - For Testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-extract Bearer token untuk provider lain",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.token) {",
+                  "        pm.environment.set('other_provider_token', response.data.token);",
+                  "        console.log('Other Provider Bearer token saved:', response.data.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi.teknisi@example.com\",\n  \"password\": \"Budi123!!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "✅ Login provider Budi untuk testing review reports"
           }
         },
         {
@@ -398,9 +438,9 @@
               "raw": "{\n  \"documentType\": \"KTP\",\n  \"documentName\": \"KTP Siti Nurhaliza\",\n  \"fileUrl\": \"/uploads/documents/ktp-siti-test.jpg\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/provider/documents",
+              "raw": "{{base_url}}/api/providers/documents",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "documents"]
+              "path": ["api", "providers", "documents"]
             },
             "description": "Test upload dokumen KTP untuk verifikasi [C-6]"
           }
@@ -424,9 +464,9 @@
               "raw": "{\n  \"documentType\": \"SERTIFIKAT_PELATIHAN\",\n  \"documentName\": \"Sertifikat Teknisi AC BNSP\",\n  \"issuingOrganization\": \"BNSP\",\n  \"credentialId\": \"BNSP-AC-2024-001\",\n  \"fileUrl\": \"/uploads/documents/sertifikat-siti-test.pdf\",\n  \"issuedAt\": \"2024-06-15T00:00:00.000Z\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/provider/documents",
+              "raw": "{{base_url}}/api/providers/documents",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "documents"]
+              "path": ["api", "providers", "documents"]
             },
             "description": "Test upload sertifikat pelatihan untuk verifikasi [C-6]"
           }
@@ -442,9 +482,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/documents",
+              "raw": "{{base_url}}/api/providers/documents",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "documents"]
+              "path": ["api", "providers", "documents"]
             },
             "description": "Test get dokumen provider sendiri"
           }
@@ -561,9 +601,9 @@
               "raw": "{\n  \"categoryId\": 1,\n  \"serviceTitle\": \"Service AC Split 1/2 PK - 1 PK\",\n  \"description\": \"Service lengkap AC split meliputi cuci evaporator, kondensor, filter. Termasuk pengecekan freon dan kebocoran.\",\n  \"price\": 85000,\n  \"priceUnit\": \"per unit\",\n  \"isAvailable\": true\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/provider/services",
+              "raw": "{{base_url}}/api/providers/services",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "services"]
+              "path": ["api", "providers", "services"]
             },
             "description": "Test create layanan provider baru"
           }
@@ -579,9 +619,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/services",
+              "raw": "{{base_url}}/api/providers/services",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "services"]
+              "path": ["api", "providers", "services"]
             },
             "description": "Test get layanan provider sendiri"
           }
@@ -605,9 +645,9 @@
               "raw": "{\n  \"serviceTitle\": \"Service AC Split 1/2 PK - 1 PK (Updated)\",\n  \"description\": \"Service lengkap AC split meliputi cuci evaporator, kondensor, filter. Termasuk pengecekan freon, kebocoran, dan tune-up sistem.\",\n  \"price\": 90000\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/provider/services/{{service_id}}",
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "services", "{{service_id}}"]
+              "path": ["api", "providers", "services", "{{service_id}}"]
             },
             "description": "Test update layanan provider"
           }
@@ -623,9 +663,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/services/{{service_id}}",
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "services", "{{service_id}}"]
+              "path": ["api", "providers", "services", "{{service_id}}"]
             },
             "description": "Test get detail satu layanan"
           }
@@ -641,9 +681,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/services/{{service_id}}",
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "services", "{{service_id}}"]
+              "path": ["api", "providers", "services", "{{service_id}}"]
             },
             "description": "Test delete layanan provider (dengan validasi order aktif)"
           }
@@ -667,9 +707,9 @@
               "raw": "{\n  \"projectTitle\": \"Service AC Rumah Pak Budi\",\n  \"description\": \"Service 4 unit AC split di rumah Pak Budi, Karawang Barat. Semua AC kembali dingin optimal setelah dibersihkan dan ditune-up.\",\n  \"imageUrl\": \"/uploads/images/portfolio-ac-budi.jpg\",\n  \"completedAt\": \"2025-07-15T00:00:00.000Z\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/provider/portfolio",
+              "raw": "{{base_url}}/api/providers/portfolio",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "portfolio"]
+              "path": ["api", "providers", "portfolio"]
             },
             "description": "Test create portfolio provider"
           }
@@ -685,9 +725,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/portfolio",
+              "raw": "{{base_url}}/api/providers/portfolio",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "portfolio"]
+              "path": ["api", "providers", "portfolio"]
             },
             "description": "Test get portfolio provider sendiri"
           }
@@ -703,9 +743,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/provider/portfolio?providerId={{provider_id}}",
+              "raw": "{{base_url}}/api/providers/portfolio?providerId={{provider_id}}",
               "host": ["{{base_url}}"],
-              "path": ["api", "provider", "portfolio"],
+              "path": ["api", "providers", "portfolio"],
               "query": [
                 {
                   "key": "providerId",
@@ -840,12 +880,12 @@
         {
           "name": "[REQ-B-4.1] Get Service Categories",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/services/search",
+              "raw": "{{base_url}}/api/service-categories",
               "host": ["{{base_url}}"],
-              "path": ["api", "services", "search"]
+              "path": ["api", "service-categories"]
             },
             "description": "Test get semua kategori layanan dengan count services"
           }
@@ -874,6 +914,725 @@
               "path": ["api", "providers", "3"]
             },
             "description": "Test get provider dari seeded data dengan reviews"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-5] API Proses Pemesanan",
+      "item": [
+        {
+          "name": "[REQ-B-5.1] Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('order_id', response.data.id);",
+                  "        console.log('Order ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerServiceId\": 4,\n  \"customMessage\": \"Need MacBook Pro repair - screen flickering and overheating issues\",\n  \"scheduledDate\": \"2025-07-30T10:00:00.000Z\",\n  \"jobAddress\": \"Jl. Customer No. 123, Jakarta Pusat\",\n  \"district\": \"Jakarta Pusat\",\n  \"subDistrict\": \"Menteng\",\n  \"ward\": \"Gondangdia\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Customer creates new order with location details"
+          }
+        },
+        {
+          "name": "[REQ-B-5.1] Get Customer Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Customer views their order history with pagination"
+          }
+        },
+        {
+          "name": "[REQ-B-5.1] Get Provider Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?status=PENDING_ACCEPTANCE&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING_ACCEPTANCE"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Provider views pending orders for acceptance"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Provider Accept Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider accepts the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Provider Reject Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED_BY_PROVIDER\",\n  \"information\": \"Sorry, I'm fully booked this week. Please reschedule for next week.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider rejects order with reason (using 'information' field)"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Update Order to In Progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider starts working on the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Complete Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider completes the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.3] Get Single Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Get detailed order information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-6] API Rincian Pesanan dan Biaya",
+      "item": [
+        {
+          "name": "[REQ-B-6.1] Add Order Detail Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('order_detail_id', response.data.id);",
+                  "        console.log('Order Detail ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Thermal Paste Replacement - High-quality thermal paste for better heat dissipation\",\n  \"quantity\": 1,\n  \"pricePerUnit\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Provider adds additional item to order"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Add Second Order Detail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Screen Replacement - Original Apple Retina Display\",\n  \"quantity\": 1,\n  \"pricePerUnit\": 2500000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Provider adds expensive screen replacement"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Get Order Details List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Customer views all order details with cost summary"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Customer Approve Detail",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/{{order_detail_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "{{order_detail_id}}"]
+            },
+            "description": "Customer approves specific order detail"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Customer Reject Detail",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+            },
+            "description": "Customer rejects expensive screen replacement"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Delete Rejected Detail",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+            },
+            "description": "Provider removes rejected detail"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Final Order Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Final order details with approved items only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-7] API Ulasan dan Pelaporan",
+      "item": [
+        {
+          "name": "[REQ-B-7.1] Create Review (C-9 Compliance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('review_id', response.data.id);",
+                  "        console.log('Review ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Fanza was very professional and fixed my MacBook perfectly. The thermal paste replacement made a huge difference. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            },
+            "description": "Customer creates review for completed order (C-9: only COMPLETED orders)"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Try Create Review - Order Not Completed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"rating\": 4,\n  \"comment\": \"This should fail - order not completed yet\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            },
+            "description": "Test C-9 validation - should fail for non-completed orders"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Get Reviews for Provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reviews?providerId={{provider_id}}&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{provider_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all reviews for specific provider with pagination"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Get Reviews - High Rating Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reviews?minRating=4&sortBy=rating&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                {
+                  "key": "minRating",
+                  "value": "4"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Filter reviews with minimum rating 4"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Report Review - Different User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('review_report_id', response.data.id);",
+                  "        console.log('Review Report ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{other_provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{review_id}}\",\n  \"reason\": \"INAPPROPRIATE_CONTENT\",\n  \"description\": \"This review contains promotional content and seems suspicious\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"]
+            },
+            "description": "Different provider reports the review"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Try Report Own Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{review_id}}\",\n  \"reason\": \"SPAM\",\n  \"description\": \"This should fail - can't report own review\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"]
+            },
+            "description": "Test validation - customer cannot report their own review"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Get Review Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/review-reports?status=PENDING_REVIEW&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING_REVIEW"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Admin views pending review reports"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Resolve Report (Keep Review)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED_REVIEW_KEPT\",\n  \"adminNotes\": \"Report reviewed. The review content appears to be genuine customer feedback and does not contain inappropriate language. Report rejected, review will remain visible.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin resolves report and keeps review visible"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Resolve Report (Remove Review)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED_REVIEW_REMOVED\",\n  \"adminNotes\": \"Report validated. The review contains inappropriate content and has been hidden from public view.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin resolves report and hides review (alternative action)"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Get Single Report Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin views detailed report information"
           }
         }
       ]
@@ -977,9 +1736,9 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:3001",
+      "value": "http://localhost:3000",
       "type": "string",
-      "description": "Base URL for E-Kerja API (updated to port 3001)"
+      "description": "Base URL for E-Kerja API"
     },
     {
       "key": "customer_token",
@@ -991,13 +1750,19 @@
       "key": "provider_token",
       "value": "",
       "type": "string",
-      "description": "Bearer token untuk provider - auto-extracted"
+      "description": "Bearer token untuk provider (Fanza) - auto-extracted"
     },
     {
       "key": "admin_token",
       "value": "",
       "type": "string",
       "description": "Bearer token untuk admin - auto-extracted"
+    },
+    {
+      "key": "other_provider_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token untuk provider lain (untuk testing review reports)"
     },
     {
       "key": "customer_id",
@@ -1009,13 +1774,37 @@
       "key": "provider_id",
       "value": "",
       "type": "string",
-      "description": "Provider ID - auto-extracted"
+      "description": "Provider ID (Fanza) - auto-extracted"
     },
     {
       "key": "service_id",
       "value": "",
       "type": "string",
       "description": "Service ID - auto-extracted"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string",
+      "description": "Order ID - auto-extracted from order creation"
+    },
+    {
+      "key": "order_detail_id",
+      "value": "",
+      "type": "string",
+      "description": "Order Detail ID - auto-extracted"
+    },
+    {
+      "key": "review_id",
+      "value": "",
+      "type": "string",
+      "description": "Review ID - auto-extracted from review creation"
+    },
+    {
+      "key": "review_report_id",
+      "value": "",
+      "type": "string",
+      "description": "Review Report ID - auto-extracted"
     }
   ]
 }
