@@ -30,3 +30,5 @@ export function handleApiError(error: any) {
     message: error.message || 'Internal server error'
   }, { status: 500 });
 }
+  }).format(date)
+}

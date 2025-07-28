@@ -1636,6 +1636,633 @@
           }
         }
       ]
+    },
+    {
+      "name": "[REQ-B-8] Chat System APIs",
+      "item": [
+        {
+          "name": "[REQ-B-8.1] Get User Chat Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms"]
+            },
+            "description": "Get user's chat conversations with participants and last messages"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.length > 0) {",
+                  "        pm.environment.set('chat_conversation_id', response.data[0].id);",
+                  "        console.log('Chat conversation ID saved:', response.data[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.1] Create Chat Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantUserId\": {{provider_id}},\n  \"orderId\": {{order_id}},\n  \"conversationTitle\": \"Discussion about Order #{{order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms"]
+            },
+            "description": "Create new chat conversation between customer and provider"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('chat_conversation_id', response.data.id);",
+                  "    console.log('Chat conversation created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.2] Get Conversation Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages?page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get paginated messages from a conversation"
+          }
+        },
+        {
+          "name": "[REQ-B-8.2] Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageContent\": \"Hi, when can you start the work for my order?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Send a new message in the conversation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('chat_message_id', response.data.id);",
+                  "    console.log('Message sent with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.2] Provider Reply Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageContent\": \"I can start tomorrow morning at 9 AM. Is that convenient for you?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Provider replies to customer message"
+          }
+        },
+        {
+          "name": "[REQ-B-8.2] Mark Messages as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Mark all unread messages as read for current user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-9] Admin Dashboard APIs",
+      "item": [
+        {
+          "name": "[REQ-B-9.1] Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "dashboard"]
+            },
+            "description": "Get comprehensive dashboard statistics for admin"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Get Service Categories (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories"]
+            },
+            "description": "Get all service categories with statistics"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Create Service Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryName\": \"Pet Care Services\",\n  \"description\": \"Professional pet care and grooming services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories"]
+            },
+            "description": "Create new service category"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('admin_category_id', response.data.id);",
+                  "    console.log('Category created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-9.2] Get Single Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Get specific category with detailed statistics"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Update Service Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pet Care & Grooming Services\",\n  \"description\": \"Professional pet care, grooming, and wellness services\",\n  \"iconUrl\": \"/icons/pet-care.svg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Update service category details"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Delete Service Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Delete service category (only if no associated services)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-10] Admin Settings APIs",
+      "item": [
+        {
+          "name": "[REQ-B-10.1] Get Application Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Get all application settings"
+          }
+        },
+        {
+          "name": "[REQ-B-10.1] Create Application Setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settingKey\": \"{{setting_key}}\",\n  \"settingValue\": \"{{setting_value}}\",\n  \"description\": \"Test setting for API validation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Create new application setting"
+          }
+        },
+        {
+          "name": "[REQ-B-10.1] Bulk Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settings\": [\n    {\n      \"settingKey\": \"app_name\",\n      \"settingValue\": \"E-Kerja Platform\",\n      \"description\": \"Application name displayed to users\"\n    },\n    {\n      \"settingKey\": \"maintenance_mode\",\n      \"settingValue\": \"false\",\n      \"description\": \"Enable/disable maintenance mode\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Bulk update multiple settings"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Get Specific Setting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Get specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Update Specific Setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settingValue\": \"updated_test_value\",\n  \"description\": \"Updated test setting description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Update specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Delete Specific Setting",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Delete specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Get FAQs (Public Access)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?category={{faq_category}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{faq_category}}"
+                }
+              ]
+            },
+            "description": "Get active FAQs with category filter (public access)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Get FAQs (Admin Access)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Get all FAQs including inactive ones (admin access)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I book a service?\",\n  \"answer\": \"You can book a service by browsing our providers, selecting the service you need, and clicking the 'Book Now' button. You'll need to provide details about your requirements and schedule.\",\n  \"category\": \"booking\",\n  \"displayOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Create new FAQ"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('faq_id', response.data.id);",
+                  "    console.log('FAQ created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-10.3] Get Single FAQ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Get specific FAQ (public access for active FAQs)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I book a service?\",\n  \"answer\": \"You can book a service by browsing our providers, selecting the service you need, and clicking the 'Book Now' button. You'll need to provide details about your requirements, schedule, and location.\",\n  \"category\": \"booking\",\n  \"displayOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Update FAQ content"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Delete FAQ"
+          }
+        }
+      ]
     }
   ],
   "event": [
@@ -1805,6 +2432,48 @@
       "value": "",
       "type": "string",
       "description": "Review Report ID - auto-extracted"
+    },
+    {
+      "key": "chat_conversation_id",
+      "value": "",
+      "type": "string",
+      "description": "Chat conversation ID - auto-extracted"
+    },
+    {
+      "key": "chat_message_id",
+      "value": "",
+      "type": "string",
+      "description": "Chat message ID - auto-extracted"
+    },
+    {
+      "key": "admin_category_id",
+      "value": "",
+      "type": "string",
+      "description": "Admin created category ID - auto-extracted"
+    },
+    {
+      "key": "setting_key",
+      "value": "test_setting",
+      "type": "string",
+      "description": "Setting key for testing"
+    },
+    {
+      "key": "setting_value",
+      "value": "test_value",
+      "type": "string",
+      "description": "Setting value for testing"
+    },
+    {
+      "key": "faq_id",
+      "value": "",
+      "type": "string",
+      "description": "FAQ ID - auto-extracted"
+    },
+    {
+      "key": "faq_category",
+      "value": "general",
+      "type": "string",
+      "description": "FAQ category for filtering"
     }
   ]
 }

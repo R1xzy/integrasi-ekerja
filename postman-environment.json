@@ -145,6 +145,48 @@
       "value": "Budi123!!",
       "enabled": true,
       "description": "Password provider lain (Budi) untuk testing review reports"
+    },
+    {
+      "key": "chat_conversation_id",
+      "value": "",
+      "enabled": true,
+      "description": "Chat conversation ID - auto-extracted dari create conversation response"
+    },
+    {
+      "key": "chat_message_id",
+      "value": "",
+      "enabled": true,
+      "description": "Chat message ID - auto-extracted dari send message response"
+    },
+    {
+      "key": "admin_category_id",
+      "value": "",
+      "enabled": true,
+      "description": "Admin created category ID - auto-extracted dari create category response"
+    },
+    {
+      "key": "setting_key",
+      "value": "test_setting",
+      "enabled": true,
+      "description": "Setting key for admin settings testing"
+    },
+    {
+      "key": "setting_value",
+      "value": "test_value",
+      "enabled": true,
+      "description": "Setting value for admin settings testing"
+    },
+    {
+      "key": "faq_id",
+      "value": "",
+      "enabled": true,
+      "description": "FAQ ID - auto-extracted dari create FAQ response"
+    },
+    {
+      "key": "faq_category",
+      "value": "general",
+      "enabled": true,
+      "description": "FAQ category for filtering testing"
     }
   ],
   "_postman_variable_scope": "environment",
