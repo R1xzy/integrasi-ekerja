@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { 
+  parseDataTableParams, 
+  calculateSkip, 
+  createDataTableResponse, 
+  buildOrderBy, 
+  buildSearchWhere, 
+  validateSortField,
+  SEARCH_FIELDS,
+  SORT_FIELDS 
+} from '@/lib/data-table-helpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +28,12 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url);
     const category = url.searchParams.get('category');
+    
+    // Parse data table parameters (search, sort, pagination)
+    const tableParams = parseDataTableParams(url.searchParams);
+    
+    // Validate sort field
+    const validatedSortBy = validateSortField(tableParams.sortBy, SORT_FIELDS.faqs);
 
     // Build where clause
     const whereClause: Record<string, any> = {};
@@ -30,19 +46,41 @@ export async function GET(request: NextRequest) {
       whereClause.category = category;
     }
 
-    // Get FAQs
-    const faqs = await prisma.faq.findMany({
-      where: whereClause,
-      orderBy: [
+    // Add search functionality
+    if (tableParams.search) {
+      const searchWhere = buildSearchWhere(tableParams.search, SEARCH_FIELDS.faqs);
+      whereClause.AND = [whereClause, searchWhere];
+    }
+
+    // Get total count for pagination
+    const total = await prisma.faq.count({ where: whereClause });
+
+    // Build order by clause - default to displayOrder asc, then createdAt desc
+    let orderBy;
+    if (validatedSortBy) {
+      orderBy = buildOrderBy(validatedSortBy, tableParams.sortOrder);
+    } else {
+      orderBy = [
         { displayOrder: 'asc' },
         { createdAt: 'desc' }
-      ]
+      ];
+    }
+
+    // Get FAQs with pagination
+    const faqs = await prisma.faq.findMany({
+      where: whereClause,
+      orderBy,
+      skip: calculateSkip(tableParams.page, tableParams.limit),
+      take: tableParams.limit
     });
 
+    // Create standardized response
+    const response = createDataTableResponse(faqs, total, tableParams);
+    
     return createSuccessResponse({
-      faqs,
-      count: faqs.length,
-      isAdmin
+      ...response,
+      isAdmin,
+      category
     }, 'FAQs retrieved successfully');
 
   } catch (error) {
