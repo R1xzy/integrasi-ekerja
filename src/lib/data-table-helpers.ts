@@ -77,7 +77,7 @@ export function createDataTableResponse<T>(
     search: params.search,
     sort: params.sortBy ? {
       field: params.sortBy,
-      order: params.sortOrder
+      order: params.sortOrder || 'desc'
     } : undefined
   };
 }
@@ -121,8 +121,8 @@ export function buildSearchWhere(search: string, fields: readonly string[]): any
         return {
           [relation]: {
             [nestedField]: {
-              contains: searchTerm,
-              mode: 'insensitive'
+              contains: searchTerm
+              // Note: MySQL doesn't support mode: 'insensitive', case sensitivity depends on collation
             }
           }
         };
@@ -130,8 +130,8 @@ export function buildSearchWhere(search: string, fields: readonly string[]): any
 
       return {
         [field]: {
-          contains: searchTerm,
-          mode: 'insensitive'
+          contains: searchTerm
+          // Note: MySQL doesn't support mode: 'insensitive', case sensitivity depends on collation
         }
       };
     })

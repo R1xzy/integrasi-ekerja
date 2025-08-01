@@ -2263,6 +2263,604 @@
           }
         }
       ]
+    },
+    {
+      "name": "[REQ-B-11] Advanced FAQ Management System",
+      "item": [
+        {
+          "name": "[REQ-B-11.1] Get FAQs with Data Table Parameters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?search={{faq_search}}&sortBy={{faq_sort_by}}&sortOrder={{faq_sort_order}}&page={{faq_page}}&limit={{faq_limit}}&category={{faq_category}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{faq_search}}",
+                  "description": "Search term untuk questions dan answers"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{faq_sort_by}}",
+                  "description": "Field untuk sorting: displayOrder, question, category, isActive, createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{faq_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{faq_page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{faq_limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "category",
+                  "value": "{{faq_category}}",
+                  "description": "Filter by category"
+                }
+              ]
+            },
+            "description": "Test FAQ management dengan advanced data table features: search, sort, pagination"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FAQ data table response structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('pagination');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('page');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('limit');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('total');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('totalPages');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('hasNext');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('hasPrev');",
+                  "});",
+                  "",
+                  "pm.test('FAQ display order functionality', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        jsonData.data.data.forEach(faq => {",
+                  "            pm.expect(faq).to.have.property('displayOrder');",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-11.2] Get FAQs (Public Access with Data Table)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?search=book&sortBy=displayOrder&sortOrder=asc&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "book",
+                  "description": "Public search for booking FAQs"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "displayOrder",
+                  "description": "Sort by display order"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending order"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "First page"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "10 items per page"
+                }
+              ]
+            },
+            "description": "Test public FAQ access dengan data table functionality (no auth required)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Public FAQ access shows only active FAQs', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.isAdmin).to.be.false;",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        jsonData.data.data.forEach(faq => {",
+                  "            pm.expect(faq.isActive).to.be.true;",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-11.3] Create FAQ with Display Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How to cancel an order?\",\n  \"answer\": \"You can cancel an order by going to your order history and clicking the cancel button. Cancellation is only allowed before the provider accepts the order.\",\n  \"category\": \"orders\",\n  \"displayOrder\": 2,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Create FAQ dengan display order untuk mengatur sequence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('new_faq_id', jsonData.data.id);",
+                  "    console.log('FAQ created with ID:', jsonData.data.id);",
+                  "    console.log('Display order:', jsonData.data.displayOrder);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-12] Data Tables Implementation",
+      "item": [
+        {
+          "name": "[REQ-B-12.1] Customer Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/customers?search={{customer_search}}&sortBy={{customer_sort_by}}&sortOrder={{customer_sort_order}}&page={{page}}&limit={{limit}}&isActive={{customer_is_active}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "customers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{customer_search}}",
+                  "description": "Search customers by name, email, phone"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{customer_sort_by}}",
+                  "description": "Sort field: fullName, email, createdAt, isActive"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{customer_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "isActive",
+                  "value": "{{customer_is_active}}",
+                  "description": "Filter by active status: true/false"
+                }
+              ]
+            },
+            "description": "Test customer management dengan search, sort, filter, pagination"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer data table response structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('pagination');",
+                  "});",
+                  "",
+                  "pm.test('Customer data includes count statistics', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const customer = jsonData.data.data[0];",
+                  "        pm.expect(customer).to.have.property('_count');",
+                  "        pm.expect(customer._count).to.have.property('customerOrders');",
+                  "        pm.expect(customer._count).to.have.property('customerReviews');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.2] Provider Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/providers?search={{provider_search}}&sortBy={{provider_sort_by}}&sortOrder={{provider_sort_order}}&page={{page}}&limit={{limit}}&isActive={{provider_is_active}}&verificationStatus={{provider_verification_status}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "providers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{provider_search}}",
+                  "description": "Search providers by name, email, phone, bio"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{provider_sort_by}}",
+                  "description": "Sort field: fullName, email, createdAt, verificationStatus, isActive"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{provider_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "isActive",
+                  "value": "{{provider_is_active}}",
+                  "description": "Filter by active status"
+                },
+                {
+                  "key": "verificationStatus",
+                  "value": "{{provider_verification_status}}",
+                  "description": "Filter by verification: PENDING, VERIFIED, REJECTED"
+                }
+              ]
+            },
+            "description": "Test provider management dengan verification status filtering"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Provider data includes verification info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const provider = jsonData.data.data[0];",
+                  "        pm.expect(provider).to.have.property('verificationStatus');",
+                  "        pm.expect(provider).to.have.property('_count');",
+                  "        pm.expect(provider._count).to.have.property('providerServices');",
+                  "        pm.expect(provider._count).to.have.property('providerOrders');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.3] Order Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?search={{order_search}}&sortBy={{order_sort_by}}&sortOrder={{order_sort_order}}&page={{page}}&limit={{limit}}&status={{order_status}}&dateFrom={{order_date_from}}&dateTo={{order_date_to}}&minAmount={{order_min_amount}}&maxAmount={{order_max_amount}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{order_search}}",
+                  "description": "Search orders by address, customer name, provider name"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{order_sort_by}}",
+                  "description": "Sort field: orderDate, scheduledDate, status, finalAmount, customer.fullName, provider.fullName"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{order_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "status",
+                  "value": "{{order_status}}",
+                  "description": "Filter by order status"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "{{order_date_from}}",
+                  "description": "Filter orders from date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "{{order_date_to}}",
+                  "description": "Filter orders to date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "minAmount",
+                  "value": "{{order_min_amount}}",
+                  "description": "Minimum order amount"
+                },
+                {
+                  "key": "maxAmount",
+                  "value": "{{order_max_amount}}",
+                  "description": "Maximum order amount"
+                }
+              ]
+            },
+            "description": "Test order management dengan advanced filtering (status, date range, amount range)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Order data includes customer and provider info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const order = jsonData.data.data[0];",
+                  "        pm.expect(order).to.have.property('customer');",
+                  "        pm.expect(order).to.have.property('provider');",
+                  "        pm.expect(order).to.have.property('providerService');",
+                  "        pm.expect(order.customer).to.have.property('fullName');",
+                  "        pm.expect(order.provider).to.have.property('fullName');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Order data includes filters in response', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('filters');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.4] Nested Field Search and Sort Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?search=Fanza&sortBy=customer.fullName&sortOrder=asc&page=1&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Fanza",
+                  "description": "Search for orders by customer name"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "customer.fullName",
+                  "description": "Sort by nested field - customer name"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending sort"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "First page"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "5 items per page"
+                }
+              ]
+            },
+            "description": "Test nested field search dan sort functionality - cari 'Fanza' dan sort by customer.fullName"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Nested field search working', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.search).to.equal('Fanza');",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        // Check if customer name contains search term",
+                  "        const foundOrder = jsonData.data.data.some(order => ",
+                  "            order.customer.fullName.toLowerCase().includes('fanza'.toLowerCase())",
+                  "        );",
+                  "        pm.expect(foundOrder).to.be.true;",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Nested field sort working', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sort.field).to.equal('customer.fullName');",
+                  "    pm.expect(jsonData.data.sort.order).to.equal('asc');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.5] Update Customer Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "customers"]
+            },
+            "description": "Test customer status update via admin"
+          }
+        },
+        {
+          "name": "[REQ-B-12.6] Update Provider Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": {{provider_id}},\n  \"verificationStatus\": \"VERIFIED\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/providers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "providers"]
+            },
+            "description": "Test provider verification status update via admin"
+          }
+        },
+        {
+          "name": "[REQ-B-12.7] Update Order Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"status\": \"COMPLETED\",\n  \"adminNotes\": \"Order completed by admin intervention\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"]
+            },
+            "description": "Test order status update dengan admin notes"
+          }
+        }
+      ]
     }
   ],
   "event": [

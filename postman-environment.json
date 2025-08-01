@@ -187,6 +187,156 @@
       "value": "general",
       "enabled": true,
       "description": "FAQ category for filtering testing"
+    },
+    {
+      "key": "new_faq_id",
+      "value": "",
+      "enabled": true,
+      "description": "Newly created FAQ ID - auto-extracted from REQ-B-11 test"
+    },
+    {
+      "key": "faq_search",
+      "value": "booking",
+      "enabled": true,
+      "description": "FAQ search term for REQ-B-11 testing"
+    },
+    {
+      "key": "faq_sort_by",
+      "value": "displayOrder",
+      "enabled": true,
+      "description": "FAQ sort field: displayOrder, question, category, isActive, createdAt"
+    },
+    {
+      "key": "faq_sort_order",
+      "value": "asc",
+      "enabled": true,
+      "description": "FAQ sort direction: asc atau desc"
+    },
+    {
+      "key": "faq_page",
+      "value": "1",
+      "enabled": true,
+      "description": "FAQ page number for pagination testing"
+    },
+    {
+      "key": "faq_limit",
+      "value": "10",
+      "enabled": true,
+      "description": "FAQ items per page for pagination testing"
+    },
+    {
+      "key": "customer_search",
+      "value": "customer",
+      "enabled": true,
+      "description": "Customer search term for REQ-B-12 testing"
+    },
+    {
+      "key": "customer_sort_by",
+      "value": "fullName",
+      "enabled": true,
+      "description": "Customer sort field: fullName, email, createdAt, isActive"
+    },
+    {
+      "key": "customer_sort_order",
+      "value": "asc",
+      "enabled": true,
+      "description": "Customer sort direction"
+    },
+    {
+      "key": "customer_is_active",
+      "value": "true",
+      "enabled": true,
+      "description": "Customer active status filter: true/false"
+    },
+    {
+      "key": "provider_search",
+      "value": "provider",
+      "enabled": true,
+      "description": "Provider search term for REQ-B-12 testing"
+    },
+    {
+      "key": "provider_sort_by",
+      "value": "verificationStatus",
+      "enabled": true,
+      "description": "Provider sort field: fullName, email, createdAt, verificationStatus, isActive"
+    },
+    {
+      "key": "provider_sort_order",
+      "value": "desc",
+      "enabled": true,
+      "description": "Provider sort direction"
+    },
+    {
+      "key": "provider_is_active",
+      "value": "true",
+      "enabled": true,
+      "description": "Provider active status filter"
+    },
+    {
+      "key": "provider_verification_status",
+      "value": "VERIFIED",
+      "enabled": true,
+      "description": "Provider verification status filter: PENDING, VERIFIED, REJECTED"
+    },
+    {
+      "key": "order_search",
+      "value": "Jakarta",
+      "enabled": true,
+      "description": "Order search term for REQ-B-12 testing"
+    },
+    {
+      "key": "order_sort_by",
+      "value": "orderDate",
+      "enabled": true,
+      "description": "Order sort field: orderDate, scheduledDate, status, finalAmount, customer.fullName, provider.fullName"
+    },
+    {
+      "key": "order_sort_order",
+      "value": "desc",
+      "enabled": true,
+      "description": "Order sort direction"
+    },
+    {
+      "key": "order_status",
+      "value": "COMPLETED",
+      "enabled": true,
+      "description": "Order status filter for testing"
+    },
+    {
+      "key": "order_date_from",
+      "value": "2025-01-01",
+      "enabled": true,
+      "description": "Order date range filter - from date (YYYY-MM-DD)"
+    },
+    {
+      "key": "order_date_to",
+      "value": "2025-12-31",
+      "enabled": true,
+      "description": "Order date range filter - to date (YYYY-MM-DD)"
+    },
+    {
+      "key": "order_min_amount",
+      "value": "0",
+      "enabled": true,
+      "description": "Order minimum amount filter"
+    },
+    {
+      "key": "order_max_amount",
+      "value": "1000000",
+      "enabled": true,
+      "description": "Order maximum amount filter"
+    },
+    {
+      "key": "page",
+      "value": "1",
+      "enabled": true,
+      "description": "Universal page number for data table pagination"
+    },
+    {
+      "key": "limit",
+      "value": "10",
+      "enabled": true,
+      "description": "Universal items per page for data table pagination"
     }
   ],
   "_postman_variable_scope": "environment",

@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     // Add search functionality
     if (tableParams.search) {
       const searchWhere = buildSearchWhere(tableParams.search, SEARCH_FIELDS.orders);
-      whereClause.AND = [whereClause, searchWhere];
+      whereClause.AND = [searchWhere];
     }
 
     // Get total count for pagination
