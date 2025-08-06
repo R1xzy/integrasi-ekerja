@@ -28,25 +28,29 @@ export default function Login() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: 'include' // Important for cookies
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setSuccess(`Login berhasil! Selamat datang, ${data.user.fullName}`);
+      if (data.success && response.ok) {
+        setSuccess(`Login berhasil! Selamat datang, ${data.data.user.fullName}`);
         
-        console.log('Login page: Received user data:', data.user);
+        console.log('Login page: Received data:', data);
         
         // Store user data in localStorage for client-side access
         const userDataForStorage = {
-          id: data.user.id.toString(),
-          name: data.user.fullName,
-          email: data.user.email,
-          role: data.user.role?.roleName || data.user.role
+          id: data.data.user.id.toString(),
+          name: data.data.user.fullName,
+          email: data.data.user.email,
+          role: data.data.user.role?.roleName || data.data.user.role,
+          token: data.data.token,
+          tokenType: data.data.tokenType
         };
         
         console.log('Login page: Storing in localStorage:', userDataForStorage);
         localStorage.setItem('user', JSON.stringify(userDataForStorage));
+        localStorage.setItem('token', data.data.token);
 
         // Dispatch custom event to notify components of login
         window.dispatchEvent(new CustomEvent('userLogin', {
@@ -56,7 +60,7 @@ export default function Login() {
         // Add delay to ensure cookies are set
         setTimeout(() => {
           // Determine role string (could be object)
-          const roleName = data.user.role?.roleName || data.user.role;
+          const roleName = data.data.user.role?.roleName || data.data.user.role;
           console.log('Login page: Redirecting based on role', roleName);
           if (roleName === 'admin') {
             window.location.href = '/dashboard';
@@ -66,12 +70,13 @@ export default function Login() {
             // Customer goes to homepage
             window.location.href = '/';
           }
-        }, 100);
+        }, 1000);
       } else {
-        setError(data.error || 'Login gagal');
+        setError(data.error || data.message || 'Login gagal');
       }
     } catch (error) {
-      setError('Terjadi kesalahan. Silakan coba lagi.');
+      console.error('Login error:', error);
+      setError('Terjadi kesalahan jaringan. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +87,16 @@ export default function Login() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  // Quick fill functions for demo accounts
+  const fillDemoAccount = (role: 'admin' | 'customer' | 'provider') => {
+    const accounts = {
+      admin: { email: 'admin@ekerjakarawang.com', password: 'admin123' },
+      customer: { email: 'customer@example.com', password: 'customer123' },
+      provider: { email: 'provider@example.com', password: 'provider123' }
+    };
+    setFormData(accounts[role]);
   };
 
   return (
@@ -255,11 +270,44 @@ export default function Login() {
 
         {/* Demo Accounts */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <h3 className="text-sm font-medium text-yellow-800 mb-2">Akun Demo untuk Testing:</h3>
-          <div className="text-xs text-yellow-700 space-y-1">
-            <div><strong>Admin:</strong> admin@ekerjakarawang.com / admin123</div>
-            <div><strong>Customer:</strong> customer@example.com / customer123</div>
-            <div><strong>Provider:</strong> provider@example.com / provider123</div>
+          <h3 className="text-sm font-medium text-yellow-800 mb-3">Akun Demo untuk Testing:</h3>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-yellow-700">
+                <div><strong>Admin:</strong> admin@ekerjakarawang.com / admin123</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => fillDemoAccount('admin')}
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              >
+                Isi
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-yellow-700">
+                <div><strong>Customer:</strong> customer@example.com / customer123</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => fillDemoAccount('customer')}
+                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+              >
+                Isi
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-yellow-700">
+                <div><strong>Provider:</strong> provider@example.com / provider123</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => fillDemoAccount('provider')}
+                className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+              >
+                Isi
+              </button>
+            </div>
           </div>
         </div>
 
