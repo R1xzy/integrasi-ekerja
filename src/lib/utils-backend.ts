@@ -8,6 +8,53 @@ export function generateSecureFilename(originalName: string): string {
   return `${hash}${ext}`;
 }
 
+// REQ-B-2.4: Generate encrypted filename with unpredictable pattern
+export function generateEncryptedFilename(originalName: string, userId?: string): string {
+  const ext = path.extname(originalName);
+  const timestamp = Date.now().toString();
+  const randomBytes = crypto.randomBytes(16).toString('hex');
+  
+  // Create a hash combining multiple unpredictable elements
+  const hashInput = `${originalName}-${timestamp}-${userId || 'anonymous'}-${randomBytes}`;
+  const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
+  
+  // Take first 32 characters for filename + extension
+  return `${hash.substring(0, 32)}${ext}`;
+}
+
+// REQ-B-2.5: Generate unique filename that doesn't exist in database
+export async function generateUniqueFilename(
+  originalName: string, 
+  userId?: string,
+  existingFilenameChecker?: (filename: string) => Promise<boolean>
+): Promise<string> {
+  let filename: string;
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  do {
+    filename = generateEncryptedFilename(originalName, userId);
+    attempts++;
+    
+    // If no checker provided, assume it's unique
+    if (!existingFilenameChecker) {
+      break;
+    }
+    
+    // Check if filename already exists
+    const exists = await existingFilenameChecker(filename);
+    if (!exists) {
+      break;
+    }
+    
+    if (attempts >= maxAttempts) {
+      throw new Error('Failed to generate unique filename after maximum attempts');
+    }
+  } while (true);
+  
+  return filename;
+}
+
 export function validateFileType(filename: string, allowedTypes: string[]): boolean {
   const ext = path.extname(filename).toLowerCase();
   return allowedTypes.includes(ext);

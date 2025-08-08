@@ -57,6 +57,7 @@ model User {
   // Review relations
   customerReviews Review[] @relation("CustomerReviews")
   providerReviews Review[] @relation("ProviderReviews")
+  moderatedReviews Review[] @relation("ModeratedReviews")
 
   // Review report relations
   reportedReviews ReviewReport[] @relation("ReportedByUser")
@@ -138,23 +139,31 @@ model ProviderDocument {
 }
 
 model Order {
-  id                  Int                  @id @default(autoincrement())
-  customerId          Int                  @map("customer_id")
-  providerId          Int                  @map("provider_id")
-  providerServiceId   Int                  @map("provider_service_id")
-  orderDate           DateTime             @default(now()) @map("order_date")
-  scheduledDate       DateTime             @map("scheduled_date")
-  jobAddress          String               @map("job_address")
-  district            String
-  subDistrict         String               @map("sub_district")
-  ward                String
-  jobDescriptionNotes String?              @map("job_description_notes")
-  finalAmount         Float?               @map("final_amount")
-  chosenPaymentMethod PaymentMethodOption? @map("chosen_payment_method")
-  status              OrderStatus          @default(PENDING_ACCEPTANCE)
-  information         String?
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
+  id                        Int                  @id @default(autoincrement())
+  customerId                Int                  @map("customer_id")
+  providerId                Int                  @map("provider_id")
+  providerServiceId         Int                  @map("provider_service_id")
+  orderDate                 DateTime             @default(now()) @map("order_date")
+  scheduledDate             DateTime             @map("scheduled_date")
+  jobAddress                String               @map("job_address")
+  district                  String
+  subDistrict               String               @map("sub_district")
+  ward                      String
+  jobDescriptionNotes       String?              @map("job_description_notes")
+  finalAmount               Float?               @map("final_amount")
+  chosenPaymentMethod       PaymentMethodOption? @map("chosen_payment_method")
+  status                    OrderStatus          @default(PENDING_ACCEPTANCE)
+  information               String?
+  // REQ-B-5.4: Provider attendance tracking
+  providerAttendanceStatus  String?              @map("provider_attendance_status") // on_way, arrived, working, completed
+  providerArrivalTime       DateTime?            @map("provider_arrival_time")
+  providerNotes             String?              @map("provider_notes")
+  // REQ-B-5.5: Customer verification
+  customerVerificationStatus String?            @map("customer_verification_status") // pending, verified, rejected
+  customerVerificationNotes String?             @map("customer_verification_notes")
+  customerVerificationTime  DateTime?           @map("customer_verification_time")
+  createdAt                 DateTime             @default(now()) @map("created_at")
+  updatedAt                 DateTime             @updatedAt @map("updated_at")
 
   customer          User               @relation("CustomerOrders", fields: [customerId], references: [id])
   provider          User               @relation("ProviderOrders", fields: [providerId], references: [id])
@@ -201,20 +210,24 @@ model Payment {
 }
 
 model Review {
-  id         Int      @id @default(autoincrement())
-  orderId    Int      @unique @map("order_id")
-  customerId Int      @map("customer_id")
-  providerId Int      @map("provider_id")
-  rating     Int
-  comment    String?
-  isReported Boolean  @default(false) @map("is_reported")
-  isShow     Boolean  @default(true) @map("is_show")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique @map("order_id")
+  customerId  Int      @map("customer_id")
+  providerId  Int      @map("provider_id")
+  rating      Int
+  comment     String?
+  isReported  Boolean  @default(false) @map("is_reported")
+  isShow      Boolean  @default(true) @map("is_show")
+  adminNotes  String?  @map("admin_notes")
+  moderatedAt DateTime? @map("moderated_at")
+  moderatedBy Int?     @map("moderated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   order         Order          @relation(fields: [orderId], references: [id])
   customer      User           @relation("CustomerReviews", fields: [customerId], references: [id])
   provider      User           @relation("ProviderReviews", fields: [providerId], references: [id])
+  moderator     User?          @relation("ModeratedReviews", fields: [moderatedBy], references: [id])
   reviewReports ReviewReport[]
 
   @@map("reviews")
