@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
-import MainNavbar from "@/components/MainNavbar";
+import NavbarController from "@/components/NavbarController"; // Impor controller baru
+import UniversalFooter from "@/components/Footer"; // Impor footer universal
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -18,17 +14,19 @@ export const metadata: Metadata = {
   description: "Platform terpercaya untuk menemukan dan menyediakan berbagai layanan jasa profesional di Karawang, di Indonesia",
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <MainNavbar />
-        {children}
+    <html lang="en">
+      <body className={geistSans.variable}>
+        {/* Cukup panggil satu komponen ini */}
+        <NavbarController /> 
+        <main className="duration-300">{children}</main>
+        {/* Anda bisa menambahkan Footer di sini jika ada */}
+        <UniversalFooter /> 
       </body>
     </html>
   );

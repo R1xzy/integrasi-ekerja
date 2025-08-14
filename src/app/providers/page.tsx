@@ -521,9 +521,12 @@ export default function ProvidersPage() {
                       >
                         Lihat Profil
                       </Link>
-                      <button className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors">
-                        Chat Sekarang
-                      </button>
+                      <Link
+  href="/chat"
+  className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors"
+>
+  Chat Sekarang
+</Link>
                     </div>
                   </div>
                 </div>

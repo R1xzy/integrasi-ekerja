@@ -1,0 +1,195 @@
+##########################################
+### Dokumentasi Komponen ReusableTable ###
+##########################################
+
+ReusableTable adalah komponen tabel React yang serbaguna dan dapat digunakan kembali (reusable), 
+dibuat khusus untuk Next.js dengan TypeScript. Komponen ini sudah dilengkapi dengan fitur-fitur 
+canggih seperti pencarian global, filter per kolom, pengurutan (sorting), dan paginasi yang 
+semuanya terkelola secara internal.
+
+Tujuan komponen ini adalah untuk mempercepat pengembangan dengan menyediakan satu solusi tabel 
+yang dapat dikonfigurasi untuk berbagai jenis data tanpa perlu menulis ulang logika setiap saat.
+
+📁 Struktur File
+Simpan file komponen ini di: src/components/ReusableTable.tsx.
+
+🚀 Cara Menggunakan
+Untuk menggunakan komponen ini, Anda hanya perlu menyediakan dua props utama: data dan columns.
+ Fitur lainnya dapat diaktifkan melalui props opsional.
+
+Langkah 1: Siapkan Tipe Data dan Data Aktual
+Pertama, definisikan interface TypeScript untuk struktur data Anda dan siapkan datanya 
+dalam bentuk array.
+
+// Contoh di: src/app/dashboard/users/page.tsx
+
+// 1. Definisikan tipe data
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'Admin' | 'Member' | 'Guest';
+  status: 'active' | 'inactive';
+}
+
+// 2. Siapkan data (bisa dari API atau data statis)
+const users: User[] = [
+  { id: 1, name: "Andi Prasetyo", email: "andi@mail.com", role: 'Admin', status: 'active' },
+  { id: 2, name: "Budi Santoso", email: "budi@mail.com", role: 'Member', status: 'inactive' },
+  { id: 3, name: "Citra Lestari", email: "citra@mail.com", role: 'Member', status: 'active' },
+  // ...data lainnya
+];
+
+Langkah 2: Konfigurasi Kolom (columns)
+Ini adalah bagian terpenting. Buat sebuah array untuk mendefinisikan 
+setiap kolom yang ingin Anda tampilkan. Setiap objek dalam array ini mengkonfigurasi satu kolom.
+
+// Lanjutan di: src/app/dashboard/users/page.tsx
+
+import ReusableTable from '@/components/ReusableTable';
+import { Pencil, Trash2 } from 'lucide-react';
+
+export default function UsersPage() {
+  // ...state dan data Anda di sini...
+
+  // 3. Konfigurasi kolom
+  const columns = [
+    {
+      header: "Nama",
+      accessorKey: "name" as keyof User,
+      sortable: true, // Membuat kolom ini bisa diurutkan
+    },
+    {
+      header: "Email",
+      accessorKey: "email" as keyof User,
+      sortable: true,
+    },
+    {
+      header: "Role",
+      accessorKey: "role" as keyof User,
+      // Membuat filter dropdown otomatis untuk kolom ini
+      filterValues: ["Admin", "Member", "Guest"],
+    },
+    {
+      header: "Status",
+      // Menggunakan `cell` untuk render custom (misalnya, badge)
+      cell: (row: User) => (
+        <span className={
+          row.status === 'active' 
+            ? "bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+            : "bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+        }>
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      header: "Aksi",
+      // Menggunakan `cell` untuk merender tombol atau elemen interaktif lainnya
+      cell: (row: User) => (
+        <div className="flex space-x-2">
+          <button className="text-blue-600 hover:text-blue-800"><Pencil className="w-4 h-4" /></button>
+          <button className="text-red-600 hover:text-red-800"><Trash2 className="w-4 h-4" /></button>
+        </div>
+      ),
+    },
+  ];
+
+  // ...
+}
+
+Langkah 3: Render Komponen Tabel
+Terakhir, panggil komponen <ReusableTable /> di dalam JSX Anda dan berikan props yang diperlukan.
+
+// Lanjutan di dalam return function UsersPage()
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-6">Manajemen Pengguna</h1>
+      
+      <ReusableTable
+        data={users}
+        columns={columns}
+        enableSearch={true}      // Mengaktifkan fitur pencarian
+        enablePagination={true}  // Mengaktifkan fitur paginasi
+        itemsPerPage={10}        // Opsional: set item per halaman (default 5)
+      />
+    </div>
+  );
+
+📖 Referensi Props
+data
+Tipe: T[] (Array dari objek data Anda)
+
+Wajib: Ya
+
+Deskripsi: Array berisi objek data yang akan ditampilkan di tabel.
+
+columns
+Tipe: Column<T>[] (Array dari objek konfigurasi kolom)
+
+Wajib: Ya
+
+Deskripsi: Array untuk mendefinisikan setiap kolom.
+
+enableSearch
+Tipe: boolean
+
+Default: false
+
+Deskripsi: Jika true, akan menampilkan input pencarian global di atas tabel.
+
+enablePagination
+Tipe: boolean
+
+Default: false
+
+Deskripsi: Jika true, akan menampilkan kontrol paginasi di bawah tabel.
+
+itemsPerPage
+Tipe: number
+
+Default: 5
+
+Deskripsi: Jumlah baris data yang ditampilkan per halaman. Hanya berfungsi jika 
+enablePagination bernilai true.
+
+Properti Objek Column
+header
+Tipe: string
+
+Wajib: Ya
+
+Deskripsi: Teks yang akan ditampilkan di header (<th>) kolom.
+
+accessorKey
+Tipe: keyof T (salah satu kunci dari objek data Anda)
+
+Wajib: Tidak
+
+Deskripsi: Kunci dari objek data yang nilainya ingin ditampilkan di sel. Contoh: 'name', 'email'.
+
+cell
+Tipe: (row: T) => React.ReactNode
+
+Wajib: Tidak
+
+Deskripsi: Fungsi untuk merender konten sel secara custom. Menerima seluruh data baris 
+(row) sebagai argumen. Berguna untuk tombol, gambar, atau badge.
+
+sortable
+Tipe: boolean
+
+Wajib: Tidak
+
+Deskripsi: Jika true, header kolom akan menjadi tombol yang bisa diklik untuk mengurutkan 
+data berdasarkan accessorKey kolom tersebut.
+
+filterValues
+Tipe: string[]
+
+Wajib: Tidak
+
+Deskripsi: Jika properti ini ada, komponen akan secara otomatis membuat sebuah <select> 
+(dropdown) untuk memfilter kolom ini berdasarkan nilai yang ada di dalam array ini.
+

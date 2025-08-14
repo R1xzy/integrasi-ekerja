@@ -25,26 +25,11 @@ export default function ProviderNavbar() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Clear localStorage regardless of response
+      await fetch('/api/auth/logout', { method: 'POST' });
       localStorage.removeItem('user');
-      
-      if (response.ok) {
-        // Force page reload to clear all state
-        window.location.href = '/';
-      } else {
-        console.error('Logout failed');
-        window.location.href = '/';
-      }
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Clear state and redirect even on error
       localStorage.removeItem('user');
       window.location.href = '/';
     }
@@ -58,7 +43,7 @@ export default function ProviderNavbar() {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white shadow-sm border-b border-gray-200 duraytion-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
@@ -112,28 +97,32 @@ export default function ProviderNavbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <nav className="flex flex-col space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors ${
-                    isActiveLink(item.href)
-                      ? "text-green-600 bg-green-50"
-                      : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-          </div>
-        )}
+        {/* Mobile Navigation with Animation */}
+        <div
+          className={`
+            md:hidden border-gray-200 overflow-hidden
+            transition-all duration-300 ease-in-out
+            ${isMobileMenuOpen ? 'max-h-96 py-4 border-t' : 'max-h-0'}
+          `}
+        >
+          <nav className="flex flex-col space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors ${
+                  isActiveLink(item.href)
+                    ? "text-green-600 bg-green-50"
+                    : "text-gray-700 hover:text-green-600 hover:bg-gray-50"
+                }`}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </header>
   );

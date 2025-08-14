@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Search, Filter, Eye, CheckCircle, XCircle, Clock } from "lucide-react";
-import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+
 
 export default function ProvidersPage() {
   const providers = [
@@ -80,7 +80,7 @@ export default function ProvidersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
@@ -147,18 +147,18 @@ export default function ProvidersPage() {
                   <input
                     type="text"
                     placeholder="Cari penyedia jasa..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="text-gray-600 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
-                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Status</option>
                   <option value="verified">Terverifikasi</option>
                   <option value="pending">Menunggu</option>
                   <option value="rejected">Ditolak</option>
                 </select>
-                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Layanan</option>
                   <option value="ac">Service AC</option>
                   <option value="cleaning">Jasa Kebersihan</option>

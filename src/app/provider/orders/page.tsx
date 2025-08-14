@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle, Phone, MapPin } from "lucide-react";
+import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle, Phone, MapPin, ShoppingBag } from "lucide-react";
 import ProviderNavbar from "@/components/provider/ProviderNavbar";
 
 export default function ProviderOrdersPage() {
@@ -169,7 +169,7 @@ export default function ProviderOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ProviderNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}

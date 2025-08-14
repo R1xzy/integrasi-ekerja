@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Users, ShoppingBag, Star, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, Users, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 
 export default function Dashboard() {
@@ -43,7 +43,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
@@ -136,11 +136,11 @@ export default function Dashboard() {
                   </div>
                 </Link>
                 
-                <Link href="/dashboard/schedule" className="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
-                  <Calendar className="w-8 h-8 text-yellow-600 mr-3" />
+                <Link href="/dashboard/FAQ" className="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                  <BadgeQuestionMark className="w-8 h-8 text-yellow-600 mr-3" />
                   <div>
-                    <p className="font-medium text-gray-900">Jadwal Maintenance</p>
-                    <p className="text-sm text-gray-600">Kelola jadwal sistem</p>
+                    <p className="font-medium text-gray-900">FAQ</p>
+                    <p className="text-sm text-gray-600">Kelola FAQ</p>
                   </div>
                 </Link>
               </div>

@@ -17,7 +17,7 @@ import {
   ChevronDown,
   MoreHorizontal
 } from "lucide-react";
-import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+
 
 export default function ServicesManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -167,7 +167,7 @@ export default function ServicesManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
@@ -243,7 +243,7 @@ export default function ServicesManagement() {
                   placeholder="Cari layanan, penyedia, atau kategori..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-gray-600 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function ServicesManagement() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className=" text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {categories.map(category => (
                   <option key={category.value} value={category.value}>
@@ -262,7 +262,7 @@ export default function ServicesManagement() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {statusOptions.map(status => (
                   <option key={status.value} value={status.value}>

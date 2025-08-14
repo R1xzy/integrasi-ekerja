@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+
 
 export default function OrdersPage() {
   const orders = [
@@ -88,7 +88,7 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNavbar />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
@@ -155,19 +155,19 @@ export default function OrdersPage() {
                   <input
                     type="text"
                     placeholder="Cari pesanan..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-600"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
-                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Status</option>
                   <option value="completed">Selesai</option>
                   <option value="in_progress">Berlangsung</option>
                   <option value="pending">Menunggu</option>
                   <option value="cancelled">Dibatalkan</option>
                 </select>
-                <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Semua Layanan</option>
                   <option value="ac">Service AC</option>
                   <option value="cleaning">Jasa Kebersihan</option>
@@ -177,7 +177,7 @@ export default function OrdersPage() {
                 </select>
                 <input
                   type="date"
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
                   <Filter className="w-4 h-4 mr-2" />

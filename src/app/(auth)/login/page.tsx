@@ -67,8 +67,7 @@ export default function Login() {
           } else if (roleName === 'provider') {
             window.location.href = '/provider/dashboard';
           } else {
-            // Customer goes to homepage
-            window.location.href = '/';
+            window.location.href = '/customer/dashboard';
           }
         }, 1000);
       } else {
@@ -137,7 +136,7 @@ export default function Login() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="text-gray-600 appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Masukkan email Anda"
                 />
               </div>
@@ -159,7 +158,7 @@ export default function Login() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="text-gray-600 appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Masukkan password Anda"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
