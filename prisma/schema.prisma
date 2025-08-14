@@ -6,58 +6,75 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model Role {
   id       Int    @id @default(autoincrement())
   roleName String @unique @map("role_name")
-  
+
   users User[]
-  
+
   @@map("roles")
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
-  fullName           String   @map("full_name")
-  email              String   @unique
-  passwordHash       String   @map("password_hash")
-  phoneNumber        String?  @unique @map("phone_number")
-  address            String?
-  profilePictureUrl  String?  @map("profile_picture_url")
-  roleId             Int      @map("role_id")
-  
+  id                Int     @id @default(autoincrement())
+  fullName          String  @map("full_name")
+  email             String  @unique
+  passwordHash      String  @map("password_hash")
+  phoneNumber       String? @unique @map("phone_number")
+  address           String?
+  profilePictureUrl String? @map("profile_picture_url")
+  roleId            Int     @map("role_id")
+
   // Provider specific fields
-  providerBio        String?  @map("provider_bio")
+  providerBio        String?                    @map("provider_bio")
   verificationStatus ProviderVerificationStatus @default(PENDING) @map("verification_status")
-  verifiedBy         Int?     @map("verified_by")
-  verifiedAt         DateTime? @map("verified_at")
-  
+  verifiedBy         Int?                       @map("verified_by")
+  verifiedAt         DateTime?                  @map("verified_at")
+
   // General fields
-  isActive           Boolean  @default(true) @map("is_active")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-  
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   // Relations
-  role               Role     @relation(fields: [roleId], references: [id])
-  verifier           User?    @relation("UserVerifier", fields: [verifiedBy], references: [id])
-  verifiedUsers      User[]   @relation("UserVerifier")
-  
+  role          Role   @relation(fields: [roleId], references: [id])
+  verifier      User?  @relation("UserVerifier", fields: [verifiedBy], references: [id])
+  verifiedUsers User[] @relation("UserVerifier")
+
   // Provider relations
   providerServices   ProviderService[]
   providerPortfolios ProviderPortfolio[]
-  providerCertifications ProviderCertification[]
-  
+  providerDocuments  ProviderDocument[]
+
   // Order relations
-  customerOrders     Order[]  @relation("CustomerOrders")
-  providerOrders     Order[]  @relation("ProviderOrders")
-  
+  customerOrders Order[] @relation("CustomerOrders")
+  providerOrders Order[] @relation("ProviderOrders")
+
   // Review relations
-  customerReviews    Review[] @relation("CustomerReviews")
-  providerReviews    Review[] @relation("ProviderReviews")
-  
+  customerReviews Review[] @relation("CustomerReviews")
+  providerReviews Review[] @relation("ProviderReviews")
+  moderatedReviews Review[] @relation("ModeratedReviews")
+
+  // Review report relations
+  reportedReviews ReviewReport[] @relation("ReportedByUser")
+  resolvedReports ReviewReport[] @relation("ResolvedByAdmin")
+
+  // Chat relations
+  chatParticipants ChatParticipant[]
+  chatMessages     ChatMessage[]
+  adminChatRequests ChatAdminAccess[] @relation("AdminChatRequests")
+  customerChatAccess ChatAdminAccess[] @relation("CustomerChatAccess")
+
+  // Order detail relations
+  addedOrderDetails OrderDetail[]
+
+  // Email verification relations
+  emailVerifications EmailVerification[]
+
   @@map("users")
 }
 
@@ -68,150 +85,351 @@ model ServiceCategory {
   iconUrl     String?  @map("icon_url")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
   providerServices ProviderService[]
-  
+
   @@map("service_categories")
 }
 
 model ProviderService {
-  id          Int      @id @default(autoincrement())
-  providerId  Int      @map("provider_id")
-  categoryId  Int      @map("category_id")
-  serviceTitle String  @map("service_title")
-  description String?
-  price       Float
-  priceUnit   String   @default("per project") @map("price_unit")
-  isAvailable Boolean  @default(true) @map("is_available")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  provider    User     @relation(fields: [providerId], references: [id])
-  category    ServiceCategory @relation(fields: [categoryId], references: [id])
-  orders      Order[]
-  
+  id           Int      @id @default(autoincrement())
+  providerId   Int      @map("provider_id")
+  categoryId   Int      @map("category_id")
+  serviceTitle String   @map("service_title")
+  description  String?
+  price        Float
+  priceUnit    String   @default("per project") @map("price_unit")
+  isAvailable  Boolean  @default(true) @map("is_available")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  provider User            @relation(fields: [providerId], references: [id])
+  category ServiceCategory @relation(fields: [categoryId], references: [id])
+  orders   Order[]
+
   @@unique([providerId, categoryId])
   @@map("provider_services")
 }
 
 model ProviderPortfolio {
-  id           Int      @id @default(autoincrement())
-  providerId   Int      @map("provider_id")
-  projectTitle String   @map("project_title")
+  id           Int       @id @default(autoincrement())
+  providerId   Int       @map("provider_id")
+  projectTitle String    @map("project_title")
   description  String?
-  imageUrl     String?  @map("image_url")
+  imageUrl     String?   @map("image_url")
   completedAt  DateTime? @map("completed_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  
-  provider     User     @relation(fields: [providerId], references: [id])
-  
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  provider User @relation(fields: [providerId], references: [id])
+
   @@map("provider_portfolios")
 }
 
-model ProviderCertification {
-  id                   Int      @id @default(autoincrement())
-  providerId           Int      @map("provider_id")
-  certificateName      String   @map("certificate_name")
-  issuingOrganization  String?  @map("issuing_organization")
-  credentialId         String?  @map("credential_id")
-  fileUrl              String?  @map("file_url")
-  issuedAt             DateTime? @map("issued_at")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
-  
-  provider             User     @relation(fields: [providerId], references: [id])
-  
-  @@map("provider_certifications")
+model ProviderDocument {
+  id                  Int          @id @default(autoincrement())
+  providerId          Int          @map("provider_id")
+  documentType        DocumentType @map("document_type")
+  documentName        String       @map("document_name")
+  issuingOrganization String?      @map("issuing_organization")
+  credentialId        String?      @map("credential_id")
+  fileUrl             String       @map("file_url")
+  issuedAt            DateTime?    @map("issued_at")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  provider User @relation(fields: [providerId], references: [id])
+
+  @@map("provider_documents")
 }
 
 model Order {
-  id                    Int      @id @default(autoincrement())
-  customerId            Int      @map("customer_id")
-  providerId            Int      @map("provider_id")
-  providerServiceId     Int      @map("provider_service_id")
-  orderDate             DateTime @default(now()) @map("order_date")
-  scheduledDate         DateTime @map("scheduled_date")
-  jobAddress            String   @map("job_address")
-  district              String
-  subDistrict           String   @map("sub_district")
-  ward                  String
-  jobDescriptionNotes   String?  @map("job_description_notes")
-  totalAmount           Float    @map("total_amount")
-  status                OrderStatus @default(PENDING_ACCEPTANCE)
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-  
-  customer              User     @relation("CustomerOrders", fields: [customerId], references: [id])
-  provider              User     @relation("ProviderOrders", fields: [providerId], references: [id])
-  providerService       ProviderService @relation(fields: [providerServiceId], references: [id])
-  payment               Payment?
-  review                Review?
-  
+  id                        Int                  @id @default(autoincrement())
+  customerId                Int                  @map("customer_id")
+  providerId                Int                  @map("provider_id")
+  providerServiceId         Int                  @map("provider_service_id")
+  orderDate                 DateTime             @default(now()) @map("order_date")
+  scheduledDate             DateTime             @map("scheduled_date")
+  jobAddress                String               @map("job_address")
+  district                  String
+  subDistrict               String               @map("sub_district")
+  ward                      String
+  jobDescriptionNotes       String?              @map("job_description_notes")
+  finalAmount               Float?               @map("final_amount")
+  chosenPaymentMethod       PaymentMethodOption? @map("chosen_payment_method")
+  status                    OrderStatus          @default(PENDING_ACCEPTANCE)
+  information               String?
+  // REQ-B-5.4: Provider attendance tracking
+  providerAttendanceStatus  String?              @map("provider_attendance_status") // on_way, arrived, working, completed
+  providerArrivalTime       DateTime?            @map("provider_arrival_time")
+  providerNotes             String?              @map("provider_notes")
+  // REQ-B-5.5: Customer verification
+  customerVerificationStatus String?            @map("customer_verification_status") // pending, verified, rejected
+  customerVerificationNotes String?             @map("customer_verification_notes")
+  customerVerificationTime  DateTime?           @map("customer_verification_time")
+  createdAt                 DateTime             @default(now()) @map("created_at")
+  updatedAt                 DateTime             @updatedAt @map("updated_at")
+
+  customer          User               @relation("CustomerOrders", fields: [customerId], references: [id])
+  provider          User               @relation("ProviderOrders", fields: [providerId], references: [id])
+  providerService   ProviderService    @relation(fields: [providerServiceId], references: [id])
+  orderDetails      OrderDetail[]
+  review            Review?
+  chatConversations ChatConversation[]
+  payment           Payment?
+
   @@map("orders")
 }
 
+model OrderDetail {
+  id            Int          @id @default(autoincrement())
+  orderId       Int          @map("order_id")
+  description   String
+  quantity      Int          @default(1)
+  pricePerUnit  Float        @map("price_per_unit")
+  status        DetailStatus @default(APPROVED)
+  addedByUserId Int          @map("added_by_user_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  order       Order @relation(fields: [orderId], references: [id])
+  addedByUser User  @relation(fields: [addedByUserId], references: [id])
+
+  @@map("order_details")
+}
+
 model Payment {
-  id                    Int      @id @default(autoincrement())
-  orderId               Int      @unique @map("order_id")
-  paymentGateway        String   @default("Midtrans") @map("payment_gateway")
-  gatewayTransactionId  String?  @unique @map("gateway_transaction_id")
-  amount                Float
-  status                PaymentStatus @default(PENDING)
-  paymentMethod         String?  @map("payment_method")
-  paidAt                DateTime? @map("paid_at")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-  
-  order                 Order    @relation(fields: [orderId], references: [id])
-  
+  id                   Int           @id @default(autoincrement())
+  orderId              Int           @unique @map("order_id")
+  paymentGateway       String        @default("Midtrans") @map("payment_gateway")
+  gatewayTransactionId String?       @unique @map("gateway_transaction_id")
+  amount               Float
+  status               PaymentStatus @default(PENDING)
+  paymentMethod        String?       @map("payment_method")
+  paidAt               DateTime?     @map("paid_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
   @@map("payments")
 }
 
 model Review {
-  id         Int      @id @default(autoincrement())
-  orderId    Int      @unique @map("order_id")
-  customerId Int      @map("customer_id")
-  providerId Int      @map("provider_id")
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  
-  order      Order    @relation(fields: [orderId], references: [id])
-  customer   User     @relation("CustomerReviews", fields: [customerId], references: [id])
-  provider   User     @relation("ProviderReviews", fields: [providerId], references: [id])
-  
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique @map("order_id")
+  customerId  Int      @map("customer_id")
+  providerId  Int      @map("provider_id")
+  rating      Int
+  comment     String?
+  isReported  Boolean  @default(false) @map("is_reported")
+  isShow      Boolean  @default(true) @map("is_show")
+  adminNotes  String?  @map("admin_notes")
+  moderatedAt DateTime? @map("moderated_at")
+  moderatedBy Int?     @map("moderated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  order         Order          @relation(fields: [orderId], references: [id])
+  customer      User           @relation("CustomerReviews", fields: [customerId], references: [id])
+  provider      User           @relation("ProviderReviews", fields: [providerId], references: [id])
+  moderator     User?          @relation("ModeratedReviews", fields: [moderatedBy], references: [id])
+  reviewReports ReviewReport[]
+
   @@map("reviews")
 }
 
+model ReviewReport {
+  id                Int          @id @default(autoincrement())
+  reviewId          Int          @map("review_id")
+  reportedByUserId  Int          @map("reported_by_user_id")
+  reason            String
+  status            ReportStatus @default(PENDING_REVIEW) @map("status")
+  resolvedByAdminId Int?         @map("resolved_by_admin_id")
+  adminNotes        String?      @map("admin_notes")
+  resolvedAt        DateTime?    @map("resolved_at")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  review          Review @relation(fields: [reviewId], references: [id])
+  reportedByUser  User   @relation("ReportedByUser", fields: [reportedByUserId], references: [id])
+  resolvedByAdmin User?  @relation("ResolvedByAdmin", fields: [resolvedByAdminId], references: [id])
+
+  @@map("review_reports")
+}
+
+model ChatConversation {
+  id                Int      @id @default(autoincrement())
+  conversationTitle String?  @map("conversation_title")
+  orderId           Int?     @map("order_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  order        Order?            @relation(fields: [orderId], references: [id])
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+  adminAccess  ChatAdminAccess[]
+
+  @@map("chat_conversations")
+}
+
+model ChatParticipant {
+  id             Int @id @default(autoincrement())
+  conversationId Int @map("conversation_id")
+  userId         Int @map("user_id")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id])
+  user         User             @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@map("chat_participants")
+}
+
+model ChatMessage {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  senderId       Int       @map("sender_id")
+  messageContent String    @map("message_content")
+  sentAt         DateTime  @default(now()) @map("sent_at")
+  readAt         DateTime? @map("read_at")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id])
+  sender       User             @relation(fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model ChatAdminAccess {
+  id               Int                 @id @default(autoincrement())
+  conversationId   Int                 @map("conversation_id")
+  requestedByAdmin Int                 @map("requested_by_admin")
+  customerId       Int                 @map("customer_id")
+  status           ChatAccessStatus    @default(PENDING) @map("status")
+  accessToken      String?             @unique @map("access_token")
+  reason           String?             @map("reason")
+  customerResponse String?             @map("customer_response")
+  expiresAt        DateTime?           @map("expires_at")
+  approvedAt       DateTime?           @map("approved_at")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id])
+  admin        User             @relation("AdminChatRequests", fields: [requestedByAdmin], references: [id])
+  customer     User             @relation("CustomerChatAccess", fields: [customerId], references: [id])
+
+  @@map("chat_admin_access")
+}
+
+model Setting {
+  id           Int     @id @default(autoincrement())
+  settingKey   String  @unique @map("setting_key")
+  settingValue String  @map("setting_value")
+  description  String?
+
+  @@map("settings")
+}
+
+model Faq {
+  id           Int      @id @default(autoincrement())
+  question     String
+  answer       String   @db.Text
+  category     String?
+  displayOrder Int      @default(0) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("faq")
+}
+
 enum ProviderVerificationStatus {
-  PENDING @map("pending")
-  VERIFIED @map("verified")
-  REJECTED @map("rejected")
+  PENDING            @map("pending")
+  VERIFIED           @map("verified")
+  REJECTED           @map("rejected")
   NEEDS_RESUBMISSION @map("needs_resubmission")
-  
+
   @@map("provider_verification_status")
 }
 
 enum OrderStatus {
-  PENDING_ACCEPTANCE @map("pending_acceptance")
-  ACCEPTED @map("accepted")
-  REJECTED_BY_PROVIDER @map("rejected_by_provider")
-  IN_PROGRESS @map("in_progress")
-  COMPLETED @map("completed")
+  PENDING_ACCEPTANCE    @map("pending_acceptance")
+  ACCEPTED              @map("accepted")
+  REJECTED_BY_PROVIDER  @map("rejected_by_provider")
+  IN_PROGRESS           @map("in_progress")
+  COMPLETED             @map("completed")
   CANCELLED_BY_CUSTOMER @map("cancelled_by_customer")
-  DISPUTED @map("disputed")
-  
+  DISPUTED              @map("disputed")
+
   @@map("order_status")
 }
 
 enum PaymentStatus {
-  PENDING @map("pending")
-  SUCCESS @map("success")
-  FAILED @map("failed")
-  EXPIRED @map("expired")
+  PENDING  @map("pending")
+  SUCCESS  @map("success")
+  FAILED   @map("failed")
+  EXPIRED  @map("expired")
   REFUNDED @map("refunded")
-  
+
   @@map("payment_status")
+}
+
+enum DetailStatus {
+  PROPOSED @map("proposed")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+
+  @@map("detail_status")
+}
+
+enum ReportStatus {
+  PENDING_REVIEW          @map("pending_review")
+  RESOLVED_REVIEW_KEPT    @map("resolved_review_kept")
+  RESOLVED_REVIEW_REMOVED @map("resolved_review_removed")
+
+  @@map("report_status")
+}
+
+enum DocumentType {
+  KTP                  @map("ktp")
+  SERTIFIKAT_PELATIHAN @map("sertifikat_pelatihan")
+
+  @@map("document_type")
+}
+
+enum PaymentMethodOption {
+  CASH      @map("cash")
+  E_PAYMENT @map("e-payment")
+
+  @@map("payment_method_option")
+}
+
+enum ChatAccessStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+  EXPIRED  @map("expired")
+
+  @@map("chat_access_status")
+}
+
+model EmailVerification {
+  id          Int                      @id @default(autoincrement())
+  email       String                   @map("email")
+  code        String                   @map("code")
+  type        EmailVerificationType    @map("type")
+  isUsed      Boolean                  @default(false) @map("is_used")
+  expiresAt   DateTime                 @map("expires_at")
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  updatedAt   DateTime                 @updatedAt @map("updated_at")
+  
+  // Optional user relation for logged-in user actions
+  userId      Int?                     @map("user_id")
+  user        User?                    @relation(fields: [userId], references: [id])
+
+  @@map("email_verifications")
+}
+
+enum EmailVerificationType {
+  REGISTRATION        @map("registration")
+  PASSWORD_RESET      @map("password_reset")
+  ORDER_STATUS_CHANGE @map("order_status_change")
+
+  @@map("email_verification_type")
 }

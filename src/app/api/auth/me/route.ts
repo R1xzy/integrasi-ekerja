@@ -1,30 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAuthMiddleware } from '@/lib/jwt';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Auth/me: Checking cookies...');
-    const authToken = request.cookies.get('auth-token');
-    const userSession = request.cookies.get('user-session');
+    console.log('Auth/me: Checking Bearer token...');
     
-    console.log('Auth/me: authToken:', authToken ? 'exists' : 'missing');
-    console.log('Auth/me: userSession:', userSession ? 'exists' : 'missing');
+    // Get Authorization header
+    const authHeader = request.headers.get('authorization');
+    console.log('Auth/me: authHeader:', authHeader ? 'exists' : 'missing');
 
-    if (!authToken || !userSession) {
-      console.log('Auth/me: No valid cookies found');
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+    // Use JWT middleware untuk validasi
+    const auth = createAuthMiddleware();
+    const authResult = auth(authHeader);
+
+    if (!authResult.success) {
+      console.log('Auth/me: Authentication failed:', authResult.message);
+      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    // Parse user session data
-    const userData = JSON.parse(userSession.value);
-    console.log('Auth/me: Parsed user data:', userData);
-
-    return NextResponse.json({
-      user: userData,
-      isAuthenticated: true
+    // Get fresh user data dari database
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(authResult.user!.userId) },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true,
+        address: true,
+        profilePictureUrl: true,
+        isActive: true,
+        verifiedBy: true,
+        createdAt: true,
+        updatedAt: true,
+        role: {
+          select: {
+            id: true,
+            roleName: true
+          }
+        }
+      }
     });
+
+    if (!user) {
+      return createErrorResponse('User not found', 404);
+    }
+
+    console.log('Auth/me: User authenticated successfully:', user.email);
+    
+    return createSuccessResponse({
+      user: user,
+      isAuthenticated: true,
+      tokenInfo: {
+        userId: authResult.user!.userId,
+        roleName: authResult.user!.roleName,
+        isActive: authResult.user!.isActive
+      }
+    }, 'User profile retrieved successfully');
 
   } catch (error) {
     console.error('Auth check error:', error);

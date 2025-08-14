@@ -1,0 +1,3581 @@
+{
+  "info": {
+    "name": "E-Kerja Backend API Testing - Complete with Email Verification",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[REQ-B-1] API Pengguna dan Autentikasi",
+      "item": [
+        {
+          "name": "[REQ-B-1.1] Register Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Customer123!\",\n  \"phoneNumber\": \"081234567890\",\n  \"roleId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Test pendaftaran user customer baru dengan validasi keunikan email dan phone [C-16]"
+          }
+        },
+        {
+          "name": "[REQ-B-1.1] Register Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider\",\n  \"email\": \"provider.test@example.com\",\n  \"password\": \"Provider123!\",\n  \"phoneNumber\": \"081234567891\",\n  \"roleId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Test pendaftaran provider baru - status verifikasi otomatis PENDING"
+          }
+        },
+        {
+          "name": "[REQ-B-1.1] Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Admin Test\",\n  \"email\": \"admin.test@example.com\",\n  \"password\": \"Admin123!\",\n  \"phoneNumber\": \"081234567892\",\n  \"roleId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Test pendaftaran admin baru"
+          }
+        },
+        {
+          "name": "[REQ-B-1.1] Register - Duplicate Email Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Duplicate User\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Test123!\",\n  \"phoneNumber\": \"081234567893\",\n  \"roleId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Test validasi keunikan email - should return 409 error"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login Customer - Get Bearer Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-extract Bearer token untuk requests selanjutnya",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.token) {",
+                  "        pm.environment.set('customer_token', response.data.token);",
+                  "        pm.environment.set('customer_id', response.data.user.id);",
+                  "        console.log('Customer Bearer token saved:', response.data.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"customer123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "✅ Login customer dengan seeded credentials dan auto-save Bearer token"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login Provider - Get Bearer Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-extract Bearer token untuk requests selanjutnya",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.token) {",
+                  "        pm.environment.set('provider_token', response.data.token);",
+                  "        pm.environment.set('provider_id', response.data.user.id);",
+                  "        console.log('Provider Bearer token saved:', response.data.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"fanza.atsilatif423@example.com\",\n  \"password\": \"Atsla123!!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "✅ Login provider Fanza dan auto-save Bearer token"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login Admin - Get Bearer Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-extract Bearer token untuk requests selanjutnya",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.token) {",
+                  "        pm.environment.set('admin_token', response.data.token);",
+                  "        pm.environment.set('admin_id', response.data.user.id);",
+                  "        console.log('Admin Bearer token saved:', response.data.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@ekerjakarawang.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "✅ Login admin dengan seeded credentials dan auto-save Bearer token"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login Other Provider - For Testing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-extract Bearer token untuk provider lain",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.token) {",
+                  "        pm.environment.set('other_provider_token', response.data.token);",
+                  "        console.log('Other Provider Bearer token saved:', response.data.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi.teknisi@example.com\",\n  \"password\": \"Budi123!!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "✅ Login provider Budi untuk testing review reports"
+          }
+        },
+        {
+          "name": "[REQ-B-1.2] Login - Invalid Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Test login dengan password salah - should return 401"
+          }
+        },
+        {
+          "name": "[REQ-B-1.3] Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer.test@example.com\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "description": "Test reset password dengan validasi complexity [C-15]"
+          }
+        },
+        {
+          "name": "[REQ-B-1.4] Get User Profile - Bearer Token Protected",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "description": "Bearer token dari login customer"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "✅ Test Bearer token authentication pada protected endpoint"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-2] API Manajemen Profil dan Verifikasi",
+      "item": [
+        {
+          "name": "[REQ-B-2.1] Update Provider Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider Updated\",\n  \"phoneNumber\": \"081234567899\",\n  \"address\": \"Jl. Provider Baru No. 123, Karawang\",\n  \"providerBio\": \"Teknisi AC berpengalaman 15 tahun dengan sertifikat BNSP. Melayani wilayah Karawang dan sekitarnya.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Test update profil provider"
+          }
+        },
+        {
+          "name": "[REQ-B-2.2] Upload Image File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/test-image.jpg"
+                },
+                {
+                  "key": "type",
+                  "value": "image",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "Test upload image dengan secure filename generation [C-18]"
+          }
+        },
+        {
+          "name": "[REQ-B-2.2] Upload Document File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/test-document.pdf"
+                },
+                {
+                  "key": "type",
+                  "value": "document",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "Test upload dokumen PDF"
+          }
+        },
+        {
+          "name": "[REQ-B-2.1] Add Provider Document - KTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"KTP\",\n  \"documentName\": \"KTP Siti Nurhaliza\",\n  \"fileUrl\": \"/uploads/documents/ktp-siti-test.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/providers/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "documents"]
+            },
+            "description": "Test upload dokumen KTP untuk verifikasi [C-6]"
+          }
+        },
+        {
+          "name": "[REQ-B-2.1] Add Provider Document - Sertifikat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documentType\": \"SERTIFIKAT_PELATIHAN\",\n  \"documentName\": \"Sertifikat Teknisi AC BNSP\",\n  \"issuingOrganization\": \"BNSP\",\n  \"credentialId\": \"BNSP-AC-2024-001\",\n  \"fileUrl\": \"/uploads/documents/sertifikat-siti-test.pdf\",\n  \"issuedAt\": \"2024-06-15T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/providers/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "documents"]
+            },
+            "description": "Test upload sertifikat pelatihan untuk verifikasi [C-6]"
+          }
+        },
+        {
+          "name": "[REQ-B-2.1] Get Provider Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/documents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "documents"]
+            },
+            "description": "Test get dokumen provider sendiri"
+          }
+        },
+        {
+          "name": "[REQ-B-2.3] Admin - Get Pending Verifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/verification?status=PENDING",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "verification"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            },
+            "description": "Test admin melihat provider yang pending verifikasi [C-2]"
+          }
+        },
+        {
+          "name": "[REQ-B-2.3] Admin - Verify Provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"VERIFIED\",\n  \"verifiedAt\": \"2025-07-22T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/verification?providerId={{provider_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "verification"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{provider_id}}"
+                }
+              ]
+            },
+            "description": "Test admin melakukan verifikasi provider [C-2]"
+          }
+        },
+        {
+          "name": "[REQ-B-2.3] Admin - Reject Provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/verification?providerId={{provider_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "verification"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{provider_id}}"
+                }
+              ]
+            },
+            "description": "Test admin menolak verifikasi provider"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-3] API Manajemen Layanan dan Portofolio",
+      "item": [
+        {
+          "name": "[REQ-B-3.1] Create Provider Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"serviceTitle\": \"Service AC Split 1/2 PK - 1 PK\",\n  \"description\": \"Service lengkap AC split meliputi cuci evaporator, kondensor, filter. Termasuk pengecekan freon dan kebocoran.\",\n  \"price\": 85000,\n  \"priceUnit\": \"per unit\",\n  \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/providers/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "services"]
+            },
+            "description": "Test create layanan provider baru"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Get Provider Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/services",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "services"]
+            },
+            "description": "Test get layanan provider sendiri"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Update Provider Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceTitle\": \"Service AC Split 1/2 PK - 1 PK (Updated)\",\n  \"description\": \"Service lengkap AC split meliputi cuci evaporator, kondensor, filter. Termasuk pengecekan freon, kebocoran, dan tune-up sistem.\",\n  \"price\": 90000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "services", "{{service_id}}"]
+            },
+            "description": "Test update layanan provider"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Get Single Service",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "services", "{{service_id}}"]
+            },
+            "description": "Test get detail satu layanan"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Delete Provider Service",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/services/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "services", "{{service_id}}"]
+            },
+            "description": "Test delete layanan provider (dengan validasi order aktif)"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Create Portfolio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectTitle\": \"Service AC Rumah Pak Budi\",\n  \"description\": \"Service 4 unit AC split di rumah Pak Budi, Karawang Barat. Semua AC kembali dingin optimal setelah dibersihkan dan ditune-up.\",\n  \"imageUrl\": \"/uploads/images/portfolio-ac-budi.jpg\",\n  \"completedAt\": \"2025-07-15T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/providers/portfolio",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "portfolio"]
+            },
+            "description": "Test create portfolio provider"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Get Provider Portfolio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/portfolio",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "portfolio"]
+            },
+            "description": "Test get portfolio provider sendiri"
+          }
+        },
+        {
+          "name": "[REQ-B-3.1] Get Portfolio by Provider ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/providers/portfolio?providerId={{provider_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "portfolio"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{provider_id}}"
+                }
+              ]
+            },
+            "description": "Test customer melihat portfolio provider tertentu"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-4] API Penemuan dan Detail Layanan",
+      "item": [
+        {
+          "name": "[REQ-B-4.1] Search Services - Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/search?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", "search"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Test search layanan basic dengan pagination"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Search Services - With Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/search?page=1&limit=5&categoryId=1&verified=true&sortBy=price&sortOrder=asc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", "search"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                },
+                {
+                  "key": "verified",
+                  "value": "true"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "price"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc"
+                }
+              ]
+            },
+            "description": "Test search dengan filter kategori, verifikasi, dan sorting"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Search Services - By Location",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/search?district=Karawang&minPrice=50000&maxPrice=200000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", "search"],
+              "query": [
+                {
+                  "key": "district",
+                  "value": "Karawang"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "50000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "200000"
+                }
+              ]
+            },
+            "description": "Test search dengan filter lokasi dan range harga"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Search Services - By Keyword",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/services/search?search=AC&sortBy=rating&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "services", "search"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "AC"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Test search dengan keyword dan sorting by rating [C-11]"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Get Service Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/service-categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "service-categories"]
+            },
+            "description": "Test get semua kategori layanan dengan count services"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Get Provider Detail with Rating",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/providers/{{provider_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "{{provider_id}}"]
+            },
+            "description": "Test get detail provider dengan rating calculation [C-11]"
+          }
+        },
+        {
+          "name": "[REQ-B-4.1] Get Provider Detail with Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/providers/3",
+              "host": ["{{base_url}}"],
+              "path": ["api", "providers", "3"]
+            },
+            "description": "Test get provider dari seeded data dengan reviews"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-5] API Proses Pemesanan",
+      "item": [
+        {
+          "name": "[REQ-B-5.1] Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('order_id', response.data.id);",
+                  "        console.log('Order ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerServiceId\": 4,\n  \"customMessage\": \"Need MacBook Pro repair - screen flickering and overheating issues\",\n  \"scheduledDate\": \"2025-07-30T10:00:00.000Z\",\n  \"jobAddress\": \"Jl. Customer No. 123, Jakarta Pusat\",\n  \"district\": \"Jakarta Pusat\",\n  \"subDistrict\": \"Menteng\",\n  \"ward\": \"Gondangdia\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Customer creates new order with location details"
+          }
+        },
+        {
+          "name": "[REQ-B-5.1] Get Customer Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Customer views their order history with pagination"
+          }
+        },
+        {
+          "name": "[REQ-B-5.1] Get Provider Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?status=PENDING_ACCEPTANCE&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING_ACCEPTANCE"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Provider views pending orders for acceptance"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Provider Accept Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider accepts the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Provider Reject Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED_BY_PROVIDER\",\n  \"information\": \"Sorry, I'm fully booked this week. Please reschedule for next week.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider rejects order with reason (using 'information' field)"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Update Order to In Progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider starts working on the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.2] Complete Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Provider completes the order"
+          }
+        },
+        {
+          "name": "[REQ-B-5.3] Get Single Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Get detailed order information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-6] API Rincian Pesanan dan Biaya",
+      "item": [
+        {
+          "name": "[REQ-B-6.1] Add Order Detail Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('order_detail_id', response.data.id);",
+                  "        console.log('Order Detail ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Thermal Paste Replacement - High-quality thermal paste for better heat dissipation\",\n  \"quantity\": 1,\n  \"pricePerUnit\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Provider adds additional item to order"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Add Second Order Detail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Screen Replacement - Original Apple Retina Display\",\n  \"quantity\": 1,\n  \"pricePerUnit\": 2500000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Provider adds expensive screen replacement"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Get Order Details List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Customer views all order details with cost summary"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Customer Approve Detail",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/{{order_detail_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "{{order_detail_id}}"]
+            },
+            "description": "Customer approves specific order detail"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Customer Reject Detail",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+            },
+            "description": "Customer rejects expensive screen replacement"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Delete Rejected Detail",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+            },
+            "description": "Provider removes rejected detail"
+          }
+        },
+        {
+          "name": "[REQ-B-6.1] Final Order Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "details"]
+            },
+            "description": "Final order details with approved items only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-7] API Ulasan dan Pelaporan",
+      "item": [
+        {
+          "name": "[REQ-B-7.1] Create Review (C-9 Compliance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('review_id', response.data.id);",
+                  "        console.log('Review ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Fanza was very professional and fixed my MacBook perfectly. The thermal paste replacement made a huge difference. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            },
+            "description": "Customer creates review for completed order (C-9: only COMPLETED orders)"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Try Create Review - Order Not Completed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"rating\": 4,\n  \"comment\": \"This should fail - order not completed yet\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            },
+            "description": "Test C-9 validation - should fail for non-completed orders"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Get Reviews for Provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reviews?providerId={{provider_id}}&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{provider_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all reviews for specific provider with pagination"
+          }
+        },
+        {
+          "name": "[REQ-B-7.1] Get Reviews - High Rating Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reviews?minRating=4&sortBy=rating&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                {
+                  "key": "minRating",
+                  "value": "4"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Filter reviews with minimum rating 4"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Report Review - Different User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data.id) {",
+                  "        pm.environment.set('review_report_id', response.data.id);",
+                  "        console.log('Review Report ID saved:', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{other_provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{review_id}}\",\n  \"reason\": \"INAPPROPRIATE_CONTENT\",\n  \"description\": \"This review contains promotional content and seems suspicious\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"]
+            },
+            "description": "Different provider reports the review"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Try Report Own Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"{{review_id}}\",\n  \"reason\": \"SPAM\",\n  \"description\": \"This should fail - can't report own review\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"]
+            },
+            "description": "Test validation - customer cannot report their own review"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Get Review Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/review-reports?status=PENDING_REVIEW&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING_REVIEW"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Admin views pending review reports"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Resolve Report (Keep Review)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED_REVIEW_KEPT\",\n  \"adminNotes\": \"Report reviewed. The review content appears to be genuine customer feedback and does not contain inappropriate language. Report rejected, review will remain visible.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin resolves report and keeps review visible"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Resolve Report (Remove Review)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED_REVIEW_REMOVED\",\n  \"adminNotes\": \"Report validated. The review contains inappropriate content and has been hidden from public view.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin resolves report and hides review (alternative action)"
+          }
+        },
+        {
+          "name": "[REQ-B-7.3] Admin - Get Single Report Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "review-reports", "{{review_report_id}}"]
+            },
+            "description": "Admin views detailed report information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-8] Chat System APIs",
+      "item": [
+        {
+          "name": "[REQ-B-8.1] Get User Chat Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms"]
+            },
+            "description": "Get user's chat conversations with participants and last messages"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.length > 0) {",
+                  "        pm.environment.set('chat_conversation_id', response.data[0].id);",
+                  "        console.log('Chat conversation ID saved:', response.data[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.1] Create Chat Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantUserId\": {{provider_id}},\n  \"orderId\": {{order_id}},\n  \"conversationTitle\": \"Discussion about Order #{{order_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms"]
+            },
+            "description": "Create new chat conversation between customer and provider"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('chat_conversation_id', response.data.id);",
+                  "    console.log('Chat conversation created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.2] Get Conversation Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages?page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get paginated messages from a conversation"
+          }
+        },
+        {
+          "name": "[REQ-B-8.2] Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageContent\": \"Hi, when can you start the work for my order?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Send a new message in the conversation"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('chat_message_id', response.data.id);",
+                  "    console.log('Message sent with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.2] Provider Reply Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageContent\": \"I can start tomorrow morning at 9 AM. Is that convenient for you?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Provider replies to customer message"
+          }
+        },
+        {
+          "name": "[REQ-B-8.2] Mark Messages as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+            },
+            "description": "Mark all unread messages as read for current user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-9] Admin Dashboard APIs",
+      "item": [
+        {
+          "name": "[REQ-B-9.1] Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "dashboard"]
+            },
+            "description": "Get comprehensive dashboard statistics for admin"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Get Service Categories (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories"]
+            },
+            "description": "Get all service categories with statistics"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Create Service Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryName\": \"Pet Care Services\",\n  \"description\": \"Professional pet care and grooming services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories"]
+            },
+            "description": "Create new service category"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('admin_category_id', response.data.id);",
+                  "    console.log('Category created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-9.2] Get Single Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Get specific category with detailed statistics"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Update Service Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pet Care & Grooming Services\",\n  \"description\": \"Professional pet care, grooming, and wellness services\",\n  \"iconUrl\": \"/icons/pet-care.svg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Update service category details"
+          }
+        },
+        {
+          "name": "[REQ-B-9.2] Delete Service Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+            },
+            "description": "Delete service category (only if no associated services)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-10] Admin Settings APIs",
+      "item": [
+        {
+          "name": "[REQ-B-10.1] Get Application Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Get all application settings"
+          }
+        },
+        {
+          "name": "[REQ-B-10.1] Create Application Setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settingKey\": \"{{setting_key}}\",\n  \"settingValue\": \"{{setting_value}}\",\n  \"description\": \"Test setting for API validation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Create new application setting"
+          }
+        },
+        {
+          "name": "[REQ-B-10.1] Bulk Update Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settings\": [\n    {\n      \"settingKey\": \"app_name\",\n      \"settingValue\": \"E-Kerja Platform\",\n      \"description\": \"Application name displayed to users\"\n    },\n    {\n      \"settingKey\": \"maintenance_mode\",\n      \"settingValue\": \"false\",\n      \"description\": \"Enable/disable maintenance mode\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings"]
+            },
+            "description": "Bulk update multiple settings"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Get Specific Setting",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Get specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Update Specific Setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settingValue\": \"updated_test_value\",\n  \"description\": \"Updated test setting description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Update specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.2] Delete Specific Setting",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Delete specific setting by key"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Get FAQs (Public Access)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?category={{faq_category}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{faq_category}}"
+                }
+              ]
+            },
+            "description": "Get active FAQs with category filter (public access)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Get FAQs (Admin Access)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Get all FAQs including inactive ones (admin access)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I book a service?\",\n  \"answer\": \"You can book a service by browsing our providers, selecting the service you need, and clicking the 'Book Now' button. You'll need to provide details about your requirements and schedule.\",\n  \"category\": \"booking\",\n  \"displayOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Create new FAQ"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('faq_id', response.data.id);",
+                  "    console.log('FAQ created with ID:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-10.3] Get Single FAQ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Get specific FAQ (public access for active FAQs)"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I book a service?\",\n  \"answer\": \"You can book a service by browsing our providers, selecting the service you need, and clicking the 'Book Now' button. You'll need to provide details about your requirements, schedule, and location.\",\n  \"category\": \"booking\",\n  \"displayOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Update FAQ content"
+          }
+        },
+        {
+          "name": "[REQ-B-10.3] Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+            },
+            "description": "Delete FAQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-11] Advanced FAQ Management System",
+      "item": [
+        {
+          "name": "[REQ-B-11.1] Get FAQs with Data Table Parameters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?search={{faq_search}}&sortBy={{faq_sort_by}}&sortOrder={{faq_sort_order}}&page={{faq_page}}&limit={{faq_limit}}&category={{faq_category}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{faq_search}}",
+                  "description": "Search term untuk questions dan answers"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{faq_sort_by}}",
+                  "description": "Field untuk sorting: displayOrder, question, category, isActive, createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{faq_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{faq_page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{faq_limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "category",
+                  "value": "{{faq_category}}",
+                  "description": "Filter by category"
+                }
+              ]
+            },
+            "description": "Test FAQ management dengan advanced data table features: search, sort, pagination"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('FAQ data table response structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('pagination');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('page');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('limit');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('total');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('totalPages');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('hasNext');",
+                  "    pm.expect(jsonData.data.pagination).to.have.property('hasPrev');",
+                  "});",
+                  "",
+                  "pm.test('FAQ display order functionality', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        jsonData.data.data.forEach(faq => {",
+                  "            pm.expect(faq).to.have.property('displayOrder');",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-11.2] Get FAQs (Public Access with Data Table)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs?search=book&sortBy=displayOrder&sortOrder=asc&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "book",
+                  "description": "Public search for booking FAQs"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "displayOrder",
+                  "description": "Sort by display order"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending order"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "First page"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "10 items per page"
+                }
+              ]
+            },
+            "description": "Test public FAQ access dengan data table functionality (no auth required)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Public FAQ access shows only active FAQs', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.isAdmin).to.be.false;",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        jsonData.data.data.forEach(faq => {",
+                  "            pm.expect(faq.isActive).to.be.true;",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-11.3] Create FAQ with Display Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How to cancel an order?\",\n  \"answer\": \"You can cancel an order by going to your order history and clicking the cancel button. Cancellation is only allowed before the provider accepts the order.\",\n  \"category\": \"orders\",\n  \"displayOrder\": 2,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/faqs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "faqs"]
+            },
+            "description": "Create FAQ dengan display order untuk mengatur sequence"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('new_faq_id', jsonData.data.id);",
+                  "    console.log('FAQ created with ID:', jsonData.data.id);",
+                  "    console.log('Display order:', jsonData.data.displayOrder);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-12] Data Tables Implementation",
+      "item": [
+        {
+          "name": "[REQ-B-12.1] Customer Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/customers?search={{customer_search}}&sortBy={{customer_sort_by}}&sortOrder={{customer_sort_order}}&page={{page}}&limit={{limit}}&isActive={{customer_is_active}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "customers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{customer_search}}",
+                  "description": "Search customers by name, email, phone"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{customer_sort_by}}",
+                  "description": "Sort field: fullName, email, createdAt, isActive"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{customer_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "isActive",
+                  "value": "{{customer_is_active}}",
+                  "description": "Filter by active status: true/false"
+                }
+              ]
+            },
+            "description": "Test customer management dengan search, sort, filter, pagination"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer data table response structure', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('pagination');",
+                  "});",
+                  "",
+                  "pm.test('Customer data includes count statistics', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const customer = jsonData.data.data[0];",
+                  "        pm.expect(customer).to.have.property('_count');",
+                  "        pm.expect(customer._count).to.have.property('customerOrders');",
+                  "        pm.expect(customer._count).to.have.property('customerReviews');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.2] Provider Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/providers?search={{provider_search}}&sortBy={{provider_sort_by}}&sortOrder={{provider_sort_order}}&page={{page}}&limit={{limit}}&isActive={{provider_is_active}}&verificationStatus={{provider_verification_status}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "providers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{provider_search}}",
+                  "description": "Search providers by name, email, phone, bio"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{provider_sort_by}}",
+                  "description": "Sort field: fullName, email, createdAt, verificationStatus, isActive"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{provider_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "isActive",
+                  "value": "{{provider_is_active}}",
+                  "description": "Filter by active status"
+                },
+                {
+                  "key": "verificationStatus",
+                  "value": "{{provider_verification_status}}",
+                  "description": "Filter by verification: PENDING, VERIFIED, REJECTED"
+                }
+              ]
+            },
+            "description": "Test provider management dengan verification status filtering"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Provider data includes verification info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const provider = jsonData.data.data[0];",
+                  "        pm.expect(provider).to.have.property('verificationStatus');",
+                  "        pm.expect(provider).to.have.property('_count');",
+                  "        pm.expect(provider._count).to.have.property('providerServices');",
+                  "        pm.expect(provider._count).to.have.property('providerOrders');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.3] Order Management with Data Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?search={{order_search}}&sortBy={{order_sort_by}}&sortOrder={{order_sort_order}}&page={{page}}&limit={{limit}}&status={{order_status}}&dateFrom={{order_date_from}}&dateTo={{order_date_to}}&minAmount={{order_min_amount}}&maxAmount={{order_max_amount}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{order_search}}",
+                  "description": "Search orders by address, customer name, provider name"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{order_sort_by}}",
+                  "description": "Sort field: orderDate, scheduledDate, status, finalAmount, customer.fullName, provider.fullName"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "{{order_sort_order}}",
+                  "description": "Sort direction: asc atau desc"
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "status",
+                  "value": "{{order_status}}",
+                  "description": "Filter by order status"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "{{order_date_from}}",
+                  "description": "Filter orders from date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "{{order_date_to}}",
+                  "description": "Filter orders to date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "minAmount",
+                  "value": "{{order_min_amount}}",
+                  "description": "Minimum order amount"
+                },
+                {
+                  "key": "maxAmount",
+                  "value": "{{order_max_amount}}",
+                  "description": "Maximum order amount"
+                }
+              ]
+            },
+            "description": "Test order management dengan advanced filtering (status, date range, amount range)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Order data includes customer and provider info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        const order = jsonData.data.data[0];",
+                  "        pm.expect(order).to.have.property('customer');",
+                  "        pm.expect(order).to.have.property('provider');",
+                  "        pm.expect(order).to.have.property('providerService');",
+                  "        pm.expect(order.customer).to.have.property('fullName');",
+                  "        pm.expect(order.provider).to.have.property('fullName');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Order data includes filters in response', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('filters');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.4] Nested Field Search and Sort Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders?search=Fanza&sortBy=customer.fullName&sortOrder=asc&page=1&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Fanza",
+                  "description": "Search for orders by customer name"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "customer.fullName",
+                  "description": "Sort by nested field - customer name"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Ascending sort"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "First page"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "5 items per page"
+                }
+              ]
+            },
+            "description": "Test nested field search dan sort functionality - cari 'Fanza' dan sort by customer.fullName"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Nested field search working', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.search).to.equal('Fanza');",
+                  "    if (jsonData.data.data.length > 0) {",
+                  "        // Check if customer name contains search term",
+                  "        const foundOrder = jsonData.data.data.some(order => ",
+                  "            order.customer.fullName.toLowerCase().includes('fanza'.toLowerCase())",
+                  "        );",
+                  "        pm.expect(foundOrder).to.be.true;",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Nested field sort working', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.sort.field).to.equal('customer.fullName');",
+                  "    pm.expect(jsonData.data.sort.order).to.equal('asc');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-12.5] Update Customer Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "customers"]
+            },
+            "description": "Test customer status update via admin"
+          }
+        },
+        {
+          "name": "[REQ-B-12.6] Update Provider Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerId\": {{provider_id}},\n  \"verificationStatus\": \"VERIFIED\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/providers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "providers"]
+            },
+            "description": "Test provider verification status update via admin"
+          }
+        },
+        {
+          "name": "[REQ-B-12.7] Update Order Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"status\": \"COMPLETED\",\n  \"adminNotes\": \"Order completed by admin intervention\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders"]
+            },
+            "description": "Test order status update dengan admin notes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-13] Statistics APIs",
+      "item": [
+        {
+          "name": "[REQ-B-13.1] Provider Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/provider/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "provider", "statistics"]
+            },
+            "description": "Get comprehensive provider dashboard statistics including order metrics, ratings, and revenue"
+          }
+        },
+        {
+          "name": "[REQ-B-13.2] Customer Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "statistics"]
+            },
+            "description": "Get customer platform insights including order history, service usage, and provider ratings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-14] Order Status APIs",
+      "item": [
+        {
+          "name": "[REQ-B-14.1] Provider Order Status Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/provider/order-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "provider", "order-status"]
+            },
+            "description": "Get provider's order status summary with counts and action indicators"
+          }
+        },
+        {
+          "name": "[REQ-B-14.2] Customer Order Status Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/order-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "order-status"]
+            },
+            "description": "Get customer's order status summary with counts and required actions"
+          }
+        },
+        {
+          "name": "[REQ-B-14.3] Customer Pending Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/pending-reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "pending-reviews"]
+            },
+            "description": "Get completed orders that are pending customer review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-15] Email Verification APIs",
+      "item": [
+        {
+          "name": "[REQ-B-15.1] Registration Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"fullName\": \"{{verification_full_name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/registration-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "registration-verification"]
+            },
+            "description": "Send 6-digit verification code for registration process"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('registration_verification_code', response.data.verificationCode);",
+                  "        console.log('Registration verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.1] Registration Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/registration-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "registration-verification"]
+            },
+            "description": "Verify registration email with 6-digit code"
+          }
+        },
+        {
+          "name": "[REQ-B-15.2] Password Reset Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/password-reset-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "password-reset-verification"]
+            },
+            "description": "Send 6-digit verification code for password reset"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('password_reset_verification_code', response.data.verificationCode);",
+                  "        console.log('Password reset verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.2] Password Reset Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"verificationCode\": \"{{password_reset_verification_code}}\",\n  \"newPassword\": \"{{new_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/password-reset-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "password-reset-verification"]
+            },
+            "description": "Verify password reset code and update password"
+          }
+        },
+        {
+          "name": "[REQ-B-15.3] Order Status Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/order-status-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "order-status-verification"]
+            },
+            "description": "Send verification code for order status change"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('order_status_verification_code', response.data.verificationCode);",
+                  "        console.log('Order status verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.3] Order Status Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"verificationCode\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/order-status-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "order-status-verification"]
+            },
+            "description": "Verify order status change with verification code"
+          }
+        },
+        {
+          "name": "[REQ-B-8.3] Admin Chat Access - Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"reason\": \"{{chat_access_reason}}\",\n  \"context\": \"{{chat_access_context}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/chat-access/request",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "chat-access", "request"]
+            },
+            "description": "Admin requests access to customer's chat conversations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.environment.set('chat_access_token', response.data.token);",
+                  "        console.log('Chat access token saved:', response.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.3] Customer Chat Access - Respond",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{chat_access_token}}\",\n  \"approved\": {{chat_access_approved}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"]
+            },
+            "description": "Customer responds to admin's chat access request"
+          }
+        },
+        {
+          "name": "[REQ-B-8.3] Admin Chat Access - View Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/chat-access/view?token={{chat_access_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "chat-access", "view"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{chat_access_token}}"
+                }
+              ]
+            },
+            "description": "Admin views customer's chat conversations using approved access token"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script untuk Bearer Token debugging dan Email Verification setup",
+          "console.log('=== REQUEST INFO ===');",
+          "console.log('Method:', pm.request.method);",
+          "console.log('URL:', pm.request.url.toString());",
+          "",
+          "// Log Bearer token jika ada",
+          "const authHeader = pm.request.headers.get('Authorization');",
+          "if (authHeader && authHeader.startsWith('Bearer ')) {",
+          "    const token = authHeader.substring(7);",
+          "    console.log('Using Bearer token (first 30 chars):', token.substring(0, 30) + '...');",
+          "    ",
+          "    // Decode JWT payload untuk debugging (tanpa verifikasi)",
+          "    try {",
+          "        const base64Payload = token.split('.')[1];",
+          "        const payload = JSON.parse(atob(base64Payload));",
+          "        console.log('Token payload:', {",
+          "            userId: payload.userId,",
+          "            roleName: payload.roleName,",
+          "            exp: new Date(payload.exp * 1000).toISOString()",
+          "        });",
+          "    } catch (e) {",
+          "        console.log('Could not decode token payload');",
+          "    }",
+          "} else if (authHeader) {",
+          "    console.log('Using auth header (non-Bearer):', authHeader);",
+          "} else {",
+          "    console.log('No authentication header - public endpoint');",
+          "}",
+          "",
+          "// Log email verification testing context",
+          "const url = pm.request.url.toString();",
+          "if (url.includes('/email/')) {",
+          "    console.log('=== EMAIL VERIFICATION TEST ===');",
+          "    console.log('Testing email endpoint:', url);",
+          "    const verificationEmail = pm.environment.get('verification_email');",
+          "    if (verificationEmail) {",
+          "        console.log('Using verification email:', verificationEmail);",
+          "    }",
+          "}",
+          "console.log('==================');",
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script untuk Bearer Token validation dan Email Verification testing",
+          "console.log('=== RESPONSE INFO ===');",
+          "console.log('Status:', pm.response.code, pm.response.status);",
+          "console.log('Response time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Test umum untuk semua responses",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "// Test struktur response",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test('Success response has correct structure', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('success', true);",
+          "        pm.expect(jsonData).to.have.property('data');",
+          "        pm.expect(jsonData).to.have.property('message');",
+          "    });",
+          "    ",
+          "    // Log response data",
+          "    try {",
+          "        const responseData = pm.response.json();",
+          "        console.log('Response success:', responseData.success);",
+          "        console.log('Response message:', responseData.message);",
+          "        ",
+          "        // Special handling for email verification responses",
+          "        const url = pm.request.url.toString();",
+          "        if (url.includes('/email/') && responseData.data && responseData.data.verificationCode) {",
+          "            console.log('=== EMAIL VERIFICATION CODE ===');",
+          "            console.log('Verification code generated:', responseData.data.verificationCode);",
+          "            console.log('Email sent to:', responseData.data.email || 'N/A');",
+          "            console.log('Expires at:', responseData.data.expiresAt || 'N/A');",
+          "            console.log('=============================');",
+          "        }",
+          "        ",
+          "        if (responseData.data && responseData.data.token) {",
+          "            console.log('Bearer token received in response');",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Non-JSON response');",
+          "    }",
+          "} else {",
+          "    pm.test('Error response has correct structure', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('success', false);",
+          "        pm.expect(jsonData).to.have.property('error');",
+          "    });",
+          "    ",
+          "    // Log error details",
+          "    try {",
+          "        const errorData = pm.response.json();",
+          "        console.log('Error:', errorData.error);",
+          "    } catch (e) {",
+          "        console.log('Could not parse error response');",
+          "    }",
+          "}",
+          "",
+          "// Global tests for email verification endpoints",
+          "const url = pm.request.url.toString();",
+          "if (url.includes('/email/') && pm.response.code === 200) {",
+          "    pm.test('Email verification response includes required fields', function () {",
+          "        const jsonData = pm.response.json();",
+          "        if (pm.request.method === 'POST') {",
+          "            // For POST requests, expect verification code",
+          "            pm.expect(jsonData.data).to.have.property('verificationCode');",
+          "            pm.expect(jsonData.data).to.have.property('expiresAt');",
+          "        } else if (pm.request.method === 'PUT') {",
+          "            // For PUT requests, expect verification success",
+          "            pm.expect(jsonData.data).to.have.property('verified');",
+          "        }",
+          "    });",
+          "}",
+          "console.log('==================');",
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "Base URL for E-Kerja API"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token untuk customer - auto-extracted"
+    },
+    {
+      "key": "provider_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token untuk provider (Fanza) - auto-extracted"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token untuk admin - auto-extracted"
+    },
+    {
+      "key": "other_provider_token",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token untuk provider lain (untuk testing review reports)"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string",
+      "description": "Customer ID - auto-extracted"
+    },
+    {
+      "key": "provider_id",
+      "value": "",
+      "type": "string",
+      "description": "Provider ID (Fanza) - auto-extracted"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string",
+      "description": "Service ID - auto-extracted"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string",
+      "description": "Order ID - auto-extracted from order creation"
+    },
+    {
+      "key": "order_detail_id",
+      "value": "",
+      "type": "string",
+      "description": "Order Detail ID - auto-extracted"
+    },
+    {
+      "key": "review_id",
+      "value": "",
+      "type": "string",
+      "description": "Review ID - auto-extracted from review creation"
+    },
+    {
+      "key": "review_report_id",
+      "value": "",
+      "type": "string",
+      "description": "Review Report ID - auto-extracted"
+    },
+    {
+      "key": "chat_conversation_id",
+      "value": "",
+      "type": "string",
+      "description": "Chat conversation ID - auto-extracted"
+    },
+    {
+      "key": "chat_message_id",
+      "value": "",
+      "type": "string",
+      "description": "Chat message ID - auto-extracted"
+    },
+    {
+      "key": "admin_category_id",
+      "value": "",
+      "type": "string",
+      "description": "Admin created category ID - auto-extracted"
+    },
+    {
+      "key": "setting_key",
+      "value": "test_setting",
+      "type": "string",
+      "description": "Setting key for testing"
+    },
+    {
+      "key": "setting_value",
+      "value": "test_value",
+      "type": "string",
+      "description": "Setting value for testing"
+    },
+    {
+      "key": "faq_id",
+      "value": "",
+      "type": "string",
+      "description": "FAQ ID - auto-extracted"
+    },
+    {
+      "key": "page",
+      "value": "1",
+      "type": "string",
+      "description": "Universal page number for data table pagination"
+    },
+    {
+      "key": "limit",
+      "value": "10",
+      "type": "string",
+      "description": "Universal items per page for data table pagination"
+    },
+    {
+      "key": "verification_email",
+      "value": "test.verification@example.com",
+      "type": "string",
+      "description": "Email for verification testing (REQ-B-15)"
+    },
+    {
+      "key": "verification_full_name",
+      "value": "Test Verification User",
+      "type": "string",
+      "description": "Full name for registration verification testing"
+    },
+    {
+      "key": "registration_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for registration verification - auto-extracted"
+    },
+    {
+      "key": "password_reset_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for password reset verification - auto-extracted"
+    },
+    {
+      "key": "order_status_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for order status verification - auto-extracted"
+    },
+    {
+      "key": "new_password",
+      "value": "NewPassword123!",
+      "type": "string",
+      "description": "New password for password reset verification"
+    },
+    {
+      "key": "order_new_status",
+      "value": "COMPLETED",
+      "type": "string",
+      "description": "New order status for verification testing"
+    },
+    {
+      "key": "chat_access_token",
+      "value": "",
+      "type": "string",
+      "description": "Access token for admin chat viewing - auto-extracted"
+    },
+    {
+      "key": "chat_access_reason",
+      "value": "Customer support investigation",
+      "type": "string",
+      "description": "Reason for admin chat access request"
+    },
+    {
+      "key": "chat_access_context",
+      "value": "Need to review chat history for dispute resolution",
+      "type": "string",
+      "description": "Context for admin chat access request"
+    },
+    {
+      "key": "chat_access_approved",
+      "value": "true",
+      "type": "string",
+      "description": "Customer response to chat access request: true/false"
+    }
+  ]
+}
