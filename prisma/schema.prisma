@@ -66,9 +66,14 @@ model User {
   // Chat relations
   chatParticipants ChatParticipant[]
   chatMessages     ChatMessage[]
+  adminChatRequests ChatAdminAccess[] @relation("AdminChatRequests")
+  customerChatAccess ChatAdminAccess[] @relation("CustomerChatAccess")
 
   // Order detail relations
   addedOrderDetails OrderDetail[]
+
+  // Email verification relations
+  emailVerifications EmailVerification[]
 
   @@map("users")
 }
@@ -260,6 +265,7 @@ model ChatConversation {
   order        Order?            @relation(fields: [orderId], references: [id])
   participants ChatParticipant[]
   messages     ChatMessage[]
+  adminAccess  ChatAdminAccess[]
 
   @@map("chat_conversations")
 }
@@ -288,6 +294,27 @@ model ChatMessage {
   sender       User             @relation(fields: [senderId], references: [id])
 
   @@map("chat_messages")
+}
+
+model ChatAdminAccess {
+  id               Int                 @id @default(autoincrement())
+  conversationId   Int                 @map("conversation_id")
+  requestedByAdmin Int                 @map("requested_by_admin")
+  customerId       Int                 @map("customer_id")
+  status           ChatAccessStatus    @default(PENDING) @map("status")
+  accessToken      String?             @unique @map("access_token")
+  reason           String?             @map("reason")
+  customerResponse String?             @map("customer_response")
+  expiresAt        DateTime?           @map("expires_at")
+  approvedAt       DateTime?           @map("approved_at")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id])
+  admin        User             @relation("AdminChatRequests", fields: [requestedByAdmin], references: [id])
+  customer     User             @relation("CustomerChatAccess", fields: [customerId], references: [id])
+
+  @@map("chat_admin_access")
 }
 
 model Setting {
@@ -371,4 +398,38 @@ enum PaymentMethodOption {
   E_PAYMENT @map("e-payment")
 
   @@map("payment_method_option")
+}
+
+enum ChatAccessStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+  EXPIRED  @map("expired")
+
+  @@map("chat_access_status")
+}
+
+model EmailVerification {
+  id          Int                      @id @default(autoincrement())
+  email       String                   @map("email")
+  code        String                   @map("code")
+  type        EmailVerificationType    @map("type")
+  isUsed      Boolean                  @default(false) @map("is_used")
+  expiresAt   DateTime                 @map("expires_at")
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  updatedAt   DateTime                 @updatedAt @map("updated_at")
+  
+  // Optional user relation for logged-in user actions
+  userId      Int?                     @map("user_id")
+  user        User?                    @relation(fields: [userId], references: [id])
+
+  @@map("email_verifications")
+}
+
+enum EmailVerificationType {
+  REGISTRATION        @map("registration")
+  PASSWORD_RESET      @map("password_reset")
+  ORDER_STATUS_CHANGE @map("order_status_change")
+
+  @@map("email_verification_type")
 }

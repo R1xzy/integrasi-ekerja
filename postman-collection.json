@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Kerja Backend API Testing - Bearer Token Ready",
-    "description": "Koleksi testing untuk semua requirement backend API E-Kerja dengan Bearer Token Authentication",
+    "name": "E-Kerja Backend API Testing - Complete with Email Verification",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -2861,6 +2861,400 @@
           }
         }
       ]
+    },
+    {
+      "name": "[REQ-B-13] Statistics APIs",
+      "item": [
+        {
+          "name": "[REQ-B-13.1] Provider Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/provider/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "provider", "statistics"]
+            },
+            "description": "Get comprehensive provider dashboard statistics including order metrics, ratings, and revenue"
+          }
+        },
+        {
+          "name": "[REQ-B-13.2] Customer Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "statistics"]
+            },
+            "description": "Get customer platform insights including order history, service usage, and provider ratings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-14] Order Status APIs",
+      "item": [
+        {
+          "name": "[REQ-B-14.1] Provider Order Status Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/provider/order-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "provider", "order-status"]
+            },
+            "description": "Get provider's order status summary with counts and action indicators"
+          }
+        },
+        {
+          "name": "[REQ-B-14.2] Customer Order Status Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/order-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "order-status"]
+            },
+            "description": "Get customer's order status summary with counts and required actions"
+          }
+        },
+        {
+          "name": "[REQ-B-14.3] Customer Pending Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/pending-reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "pending-reviews"]
+            },
+            "description": "Get completed orders that are pending customer review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-15] Email Verification APIs",
+      "item": [
+        {
+          "name": "[REQ-B-15.1] Registration Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"fullName\": \"{{verification_full_name}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/registration-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "registration-verification"]
+            },
+            "description": "Send 6-digit verification code for registration process"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('registration_verification_code', response.data.verificationCode);",
+                  "        console.log('Registration verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.1] Registration Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/registration-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "registration-verification"]
+            },
+            "description": "Verify registration email with 6-digit code"
+          }
+        },
+        {
+          "name": "[REQ-B-15.2] Password Reset Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/password-reset-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "password-reset-verification"]
+            },
+            "description": "Send 6-digit verification code for password reset"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('password_reset_verification_code', response.data.verificationCode);",
+                  "        console.log('Password reset verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.2] Password Reset Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{verification_email}}\",\n  \"verificationCode\": \"{{password_reset_verification_code}}\",\n  \"newPassword\": \"{{new_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/password-reset-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "password-reset-verification"]
+            },
+            "description": "Verify password reset code and update password"
+          }
+        },
+        {
+          "name": "[REQ-B-15.3] Order Status Verification - Send Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/order-status-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "order-status-verification"]
+            },
+            "description": "Send verification code for order status change"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.verificationCode) {",
+                  "        pm.environment.set('order_status_verification_code', response.data.verificationCode);",
+                  "        console.log('Order status verification code saved:', response.data.verificationCode);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-15.3] Order Status Verification - Verify Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"verificationCode\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/email/order-status-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "email", "order-status-verification"]
+            },
+            "description": "Verify order status change with verification code"
+          }
+        },
+        {
+          "name": "[REQ-B-8.3] Admin Chat Access - Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customer_id}},\n  \"reason\": \"{{chat_access_reason}}\",\n  \"context\": \"{{chat_access_context}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/chat-access/request",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "chat-access", "request"]
+            },
+            "description": "Admin requests access to customer's chat conversations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.environment.set('chat_access_token', response.data.token);",
+                  "        console.log('Chat access token saved:', response.data.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.3] Customer Chat Access - Respond",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{chat_access_token}}\",\n  \"approved\": {{chat_access_approved}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"]
+            },
+            "description": "Customer responds to admin's chat access request"
+          }
+        },
+        {
+          "name": "[REQ-B-8.3] Admin Chat Access - View Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/chat-access/view?token={{chat_access_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "chat-access", "view"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{chat_access_token}}"
+                }
+              ]
+            },
+            "description": "Admin views customer's chat conversations using approved access token"
+          }
+        }
+      ]
     }
   ],
   "event": [
@@ -2869,7 +3263,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Global pre-request script untuk Bearer Token debugging",
+          "// Global pre-request script untuk Bearer Token debugging dan Email Verification setup",
           "console.log('=== REQUEST INFO ===');",
           "console.log('Method:', pm.request.method);",
           "console.log('URL:', pm.request.url.toString());",
@@ -2897,6 +3291,17 @@
           "} else {",
           "    console.log('No authentication header - public endpoint');",
           "}",
+          "",
+          "// Log email verification testing context",
+          "const url = pm.request.url.toString();",
+          "if (url.includes('/email/')) {",
+          "    console.log('=== EMAIL VERIFICATION TEST ===');",
+          "    console.log('Testing email endpoint:', url);",
+          "    const verificationEmail = pm.environment.get('verification_email');",
+          "    if (verificationEmail) {",
+          "        console.log('Using verification email:', verificationEmail);",
+          "    }",
+          "}",
           "console.log('==================');",
           ""
         ]
@@ -2907,7 +3312,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Global test script untuk Bearer Token validation",
+          "// Global test script untuk Bearer Token validation dan Email Verification testing",
           "console.log('=== RESPONSE INFO ===');",
           "console.log('Status:', pm.response.code, pm.response.status);",
           "console.log('Response time:', pm.response.responseTime + 'ms');",
@@ -2931,6 +3336,17 @@
           "        const responseData = pm.response.json();",
           "        console.log('Response success:', responseData.success);",
           "        console.log('Response message:', responseData.message);",
+          "        ",
+          "        // Special handling for email verification responses",
+          "        const url = pm.request.url.toString();",
+          "        if (url.includes('/email/') && responseData.data && responseData.data.verificationCode) {",
+          "            console.log('=== EMAIL VERIFICATION CODE ===');",
+          "            console.log('Verification code generated:', responseData.data.verificationCode);",
+          "            console.log('Email sent to:', responseData.data.email || 'N/A');",
+          "            console.log('Expires at:', responseData.data.expiresAt || 'N/A');",
+          "            console.log('=============================');",
+          "        }",
+          "        ",
           "        if (responseData.data && responseData.data.token) {",
           "            console.log('Bearer token received in response');",
           "        }",
@@ -2951,6 +3367,22 @@
           "    } catch (e) {",
           "        console.log('Could not parse error response');",
           "    }",
+          "}",
+          "",
+          "// Global tests for email verification endpoints",
+          "const url = pm.request.url.toString();",
+          "if (url.includes('/email/') && pm.response.code === 200) {",
+          "    pm.test('Email verification response includes required fields', function () {",
+          "        const jsonData = pm.response.json();",
+          "        if (pm.request.method === 'POST') {",
+          "            // For POST requests, expect verification code",
+          "            pm.expect(jsonData.data).to.have.property('verificationCode');",
+          "            pm.expect(jsonData.data).to.have.property('expiresAt');",
+          "        } else if (pm.request.method === 'PUT') {",
+          "            // For PUT requests, expect verification success",
+          "            pm.expect(jsonData.data).to.have.property('verified');",
+          "        }",
+          "    });",
           "}",
           "console.log('==================');",
           ""
@@ -3068,10 +3500,82 @@
       "description": "FAQ ID - auto-extracted"
     },
     {
-      "key": "faq_category",
-      "value": "general",
+      "key": "page",
+      "value": "1",
       "type": "string",
-      "description": "FAQ category for filtering"
+      "description": "Universal page number for data table pagination"
+    },
+    {
+      "key": "limit",
+      "value": "10",
+      "type": "string",
+      "description": "Universal items per page for data table pagination"
+    },
+    {
+      "key": "verification_email",
+      "value": "test.verification@example.com",
+      "type": "string",
+      "description": "Email for verification testing (REQ-B-15)"
+    },
+    {
+      "key": "verification_full_name",
+      "value": "Test Verification User",
+      "type": "string",
+      "description": "Full name for registration verification testing"
+    },
+    {
+      "key": "registration_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for registration verification - auto-extracted"
+    },
+    {
+      "key": "password_reset_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for password reset verification - auto-extracted"
+    },
+    {
+      "key": "order_status_verification_code",
+      "value": "",
+      "type": "string",
+      "description": "6-digit code for order status verification - auto-extracted"
+    },
+    {
+      "key": "new_password",
+      "value": "NewPassword123!",
+      "type": "string",
+      "description": "New password for password reset verification"
+    },
+    {
+      "key": "order_new_status",
+      "value": "COMPLETED",
+      "type": "string",
+      "description": "New order status for verification testing"
+    },
+    {
+      "key": "chat_access_token",
+      "value": "",
+      "type": "string",
+      "description": "Access token for admin chat viewing - auto-extracted"
+    },
+    {
+      "key": "chat_access_reason",
+      "value": "Customer support investigation",
+      "type": "string",
+      "description": "Reason for admin chat access request"
+    },
+    {
+      "key": "chat_access_context",
+      "value": "Need to review chat history for dispute resolution",
+      "type": "string",
+      "description": "Context for admin chat access request"
+    },
+    {
+      "key": "chat_access_approved",
+      "value": "true",
+      "type": "string",
+      "description": "Customer response to chat access request: true/false"
     }
   ]
 }

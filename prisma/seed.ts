@@ -153,6 +153,80 @@ async function main() {
     }
   })
 
+  // Create sample chat conversations
+  const acServiceCategory = await prisma.serviceCategory.findUnique({
+    where: { name: 'Service AC' }
+  })
+
+  if (acServiceCategory) {
+    // Create a sample order first
+    const sampleOrder = await prisma.order.create({
+      data: {
+        customerId: customer.id,
+        providerId: provider.id,
+        providerServiceId: 1, // Assuming first service
+        scheduledDate: new Date('2024-12-15T10:00:00'),
+        jobAddress: 'Jl. Raya Karawang No. 123',
+        district: 'Karawang Barat',
+        subDistrict: 'Nagasari',
+        ward: 'Wadas',
+        jobDescriptionNotes: 'AC ruang tamu tidak dingin, butuh service',
+        finalAmount: 150000,
+        status: 'IN_PROGRESS'
+      }
+    })
+
+    // Create chat conversation for this order
+    const chatConversation = await prisma.chatConversation.create({
+      data: {
+        conversationTitle: 'Service AC - Order #' + sampleOrder.id,
+        orderId: sampleOrder.id
+      }
+    })
+
+    // Add participants to conversation
+    await prisma.chatParticipant.createMany({
+      data: [
+        {
+          conversationId: chatConversation.id,
+          userId: customer.id
+        },
+        {
+          conversationId: chatConversation.id,
+          userId: provider.id
+        }
+      ]
+    })
+
+    // Add sample chat messages
+    await prisma.chatMessage.createMany({
+      data: [
+        {
+          conversationId: chatConversation.id,
+          senderId: customer.id,
+          messageContent: 'Halo, saya sudah booking service AC untuk besok pagi. Apakah bisa datang tepat waktu?'
+        },
+        {
+          conversationId: chatConversation.id,
+          senderId: provider.id,
+          messageContent: 'Halo Pak/Ibu, terima kasih sudah mempercayakan service AC kepada kami. Besok saya akan datang sekitar jam 10 pagi sesuai jadwal.'
+        },
+        {
+          conversationId: chatConversation.id,
+          senderId: customer.id,
+          messageContent: 'Baik, saya tunggu. AC yang bermasalah ada di ruang tamu dan kamar utama.'
+        },
+        {
+          conversationId: chatConversation.id,
+          senderId: provider.id,
+          messageContent: 'Siap pak, nanti saya bawa peralatan lengkap untuk service kedua unit AC tersebut.'
+        }
+      ]
+    })
+
+    console.log('Sample chat conversation created for order:', sampleOrder.id)
+  }
+
   console.log('Database seeded successfully!')
 }
 

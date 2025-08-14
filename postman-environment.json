@@ -1,6 +1,6 @@
 {
   "id": "e-kerja-environment-complete",
-  "name": "E-Kerja Development Environment - Complete API Testing",
+  "name": "E-Kerja Development Environment - Complete API Testing with Email Verification",
   "values": [
     {
       "key": "base_url",
@@ -337,9 +337,111 @@
       "value": "10",
       "enabled": true,
       "description": "Universal items per page for data table pagination"
+    },
+    {
+      "key": "verification_email",
+      "value": "test.verification@example.com",
+      "enabled": true,
+      "description": "Email for verification testing (REQ-B-15)"
+    },
+    {
+      "key": "verification_full_name",
+      "value": "Test Verification User",
+      "enabled": true,
+      "description": "Full name for registration verification testing"
+    },
+    {
+      "key": "registration_verification_code",
+      "value": "",
+      "enabled": true,
+      "description": "6-digit code for registration verification - auto-extracted"
+    },
+    {
+      "key": "password_reset_verification_code",
+      "value": "",
+      "enabled": true,
+      "description": "6-digit code for password reset verification - auto-extracted"
+    },
+    {
+      "key": "order_status_verification_code",
+      "value": "",
+      "enabled": true,
+      "description": "6-digit code for order status verification - auto-extracted"
+    },
+    {
+      "key": "new_password",
+      "value": "NewPassword123!",
+      "enabled": true,
+      "description": "New password for password reset verification"
+    },
+    {
+      "key": "order_new_status",
+      "value": "COMPLETED",
+      "enabled": true,
+      "description": "New order status for verification testing"
+    },
+    {
+      "key": "chat_access_token",
+      "value": "",
+      "enabled": true,
+      "description": "Access token for admin chat viewing - auto-extracted"
+    },
+    {
+      "key": "chat_access_reason",
+      "value": "Customer support investigation",
+      "enabled": true,
+      "description": "Reason for admin chat access request"
+    },
+    {
+      "key": "chat_access_context",
+      "value": "Need to review chat history for dispute resolution",
+      "enabled": true,
+      "description": "Context for admin chat access request"
+    },
+    {
+      "key": "chat_access_approved",
+      "value": "true",
+      "enabled": true,
+      "description": "Customer response to chat access request: true/false"
+    },
+    {
+      "key": "email_smtp_host",
+      "value": "smtp.gmail.com",
+      "enabled": true,
+      "description": "SMTP host for email service configuration"
+    },
+    {
+      "key": "email_smtp_port",
+      "value": "587",
+      "enabled": true,
+      "description": "SMTP port for email service configuration"
+    },
+    {
+      "key": "email_smtp_user",
+      "value": "your-email@gmail.com",
+      "enabled": true,
+      "description": "SMTP username (update with your Gmail)"
+    },
+    {
+      "key": "email_smtp_password",
+      "value": "your-app-password",
+      "enabled": true,
+      "description": "SMTP password (update with your Gmail app password)"
+    },
+    {
+      "key": "email_from_address",
+      "value": "noreply@ekerjakarawang.com",
+      "enabled": true,
+      "description": "Email from address for all outgoing emails"
+    },
+    {
+      "key": "email_from_name",
+      "value": "E-Kerja Platform",
+      "enabled": true,
+      "description": "Email from name for all outgoing emails"
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-07-24T09:50:00.000Z",
-  "_postman_exported_using": "Postman/Complete API Testing"
+  "_postman_exported_at": "2025-07-25T10:30:00.000Z",
+  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-13/14/15"
 }
