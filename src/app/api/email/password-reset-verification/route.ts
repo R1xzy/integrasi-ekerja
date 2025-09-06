@@ -112,7 +112,11 @@ export async function POST(request: NextRequest) {
 // Verify password reset code
 export async function PUT(request: NextRequest) {
   try {
-    const { email, code } = await request.json();
+    const body = await request.json();
+    const { email, newPassword } = body;
+    
+    // Support both 'code' and 'verificationCode' field names for flexibility
+    const code = body.code || body.verificationCode;
 
     // Validate input
     if (!email || !code) {
@@ -120,6 +124,16 @@ export async function PUT(request: NextRequest) {
         success: false,
         error: 'Email and verification code are required'
       }, { status: 400 });
+    }
+
+    // Validate new password if provided
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return NextResponse.json({
+          success: false,
+          error: 'New password must be at least 6 characters long'
+        }, { status: 400 });
+      }
     }
 
     // Import verification function
@@ -156,6 +170,43 @@ export async function PUT(request: NextRequest) {
     // Log successful verification
     console.log(`Password reset verification successful for: ${email}`);
 
+    // If newPassword is provided, update the password immediately
+    if (newPassword) {
+      const bcrypt = require('bcryptjs');
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update user password
+      await prisma.user.update({
+        where: { email },
+        data: { 
+          passwordHash: hashedPassword,
+          updatedAt: new Date()
+        }
+      });
+
+      // Mark verification as used by deleting it
+      await (prisma as any).emailVerification.deleteMany({
+        where: {
+          email,
+          type: 'PASSWORD_RESET'
+        }
+      });
+
+      console.log(`Password successfully reset for: ${email}`);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Password reset successful',
+        data: {
+          email,
+          userId: user.id,
+          passwordResetAt: new Date()
+        }
+      });
+    }
+
+    // If no newPassword provided, just return verification success
     return NextResponse.json({
       success: true,
       message: 'Password reset verification successful',

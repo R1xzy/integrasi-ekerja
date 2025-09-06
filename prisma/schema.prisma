@@ -389,6 +389,9 @@ enum ReportStatus {
 enum DocumentType {
   KTP                  @map("ktp")
   SERTIFIKAT_PELATIHAN @map("sertifikat_pelatihan")
+  CERTIFICATE          @map("certificate")
+  LICENSE              @map("license")
+  OTHER                @map("other")
 
   @@map("document_type")
 }

@@ -97,7 +97,11 @@ export async function POST(request: NextRequest) {
 // Verify registration code
 export async function PUT(request: NextRequest) {
   try {
-    const { email, code } = await request.json();
+    const body = await request.json();
+    const { email } = body;
+    
+    // Support both 'code' and 'verificationCode' field names for flexibility
+    const code = body.code || body.verificationCode;
 
     // Validate input
     if (!email || !code) {
