@@ -340,15 +340,15 @@
     },
     {
       "key": "verification_email",
-      "value": "test.verification@example.com",
+      "value": "customer.test@example.com",
       "enabled": true,
-      "description": "Email for verification testing (REQ-B-15)"
+      "description": "Email for verification testing (REQ-B-15) - should match register email"
     },
     {
       "key": "verification_full_name",
-      "value": "Test Verification User",
+      "value": "Budi Santoso",
       "enabled": true,
-      "description": "Full name for registration verification testing"
+      "description": "Full name for registration verification testing - should match register name"
     },
     {
       "key": "registration_verification_code",
