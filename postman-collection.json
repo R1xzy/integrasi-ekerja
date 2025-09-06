@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Kerja Backend API Testing - Complete with Email Verification",
-    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes",
+    "name": "E-Kerja Backend API Testing - Complete with New Features REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n- NEW FEATURES:\n  • REQ-B-2.4: Encrypted filename storage for file uploads\n  • REQ-B-2.5: Unique filename generation and validation\n  • REQ-B-5.4: Provider attendance status tracking at location\n  • REQ-B-5.5: Customer verification of provider data\n  • REQ-B-7.4: Customer edit review functionality\n  • REQ-B-7.5: Admin access to hidden reviews\n  • REQ-B-8.4: Customer-generated admin chat access\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Encrypted File Upload with Unique Names\n✅ Provider Location Attendance Tracking\n✅ Customer Verification System\n✅ Review Editing Capabilities\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes and tokens",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -418,6 +418,100 @@
             },
             "description": "Test upload dokumen PDF"
           }
+        },
+        {
+          "name": "[REQ-B-2.4] Test File Upload with Encrypted Filename",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/test-image.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "REQ-B-2.4: Test upload dengan enkripsi nama file - File disimpan dengan nama terenkripsi dan unik"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('File uploaded with encrypted filename:', response.data.fileName);",
+                  "    pm.test('File upload with encrypted filename successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.fileName).to.not.eql('test-image.jpg');",
+                  "        pm.expect(response.data.fileName).to.match(/^[a-f0-9]{32}\\.(jpg|jpeg|png|pdf)$/i);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-2.5] Test Unique Filename Generation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/duplicate-name.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "REQ-B-2.5: Test upload dengan nama file sama - Aplikasi memastikan nama file unik di database"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('File uploaded with unique filename:', response.data.fileName);",
+                  "    pm.test('File upload generates unique filename', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.fileName).to.not.eql('duplicate-name.jpg');",
+                  "        pm.expect(response.data.isUnique).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "[REQ-B-2.1] Add Provider Document - KTP",
@@ -1145,6 +1239,128 @@
             },
             "description": "Get detailed order information"
           }
+        },
+        {
+          "name": "[REQ-B-5.4] Update Provider Attendance Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendanceStatus\": \"ARRIVED\",\n  \"arrivalTime\": \"2025-09-06T10:30:00.000Z\",\n  \"providerNotes\": \"Arrived at customer location, ready to start work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "attendance"]
+            },
+            "description": "REQ-B-5.4: Provider update attendance status - ON_THE_WAY, ARRIVED, WORKING, COMPLETED"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Attendance updated:', response.data.attendanceStatus);",
+                  "    pm.test('Attendance status updated successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.attendanceStatus).to.eql('ARRIVED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-5.4] Get Provider Attendance Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "attendance"]
+            },
+            "description": "REQ-B-5.4: Get current provider attendance status and information"
+          }
+        },
+        {
+          "name": "[REQ-B-5.5] Customer Verify Provider Data",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationStatus\": \"VERIFIED\",\n  \"verificationNotes\": \"Provider arrived on time and completed work professionally\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+            },
+            "description": "REQ-B-5.5: Customer verifies provider data and work completion"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Customer verification updated:', response.data.verificationStatus);",
+                  "    pm.test('Customer verification successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.verificationStatus).to.eql('VERIFIED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-5.5] Get Customer Verification Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+            },
+            "description": "REQ-B-5.5: Get current customer verification status"
+          }
         }
       ]
     },
@@ -1634,6 +1850,77 @@
             },
             "description": "Admin views detailed report information"
           }
+        },
+        {
+          "name": "[REQ-B-7.4] Customer Edit Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"reviewText\": \"Updated review: Excellent service! Very professional and completed work on time.\",\n  \"serviceQuality\": 5,\n  \"timeliness\": 5,\n  \"communication\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/reviews/{{review_id}}/edit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "reviews", "{{review_id}}", "edit"]
+            },
+            "description": "REQ-B-7.4: Customer can edit their own review content"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Review updated successfully');",
+                  "    pm.test('Review edit successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.rating).to.eql(5);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-7.5] Admin Get Hidden Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/reviews/hidden?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "reviews", "hidden"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "REQ-B-7.5: Admin retrieves all reviews with is_show = false (hidden reviews)"
+          }
         }
       ]
     },
@@ -1831,6 +2118,48 @@
             },
             "description": "Mark all unread messages as read for current user"
           }
+        },
+        {
+          "name": "[REQ-B-8.4] Customer Generate Chat Access for Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"reason\": \"{{chat_access_reason}}\",\n  \"context\": \"{{chat_access_context}}\",\n  \"approved\": {{chat_access_approved}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"]
+            },
+            "description": "REQ-B-8.4: Customer generates access token for admin to view chat conversations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.accessToken) {",
+                  "        pm.environment.set('chat_access_token', response.data.accessToken);",
+                  "        console.log('Chat access token saved:', response.data.accessToken);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
