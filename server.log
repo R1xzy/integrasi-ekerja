@@ -319,3 +319,77 @@ Registration verification email sent to: newprovider@example.com
 ✅ Email verification code cleaned up
  POST /api/auth/register 200 in 541ms
  ✓ Compiled middleware in 33ms
+🔄 Registration request received: {
+  "fullName": "Budi Santoso",
+  "email": "customer.test@example.com",
+  "password": "Customer123!",
+  "phoneNumber": "081234567890",
+  "roleId": 1,
+  "verificationCode": ""
+}
+ POST /api/auth/register 400 in 517ms
+ POST /api/email/registration-verification 409 in 1381ms
+=== EMAIL DEMO MODE ===
+To: budi.test@example.com
+Subject: Verifikasi Registrasi - eKerja Karawang
+Email content would be sent in production mode
+=======================
+Registration verification email sent to: budi.test@example.com
+ POST /api/email/registration-verification 200 in 608ms
+🔄 Registration request received: {
+  "fullName": "Budi Santoso",
+  "email": "budi.test@example.com",
+  "password": "Customer123!",
+  "phoneNumber": "081234567890",
+  "roleId": 1,
+  "verificationCode": "952920"
+}
+🔐 Verification code provided: 952920
+✅ Registration data validated
+🔍 Verifying email verification code...
+✅ Email verification successful
+🔍 Checking if email already exists...
+❌ Phone number already exists
+ POST /api/auth/register 409 in 465ms
+🔄 Registration request received: {
+  "fullName": "Budi Santoso",
+  "email": "budi.test@example.com",
+  "password": "Customer123!",
+  "phoneNumber": "0893823918932",
+  "roleId": 1,
+  "verificationCode": "952920"
+}
+🔐 Verification code provided: 952920
+✅ Registration data validated
+🔍 Verifying email verification code...
+❌ Email verification failed
+ POST /api/auth/register 400 in 164ms
+=== EMAIL DEMO MODE ===
+To: budi.test@example.com
+Subject: Verifikasi Registrasi - eKerja Karawang
+Email content would be sent in production mode
+=======================
+Registration verification email sent to: budi.test@example.com
+ POST /api/email/registration-verification 200 in 173ms
+🔄 Registration request received: {
+  "fullName": "Budi Santoso",
+  "email": "budi.test@example.com",
+  "password": "Customer123!",
+  "phoneNumber": "0893823918932",
+  "roleId": 1,
+  "verificationCode": "833389"
+}
+🔐 Verification code provided: 833389
+✅ Registration data validated
+🔍 Verifying email verification code...
+✅ Email verification successful
+🔍 Checking if email already exists...
+✅ Email and phone available
+🔍 Validating role...
+✅ Role validated: customer
+🔐 Hashing password...
+💾 Creating user in database...
+✅ User created successfully: 7
+🗑️ Cleaning up email verification code...
+✅ Email verification code cleaned up
+ POST /api/auth/register 200 in 1188ms

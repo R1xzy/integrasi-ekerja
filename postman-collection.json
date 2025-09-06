@@ -20,14 +20,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Customer123!\",\n  \"phoneNumber\": \"081234567890\",\n  \"roleId\": 1\n}"
+              "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Customer123!\",\n  \"phoneNumber\": \"081234567890\",\n  \"roleId\": 1,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran user customer baru dengan validasi keunikan email dan phone [C-16]"
+            "description": "Test pendaftaran user customer baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
         },
         {
@@ -42,14 +42,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider\",\n  \"email\": \"provider.test@example.com\",\n  \"password\": \"Provider123!\",\n  \"phoneNumber\": \"081234567891\",\n  \"roleId\": 2\n}"
+              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider\",\n  \"email\": \"provider.test@example.com\",\n  \"password\": \"Provider123!\",\n  \"phoneNumber\": \"081234567891\",\n  \"roleId\": 2,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran provider baru - status verifikasi otomatis PENDING"
+            "description": "Test pendaftaran provider baru dengan email verification.\nPREREQUIISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email, status verifikasi provider otomatis PENDING."
           }
         },
         {
@@ -64,14 +64,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Admin Test\",\n  \"email\": \"admin.test@example.com\",\n  \"password\": \"Admin123!\",\n  \"phoneNumber\": \"081234567892\",\n  \"roleId\": 3\n}"
+              "raw": "{\n  \"fullName\": \"Admin Test\",\n  \"email\": \"admin.test@example.com\",\n  \"password\": \"Admin123!\",\n  \"phoneNumber\": \"081234567892\",\n  \"roleId\": 3,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran admin baru"
+            "description": "Test pendaftaran admin baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
         },
         {
