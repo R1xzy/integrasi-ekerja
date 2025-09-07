@@ -1304,7 +1304,7 @@
         {
           "name": "[REQ-B-5.5] Customer Verify Provider Data",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Content-Type",
@@ -1317,7 +1317,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"verificationStatus\": \"VERIFIED\",\n  \"verificationNotes\": \"Provider arrived on time and completed work professionally\"\n}"
+              "raw": "{\n  \"verificationStatus\": \"verified\",\n  \"feedback\": \"Provider arrived on time and completed work professionally. Highly recommended!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
@@ -1333,10 +1333,10 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
-                  "    console.log('Customer verification updated:', response.data.verificationStatus);",
+                  "    console.log('Customer verification updated:', response.data.order.verificationStatus);",
                   "    pm.test('Customer verification successful', function() {",
                   "        pm.expect(response.success).to.be.true;",
-                  "        pm.expect(response.data.verificationStatus).to.eql('VERIFIED');",
+                  "        pm.expect(response.data.order.verificationStatus).to.eql('verified');",
                   "    });",
                   "}"
                 ]
@@ -1854,7 +1854,7 @@
         {
           "name": "[REQ-B-7.4] Customer Edit Review",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Content-Type",
@@ -1867,7 +1867,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"reviewText\": \"Updated review: Excellent service! Very professional and completed work on time.\",\n  \"serviceQuality\": 5,\n  \"timeliness\": 5,\n  \"communication\": 5\n}"
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Updated review: Setelah dipikir-pikir, pekerjaan sangat memuaskan! Pelayanan profesional dan hasil kerja berkualitas tinggi. Highly recommended!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/customer/reviews/{{review_id}}/edit",
@@ -2120,6 +2120,30 @@
           }
         },
         {
+          "name": "[REQ-B-8.4] Get Pending Chat Access Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond?status=PENDING",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            },
+            "description": "REQ-B-8.4: Get pending chat access requests from admin"
+          }
+        },
+        {
           "name": "[REQ-B-8.4] Customer Generate Chat Access for Admin",
           "request": {
             "method": "POST",
@@ -2135,14 +2159,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"reason\": \"{{chat_access_reason}}\",\n  \"context\": \"{{chat_access_context}}\",\n  \"approved\": {{chat_access_approved}}\n}"
+              "raw": "{\n  \"requestId\": 1,\n  \"action\": \"approve\",\n  \"response\": \"{{chat_access_context}}\",\n  \"accessHours\": 24\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/customer/chat-access/respond",
               "host": ["{{base_url}}"],
               "path": ["api", "customer", "chat-access", "respond"]
             },
-            "description": "REQ-B-8.4: Customer generates access token for admin to view chat conversations"
+            "description": "REQ-B-8.4: Customer responds to admin chat access request.\nParameters:\n- requestId: ID of admin's chat access request\n- action: 'approve' or 'reject'\n- response: Customer's response message\n- accessHours: Duration of access (optional, default 24 hours)"
           },
           "event": [
             {
@@ -3437,7 +3461,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\",\n  \"customerEmail\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
@@ -3480,7 +3504,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"verificationCode\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"code\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\",\n  \"customerEmail\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
