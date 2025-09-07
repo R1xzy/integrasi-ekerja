@@ -460,9 +460,9 @@
     },
     {
       "key": "verification_status",
-      "value": "VERIFIED",
+      "value": "verified",
       "enabled": true,
-      "description": "Customer verification status for REQ-B-5.5: PENDING, VERIFIED, REJECTED"
+      "description": "Customer verification status for REQ-B-5.5: pending, verified, rejected"
     },
     {
       "key": "verification_notes",
@@ -472,7 +472,7 @@
     },
     {
       "key": "updated_review_text",
-      "value": "Updated review: Excellent service! Very professional and completed work on time.",
+      "value": "Updated review: Setelah dipikir-pikir, pekerjaan sangat memuaskan! Pelayanan profesional dan hasil kerja berkualitas tinggi. Highly recommended!",
       "enabled": true,
       "description": "Updated review text for REQ-B-7.4 customer edit review"
     },

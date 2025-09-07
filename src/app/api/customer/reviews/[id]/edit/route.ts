@@ -20,7 +20,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const customerId = parseInt(authResult.user!.userId);
-    const reviewId = parseInt(params.id);
+    const { id } = await params;
+    const reviewId = parseInt(id);
     const { rating, comment } = await request.json();
 
     // Validate rating (must be 1-5)
@@ -120,7 +121,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const customerId = parseInt(authResult.user!.userId);
-    const reviewId = parseInt(params.id);
+    const { id } = await params;
+    const reviewId = parseInt(id);
 
     // Get review with details
     const review = await prisma.review.findUnique({

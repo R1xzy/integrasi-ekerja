@@ -393,3 +393,10 @@ Registration verification email sent to: budi.test@example.com
 🗑️ Cleaning up email verification code...
 ✅ Email verification code cleaned up
  POST /api/auth/register 200 in 1188ms
+=== EMAIL DEMO MODE ===
+To: irvan.test@example.com
+Subject: Verifikasi Registrasi - eKerja Karawang
+Email content would be sent in production mode
+=======================
+Registration verification email sent to: irvan.test@example.com
+ POST /api/email/registration-verification 200 in 994ms
