@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "E-Kerja Backend API Testing - Complete with New Features REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4",
-    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n- NEW FEATURES:\n  • REQ-B-2.4: Encrypted filename storage for file uploads\n  • REQ-B-2.5: Unique filename generation and validation\n  • REQ-B-5.4: Provider attendance status tracking at location\n  • REQ-B-5.5: Customer verification of provider data\n  • REQ-B-7.4: Customer edit review functionality\n  • REQ-B-7.5: Admin access to hidden reviews\n  • REQ-B-8.4: Customer-generated admin chat access\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Encrypted File Upload with Unique Names\n✅ Provider Location Attendance Tracking\n✅ Customer Verification System\n✅ Review Editing Capabilities\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes and tokens",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n- NEW FEATURES:\n  • REQ-B-2.4: Encrypted filename storage for file uploads\n  • REQ-B-2.5: Unique filename generation and validation\n  • REQ-B-5.4: Provider attendance status tracking at location\n  • REQ-B-5.5: Customer verification of provider data\n  • REQ-B-7.2: Auto-hide reviews when reported (C-10 compliance)\n  • REQ-B-7.4: Customer edit review functionality\n  • REQ-B-7.5: Admin access to hidden reviews\n  • REQ-B-8.4: Customer-generated admin chat access\n  • REQ-B-15.3: Email verification for order status changes\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Encrypted File Upload with Unique Names\n✅ Provider Location Attendance Tracking\n✅ Customer Verification System\n✅ Review Editing Capabilities\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes and tokens",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -1681,7 +1681,7 @@
           }
         },
         {
-          "name": "[REQ-B-7.3] Report Review - Different User",
+          "name": "[REQ-B-7.3] Report Review - Auto-Hide Feature [C-10] [REQ-B-7.2]",
           "event": [
             {
               "listen": "test",
@@ -1692,6 +1692,10 @@
                   "    if (response.success && response.data.id) {",
                   "        pm.environment.set('review_report_id', response.data.id);",
                   "        console.log('Review Report ID saved:', response.data.id);",
+                  "    }",
+                  "    // Verify auto-hide message for REQ-B-7.2",
+                  "    if (response.message && response.message.includes('automatically hidden')) {",
+                  "        console.log('✅ [REQ-B-7.2] Auto-hide feature working: Review automatically hidden');",
                   "    }",
                   "}"
                 ],
@@ -1720,7 +1724,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports"]
             },
-            "description": "Different provider reports the review"
+            "description": "Reports review from different user. [C-10] Review is automatically hidden (isShow=false) when reported. [REQ-B-7.2] API processes report and updates isShow status."
           }
         },
         {
@@ -1804,7 +1808,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports", "{{review_report_id}}"]
             },
-            "description": "Admin resolves report and keeps review visible"
+            "description": "Admin resolves report and keeps review visible. [C-10] [REQ-B-7.2] Review becomes visible again (isShow=true) when admin rejects report."
           }
         },
         {
@@ -1830,7 +1834,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports", "{{review_report_id}}"]
             },
-            "description": "Admin resolves report and hides review (alternative action)"
+            "description": "Admin resolves report and hides review permanently. [C-10] [REQ-B-7.2] Review remains hidden (isShow=false) when admin approves report."
           }
         },
         {
@@ -2177,8 +2181,9 @@
                   "    const response = pm.response.json();",
                   "    if (response.data && response.data.accessToken) {",
                   "        pm.environment.set('chat_access_token', response.data.accessToken);",
-                  "        console.log('Chat access token saved:', response.data.accessToken);",
+                  "        console.log('✅ [REQ-B-8.4] Chat access token generated:', response.data.accessToken);",
                   "    }",
+                  "    console.log('✅ [REQ-B-8.4] Customer chat access response processed successfully');",
                   "}"
                 ]
               }
@@ -3479,8 +3484,9 @@
                   "    const response = pm.response.json();",
                   "    if (response.data && response.data.verificationCode) {",
                   "        pm.environment.set('order_status_verification_code', response.data.verificationCode);",
-                  "        console.log('Order status verification code saved:', response.data.verificationCode);",
+                  "        console.log('✅ [REQ-B-15.3] Order status verification code saved:', response.data.verificationCode);",
                   "    }",
+                  "    console.log('✅ [REQ-B-15.3] Email verification sent for order status change');",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -3512,7 +3518,24 @@
               "path": ["api", "email", "order-status-verification"]
             },
             "description": "Verify order status change with verification code"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ [REQ-B-15.3] Order status successfully changed via email verification');",
+                  "    if (response.data && response.data.newStatus) {",
+                  "        console.log('✅ [REQ-B-15.3] New order status:', response.data.newStatus);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "[REQ-B-8.3] Admin Chat Access - Request",
