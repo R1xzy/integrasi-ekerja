@@ -105,13 +105,16 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Mark the review as reported
+    // Mark the review as reported and automatically hide it (C-10 & REQ-B-7.2)
     await prisma.review.update({
       where: { id: parseInt(reviewId) },
-      data: { isReported: true }
+      data: { 
+        isReported: true,
+        isShow: false // Automatically hide reported reviews
+      }
     });
 
-    return createSuccessResponse(reviewReport, 'Review report submitted successfully');
+    return createSuccessResponse(reviewReport, 'Review report submitted successfully. Review has been automatically hidden.');
 
   } catch (error) {
     return handleApiError(error);
