@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 import { 
   parseDataTableParams, 
   calculateSkip, 
@@ -16,12 +15,9 @@ import {
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['admin']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
+    const authResult = await requireAuth(request, ['admin']);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
 
     const url = new URL(request.url);
@@ -112,12 +108,9 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['admin']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
+    const authResult = await requireAuth(request, ['admin']);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
 
     const body = await request.json();

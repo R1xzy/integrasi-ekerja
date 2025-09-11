@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthMiddleware } from '@/lib/jwt';
-import { createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('Auth/me: Checking Bearer token...');
     
-    // Get Authorization header
-    const authHeader = request.headers.get('authorization');
-    console.log('Auth/me: authHeader:', authHeader ? 'exists' : 'missing');
-
-    // Use JWT middleware untuk validasi
-    const auth = createAuthMiddleware();
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      console.log('Auth/me: Authentication failed:', authResult.message);
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
+    // Use new auth helper
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
+
+    const userPayload = authResult.user;
 
     // Get fresh user data dari database
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(authResult.user!.userId) },
+      where: { id: parseInt(userPayload.userId) },
       select: {
         id: true,
         fullName: true,
@@ -53,9 +47,9 @@ export async function GET(request: NextRequest) {
       user: user,
       isAuthenticated: true,
       tokenInfo: {
-        userId: authResult.user!.userId,
-        roleName: authResult.user!.roleName,
-        isActive: authResult.user!.isActive
+        userId: userPayload.userId,
+        roleName: userPayload.roleName,
+        isActive: userPayload.isActive
       }
     }, 'User profile retrieved successfully');
 
