@@ -99,7 +99,7 @@ export default function FAQAdminPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">FAQ Admin</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Kelola FAQ</h1>
 
         <div className="bg-white p-4 rounded-lg shadow flex justify-between mb-4">
           <button

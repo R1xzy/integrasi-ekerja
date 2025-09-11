@@ -1,111 +1,226 @@
-import Link from "next/link";
-import { BarChart3, Users, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
-import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+"use client";
 
-export default function Dashboard() {
-  const stats = [
-    {
-      title: "Total Pesanan",
-      value: "1,234",
-      change: "+12%",
-      icon: <ShoppingBag className="w-6 h-6" />,
-      color: "bg-blue-500"
-    },
-    {
-      title: "Penyedia Aktif",
-      value: "856",
-      change: "+8%",
-      icon: <Users className="w-6 h-6" />,
-      color: "bg-green-500"
-    },
-    {
-      title: "Rating Rata-rata",
-      value: "4.8",
-      change: "+0.2",
-      icon: <Star className="w-6 h-6" />,
-      color: "bg-yellow-500"
-    },
-    {
-      title: "Pendapatan",
-      value: "Rp 125M",
-      change: "+15%",
-      icon: <TrendingUp className="w-6 h-6" />,
-      color: "bg-purple-500"
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Users, Package, DollarSign, Activity, ArrowUp, ArrowDown } from "lucide-react";
+import { BarChart3, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
+import Image from 'next/image';
+import { subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+
+// --- PERUBAHAN DI SINI ---
+// Tipe data disesuaikan dengan respons API yang sebenarnya
+interface Order {
+  id: string;
+  finalAmount: number; // Menggunakan finalAmount
+  status: string;
+  createdAt: string;
+  customer: { 
+    fullName: string; // Menggunakan fullName
+    profile?: { photo?: string } 
+  };
+  providerService: { // Menggunakan providerService
+    serviceTitle: string; // Menggunakan serviceTitle
+  };
+}
+interface Provider {
+  isActive: boolean;
+}
+interface Customer {
+  createdAt: string;
+}
+
+// Tipe data untuk statistik (tidak berubah)
+interface CalculatedStats {
+  totalOrders: number;
+  activeProviders: number;
+  newCustomers: number;
+  totalRevenue: number;
+  orderGrowthPercentage: number;
+}
+
+// Fungsi helper (tidak berubah)
+const formatCurrency = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const getBadgeClasses = (status: string) => {
+    const baseClasses = "px-2.5 py-0.5 rounded-full text-xs font-medium";
+    const statusMap: { [key: string]: string } = {
+        'PENDING': `${baseClasses} bg-yellow-100 text-yellow-800`,
+        'IN_PROGRESS': `${baseClasses} bg-blue-100 text-blue-800`,
+        'COMPLETED': `${baseClasses} bg-green-100 text-green-800`,
+        'CANCELLED': `${baseClasses} bg-red-100 text-red-800`,
+    };
+    return statusMap[status.toUpperCase()] || `${baseClasses} bg-gray-100 text-gray-800`;
+};
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<CalculatedStats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDataAndCalculate() {
+      try {
+        setLoading(true);
+        
+        const [ordersRes, providersRes, customersRes] = await Promise.all([
+          fetch('/api/admin/orders'),
+          fetch('/api/admin/providers'),
+          fetch('/api/admin/customers'),
+        ]);
+
+        if (!ordersRes.ok || !providersRes.ok || !customersRes.ok) {
+          throw new Error('Gagal mengambil data dari server. Pastikan otentikasi di dalam API sudah dinonaktifkan.');
+        }
+
+        // --- PERUBAHAN DI SINI ---
+        // Ekstrak data dari dalam objek respons
+        const ordersData = await ordersRes.json();
+        const providersData = await providersRes.json();
+        const customersData = await customersRes.json();
+
+        const orders: Order[] = ordersData.data.data;
+        const providers: Provider[] = providersData.data.data;
+        const customers: Customer[] = customersData.data.data;
+        
+        // Kalkulasi data
+        const now = new Date();
+        const totalRevenue = orders
+            .filter(o => o.status.toUpperCase() === 'COMPLETED')
+            .reduce((sum, order) => sum + order.finalAmount, 0); // Menggunakan finalAmount
+        
+        const activeProviders = providers.filter(p => p.isActive).length;
+        const newCustomers = customers.filter(c => new Date(c.createdAt) >= subMonths(now, 1)).length;
+        
+        const thisMonthStart = startOfMonth(now);
+        const lastMonthStart = startOfMonth(subMonths(now, 1));
+        const lastMonthEnd = endOfMonth(subMonths(now, 1));
+        const ordersThisMonth = orders.filter(o => new Date(o.createdAt) >= thisMonthStart).length;
+        const ordersLastMonth = orders.filter(o => isWithinInterval(new Date(o.createdAt), { start: lastMonthStart, end: lastMonthEnd })).length;
+        
+        let orderGrowthPercentage = 0;
+        if (ordersLastMonth > 0) {
+          orderGrowthPercentage = ((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100;
+        } else if (ordersThisMonth > 0) {
+          orderGrowthPercentage = 100;
+        }
+
+        setStats({
+          totalOrders: orders.length,
+          totalRevenue,
+          activeProviders,
+          newCustomers,
+          orderGrowthPercentage: parseFloat(orderGrowthPercentage.toFixed(1)),
+        });
+
+        const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setRecentOrders(sortedOrders.slice(0, 5));
+        setError(null);
+      } catch (err: any) {
+        console.error("Dashboard fetch error:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    fetchDataAndCalculate();
+  }, []);
 
-  const recentOrders = [
-    { id: "ORD-001", customer: "John Doe", service: "Service AC", amount: "Rp 150,000", status: "Completed" },
-    { id: "ORD-002", customer: "Jane Smith", service: "Bersih Rumah", amount: "Rp 200,000", status: "In Progress" },
-    { id: "ORD-003", customer: "Bob Johnson", service: "Tukang Kayu", amount: "Rp 300,000", status: "Pending" },
-    { id: "ORD-004", customer: "Alice Brown", service: "Plumbing", amount: "Rp 180,000", status: "Completed" },
-  ];
+  if (loading) return <div className="flex justify-center items-center h-screen">Memuat data dasbor...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen text-red-500">Error: {error}</div>;
+
+  const GrowthIndicator = ({ percentage }: { percentage: number }) => {
+    const isPositive = percentage >= 0;
+    return (
+      <p className={`text-xs text-gray-500 flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        {isPositive ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+        {isPositive ? '+' : ''}{percentage}% dari bulan lalu
+      </p>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Selamat datang di panel admin E-Kerja Karawang</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm text-green-600">{stat.change} dari bulan lalu</p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg text-white`}>
-                  {stat.icon}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Orders */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Pesanan Terbaru</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                    <div>
-                      <p className="font-medium text-gray-900">{order.id}</p>
-                      <p className="text-sm text-gray-600">{order.customer} - {order.service}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{order.amount}</p>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6">
-                <Link href="/dashboard/orders" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Lihat semua pesanan →
-                </Link>
-              </div>
-            </div>
+    <div className="flex-1 space-y-6 p-8 pt-6 bg-gray-50/50 text-gray-600">
+      <h2 className="text-3xl font-bold tracking-tight">Dasbor Admin</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Kartu Statistik */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-600">Total Pesanan</h3>
+            <Package className="h-4 w-4 text-gray-400" />
           </div>
-
-          {/* Quick Actions */}
+          <div>
+            <div className="text-2xl font-bold">{stats?.totalOrders}</div>
+            {stats && <GrowthIndicator percentage={stats.orderGrowthPercentage} />}
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-600">Penyedia Jasa Aktif</h3>
+            <Users className="h-4 w-4 text-gray-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{stats?.activeProviders}</div>
+            <p className="text-xs text-gray-500">Total penyedia jasa terverifikasi</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-600">Total Pendapatan</h3>
+            <DollarSign className="h-4 w-4 text-gray-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
+            <p className="text-xs text-gray-500">Dari pesanan yang telah selesai</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-600">Pelanggan Baru</h3>
+            <Activity className="h-4 w-4 text-gray-400" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold">+{stats?.newCustomers}</div>
+            <p className="text-xs text-gray-500">Dalam 30 hari terakhir</p>
+          </div>
+        </div>
+      </div>
+      {/* Tabel Pesanan Terbaru */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-6">
+          <h3 className="text-lg font-medium">Pesanan Terbaru</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3">Pelanggan</th>
+                <th scope="col" className="px-6 py-3">Layanan</th>
+                <th scope="col" className="px-6 py-3">Status</th>
+                <th scope="col" className="px-6 py-3">Tanggal</th>
+                <th scope="col" className="px-6 py-3 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    <div className="flex items-center gap-3">
+                      <Image src={order.customer.profile?.photo || '/default-avatar.png'} alt={order.customer.fullName} width={32} height={32} className="rounded-full object-cover" />
+                      {order.customer.fullName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">{order.providerService.serviceTitle}</td>
+                  <td className="px-6 py-4">
+                    <span className={getBadgeClasses(order.status)}>{order.status}</span>
+                  </td>
+                  <td className="px-6 py-4">{formatDate(order.createdAt)}</td>
+                  <td className="px-6 py-4 text-right font-medium">{formatCurrency(order.finalAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Aksi Cepat</h2>
@@ -120,7 +235,7 @@ export default function Dashboard() {
                   </div>
                 </Link>
                 
-                <Link href="/dashboard/services/add" className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                <Link href="/dashboard/services" className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                   <ShoppingBag className="w-8 h-8 text-green-600 mr-3" />
                   <div>
                     <p className="font-medium text-gray-900">Tambah Kategori Layanan</p>

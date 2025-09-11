@@ -1,4 +1,3 @@
-// src/components/ReusableTable.tsx
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -9,11 +8,14 @@ type Column<T> = {
   accessorKey?: keyof T;
   cell?: (row: T, index: number) => React.ReactNode;
   sortable?: boolean;
-  filterValues?: string[]; // jika ada, otomatis buat filter dropdown
+  // BARU: Fungsi untuk mendapatkan nilai yang akan di-sort.
+  // Ini sangat berguna untuk kolom dengan data objek atau data terformat.
+  sortAccessor?: (row: T) => string | number;
+  filterValues?: string[];
 };
 
 type SortConfig<T> = {
-  key: keyof T;
+  key: keyof T | ((row: T) => string | number); // Kunci bisa berupa accessorKey atau fungsi sortAccessor
   direction: "ascending" | "descending";
 } | null;
 
@@ -21,6 +23,7 @@ type ReusableTableProps<T> = {
   data: T[];
   columns: Column<T>[];
   enableSearch?: boolean;
+  searchPlaceholder?: string;
   enablePagination?: boolean;
   itemsPerPage?: number;
 };
@@ -29,24 +32,30 @@ export default function ReusableTable<T extends object>({
   data,
   columns,
   enableSearch = false,
+  searchPlaceholder = "Cari...",
   enablePagination = false,
-  itemsPerPage = 5,
+  itemsPerPage = 10, // Default items per page
 }: ReusableTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
 
-  const handleSort = (key: keyof T) => {
+  const handleSort = (column: Column<T>) => {
+    // Gunakan sortAccessor jika ada, jika tidak, gunakan accessorKey
+    const sortKey = column.sortAccessor || column.accessorKey;
+    if (!sortKey) return;
+
     let direction: "ascending" | "descending" = "ascending";
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === "ascending") {
+    if (sortConfig && sortConfig.key === sortKey && sortConfig.direction === "ascending") {
       direction = "descending";
     }
-    setSortConfig({ key, direction });
+    setSortConfig({ key: sortKey, direction });
   };
 
-  const getSortIcon = (key: keyof T) => {
-    if (!sortConfig || sortConfig.key !== key) {
+  const getSortIcon = (column: Column<T>) => {
+    const sortKey = column.sortAccessor || column.accessorKey;
+    if (!sortConfig || sortConfig.key !== sortKey) {
       return <span className="w-4 h-4"></span>;
     }
     return sortConfig.direction === "ascending" ? (
@@ -59,14 +68,14 @@ export default function ReusableTable<T extends object>({
   const filteredData = useMemo(() => {
     let temp = [...data];
 
-    // filter kolom
+    // Filter
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== "Semua") {
         temp = temp.filter((row) => String(row[key as keyof T]) === value);
       }
     });
 
-    // search global
+    // Search
     if (searchTerm.trim() !== "") {
       temp = temp.filter((row) =>
         Object.values(row).some((val) =>
@@ -75,23 +84,22 @@ export default function ReusableTable<T extends object>({
       );
     }
 
-    // sorting
+    // Sorting - DIPERBARUI untuk menangani sortAccessor
     if (sortConfig) {
       temp.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? 1 : -1;
-        }
+        const aValue = typeof sortConfig.key === 'function' ? sortConfig.key(a) : a[sortConfig.key as keyof T];
+        const bValue = typeof sortConfig.key === 'function' ? sortConfig.key(b) : b[sortConfig.key as keyof T];
+        
+        if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "ascending" ? 1 : -1;
         return 0;
       });
     }
 
     return temp;
   }, [data, searchTerm, sortConfig, filters]);
-
-  // pagination
+  
+  // Paginasi - Logika ini sudah benar, masalahnya ada pada pemanggilan komponen
   const totalPages = enablePagination ? Math.ceil(filteredData.length / itemsPerPage) : 1;
   const paginatedData = enablePagination
     ? filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -99,63 +107,39 @@ export default function ReusableTable<T extends object>({
 
   return (
     <div className="bg-white rounded-lg shadow overflow-x-auto p-4 space-y-4">
-      {/* Search */}
-      {enableSearch && (
-        <input
-          type="text"
-          placeholder="Cari..."
-          className="border border-gray-300 rounded px-4 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 text-gray-600"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
-        />
-      )}
+      <div className="flex flex-wrap items-center gap-4">
+          {enableSearch && (
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              className="border border-gray-300 rounded px-4 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 text-gray-600"
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            />
+          )}
 
-      {/* Filter otomatis */}
-      <div className="flex flex-wrap gap-4">
-        {columns
-          .filter((col) => col.filterValues)
-          .map((col) => (
-            <select
-              key={col.header}
-              className="text-gray-600 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500"
-              value={filters[col.accessorKey as string] || "Semua"}
-              onChange={(e) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  [col.accessorKey as string]: e.target.value,
-                }))
-              }
-            >
-              <option value="Semua">Semua {col.header}</option>
-              {col.filterValues?.map((val) => (
-                <option key={val} value={val}>
-                  {val}
-                </option>
-              ))}
-            </select>
-          ))}
+          {columns.filter((col) => col.filterValues).map((col) => (
+              <select
+                key={col.header}
+                className="text-gray-600 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                value={filters[col.accessorKey as string] || "Semua"}
+                onChange={(e) => setFilters((prev) => ({...prev, [col.accessorKey as string]: e.target.value,}))}
+              >
+                <option value="Semua">Semua {col.header}</option>
+                {col.filterValues?.map((val) => (<option key={val} value={val}>{val}</option>))}
+              </select>
+            ))}
       </div>
-
-      {/* Table */}
+      
       <table className="min-w-full table-auto text-sm text-left">
         <thead className="bg-gray-100">
           <tr>
             {columns.map((col) => (
-              <th
-                key={col.header}
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                {col.sortable && col.accessorKey ? (
-                  <button
-                    onClick={() => handleSort(col.accessorKey!)}
-                    className="flex items-center gap-2 duration-300 hover:text-gray-900 focus:outline-none"
-                  >
+              <th key={col.header} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {col.sortable ? (
+                  <button onClick={() => handleSort(col)} className="flex items-center gap-2 duration-300 hover:text-gray-900 focus:outline-none">
                     {col.header}
-                    {getSortIcon(col.accessorKey!)}
+                    {getSortIcon(col)}
                   </button>
                 ) : (
                   col.header
@@ -168,15 +152,8 @@ export default function ReusableTable<T extends object>({
           {paginatedData.map((row, rowIndex) => (
             <tr key={rowIndex} className="duration-300 hover:bg-gray-50">
               {columns.map((col) => (
-                <td
-                  key={`${rowIndex}-${col.header}`}
-                  className="text-gray-600 px-6 py-4 whitespace-nowrap"
-                >
-                  {col.cell
-                    ? col.cell(row, rowIndex)
-                    : col.accessorKey
-                    ? (row[col.accessorKey] as React.ReactNode)
-                    : null}
+                <td key={`${rowIndex}-${col.header}`} className="px-6 py-4 whitespace-nowrap">
+                  {col.cell ? col.cell(row, rowIndex) : col.accessorKey ? (row[col.accessorKey] as React.ReactNode) : null}
                 </td>
               ))}
             </tr>
@@ -184,38 +161,19 @@ export default function ReusableTable<T extends object>({
         </tbody>
       </table>
 
-      {/* Pagination */}
-      {enablePagination && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow">
+      {enablePagination && totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4 rounded-b-lg">
           <div>
             <p className="text-sm text-gray-700">
-              Menampilkan{" "}
-              <span className="font-medium">
-                {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-              </span>{" "}
-              sampai{" "}
-              <span className="font-medium">
-                {Math.min(currentPage * itemsPerPage, filteredData.length)}
-              </span>{" "}
-              dari <span className="font-medium">{filteredData.length}</span> hasil
+              Menampilkan <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> sampai <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-medium">{filteredData.length}</span> hasil
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-2 py-2 border rounded-md bg-white text-sm text-gray-500 duration-300 hover:bg-gray-50 disabled:opacity-50"
-            >
+            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-2 py-2 border rounded-md bg-white text-sm text-gray-500 duration-300 hover:bg-gray-50 disabled:opacity-50">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <span className="text-sm text-gray-700">
-              Halaman {currentPage} dari {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-2 py-2 border rounded-md bg-white text-sm text-gray-500 duration-300 hover:bg-gray-50 disabled:opacity-50"
-            >
+            <span className="text-sm text-gray-700"> Halaman {currentPage} dari {totalPages} </span>
+            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-2 py-2 border rounded-md bg-white text-sm text-gray-500 duration-300 hover:bg-gray-50 disabled:opacity-50">
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
