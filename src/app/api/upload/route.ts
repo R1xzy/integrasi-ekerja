@@ -2,8 +2,7 @@ import { NextRequest } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
-import { createAuthMiddleware } from '@/lib/jwt';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 import { generateUniqueFilename, validateFileType, ALLOWED_IMAGE_TYPES, ALLOWED_DOCUMENT_TYPES } from '@/lib/utils-backend';
 import { prisma } from '@/lib/db';
 import crypto from 'crypto';
@@ -11,13 +10,9 @@ import crypto from 'crypto';
 export async function POST(request: NextRequest) {
   try {
     // Validate Bearer token - any authenticated user can upload
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware();
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
-    }
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const fileType = formData.get('type') as string; // 'image' or 'document'
@@ -74,7 +69,7 @@ export async function POST(request: NextRequest) {
     console.log('🔄 Generating encrypted unique filename...');
     const secureFilename = await generateUniqueFilename(
       file.name, 
-      authResult.user!.userId,
+      authResult.user.userId as string,
       checkFilenameExists
     );
     console.log('✅ Generated encrypted filename:', secureFilename);
@@ -98,7 +93,7 @@ export async function POST(request: NextRequest) {
       filename: secureFilename,
       originalName: file.name,
       size: file.size,
-      uploadedBy: authResult.user!.userId,
+      uploadedBy: authResult.user.userId as string,
       uploadedAt: new Date().toISOString()
     }, 'File uploaded successfully');
     

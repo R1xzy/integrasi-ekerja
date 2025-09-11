@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { createAuthMiddleware } from '@/lib/jwt';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function POST(request: NextRequest) {
   try {
     // Validate Bearer token - customer only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer']);
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request, ['customer']);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const customerId = parseInt(authResult.user!.userId);
+    const customerId = parseInt(authResult.user.userId as string);
 
     // Parse request body
     let body;
@@ -142,16 +136,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - customer, provider, or admin
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider', 'admin']);
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request, ['customer', 'provider', 'admin']);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
-    const userRole = authResult.user!.roleName;
+    const userId = parseInt(authResult.user.userId as string);
+    const userRole = authResult.user.roleName as string;
 
     // Parse query parameters
     const url = new URL(request.url);

@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { createAuthMiddleware } from '@/lib/jwt';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - customer, provider, or admin
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider', 'admin']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
+    const authResult = await requireAuth(request, ['customer', 'provider', 'admin']);
+    if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
     const orderId = parseInt(id);
-    const userId = parseInt(authResult.user!.userId);
-    const userRole = authResult.user!.roleName;
+    const userId = parseInt(authResult.user.userId as string);
+    const userRole = authResult.user.roleName as string;
 
     if (isNaN(orderId)) {
       return createErrorResponse('Invalid order ID', 400);
@@ -97,18 +91,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - provider or admin
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['provider', 'admin']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
+    const authResult = await requireAuth(request, ['provider', 'admin']);
+    if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
     const orderId = parseInt(id);
-    const userId = parseInt(authResult.user!.userId);
-    const userRole = authResult.user!.roleName;
+    const userId = parseInt(authResult.user.userId as string);
+    const userRole = authResult.user.roleName as string;
 
     if (isNaN(orderId)) {
       return createErrorResponse('Invalid order ID', 400);
