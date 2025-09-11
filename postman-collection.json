@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Kerja Backend API Testing - Complete with Email Verification",
-    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes",
+    "name": "E-Kerja Backend API Testing - Complete with New Features REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n- NEW FEATURES:\n  • REQ-B-2.4: Encrypted filename storage for file uploads\n  • REQ-B-2.5: Unique filename generation and validation\n  • REQ-B-5.4: Provider attendance status tracking at location\n  • REQ-B-5.5: Customer verification of provider data\n  • REQ-B-7.2: Auto-hide reviews when reported (C-10 compliance)\n  • REQ-B-7.4: Customer edit review functionality\n  • REQ-B-7.5: Admin access to hidden reviews\n  • REQ-B-8.4: Customer-generated admin chat access\n  • REQ-B-15.3: Email verification for order status changes\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Encrypted File Upload with Unique Names\n✅ Provider Location Attendance Tracking\n✅ Customer Verification System\n✅ Review Editing Capabilities\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes and tokens",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -20,14 +20,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Customer123!\",\n  \"phoneNumber\": \"081234567890\",\n  \"roleId\": 1\n}"
+              "raw": "{\n  \"fullName\": \"Budi Santoso\",\n  \"email\": \"customer.test@example.com\",\n  \"password\": \"Customer123!\",\n  \"phoneNumber\": \"081234567890\",\n  \"roleId\": 1,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran user customer baru dengan validasi keunikan email dan phone [C-16]"
+            "description": "Test pendaftaran user customer baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
         },
         {
@@ -42,14 +42,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider\",\n  \"email\": \"provider.test@example.com\",\n  \"password\": \"Provider123!\",\n  \"phoneNumber\": \"081234567891\",\n  \"roleId\": 2\n}"
+              "raw": "{\n  \"fullName\": \"Siti Nurhaliza Provider\",\n  \"email\": \"provider.test@example.com\",\n  \"password\": \"Provider123!\",\n  \"phoneNumber\": \"081234567891\",\n  \"roleId\": 2,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran provider baru - status verifikasi otomatis PENDING"
+            "description": "Test pendaftaran provider baru dengan email verification.\nPREREQUIISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email, status verifikasi provider otomatis PENDING."
           }
         },
         {
@@ -64,14 +64,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Admin Test\",\n  \"email\": \"admin.test@example.com\",\n  \"password\": \"Admin123!\",\n  \"phoneNumber\": \"081234567892\",\n  \"roleId\": 3\n}"
+              "raw": "{\n  \"fullName\": \"Admin Test\",\n  \"email\": \"admin.test@example.com\",\n  \"password\": \"Admin123!\",\n  \"phoneNumber\": \"081234567892\",\n  \"roleId\": 3,\n  \"verificationCode\": \"{{registration_verification_code}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
               "host": ["{{base_url}}"],
               "path": ["api", "auth", "register"]
             },
-            "description": "Test pendaftaran admin baru"
+            "description": "Test pendaftaran admin baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
         },
         {
@@ -418,6 +418,100 @@
             },
             "description": "Test upload dokumen PDF"
           }
+        },
+        {
+          "name": "[REQ-B-2.4] Test File Upload with Encrypted Filename",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/test-image.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "REQ-B-2.4: Test upload dengan enkripsi nama file - File disimpan dengan nama terenkripsi dan unik"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('File uploaded with encrypted filename:', response.data.fileName);",
+                  "    pm.test('File upload with encrypted filename successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.fileName).to.not.eql('test-image.jpg');",
+                  "        pm.expect(response.data.fileName).to.match(/^[a-f0-9]{32}\\.(jpg|jpeg|png|pdf)$/i);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-2.5] Test Unique Filename Generation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/your/duplicate-name.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "REQ-B-2.5: Test upload dengan nama file sama - Aplikasi memastikan nama file unik di database"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('File uploaded with unique filename:', response.data.fileName);",
+                  "    pm.test('File upload generates unique filename', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.fileName).to.not.eql('duplicate-name.jpg');",
+                  "        pm.expect(response.data.isUnique).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "[REQ-B-2.1] Add Provider Document - KTP",
@@ -1145,6 +1239,128 @@
             },
             "description": "Get detailed order information"
           }
+        },
+        {
+          "name": "[REQ-B-5.4] Update Provider Attendance Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendanceStatus\": \"ARRIVED\",\n  \"arrivalTime\": \"2025-09-06T10:30:00.000Z\",\n  \"providerNotes\": \"Arrived at customer location, ready to start work\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "attendance"]
+            },
+            "description": "REQ-B-5.4: Provider update attendance status - ON_THE_WAY, ARRIVED, WORKING, COMPLETED"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Attendance updated:', response.data.attendanceStatus);",
+                  "    pm.test('Attendance status updated successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.attendanceStatus).to.eql('ARRIVED');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-5.4] Get Provider Attendance Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "attendance"]
+            },
+            "description": "REQ-B-5.4: Get current provider attendance status and information"
+          }
+        },
+        {
+          "name": "[REQ-B-5.5] Customer Verify Provider Data",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationStatus\": \"verified\",\n  \"feedback\": \"Provider arrived on time and completed work professionally. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+            },
+            "description": "REQ-B-5.5: Customer verifies provider data and work completion"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Customer verification updated:', response.data.order.verificationStatus);",
+                  "    pm.test('Customer verification successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.order.verificationStatus).to.eql('verified');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-5.5] Get Customer Verification Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+            },
+            "description": "REQ-B-5.5: Get current customer verification status"
+          }
         }
       ]
     },
@@ -1465,7 +1681,7 @@
           }
         },
         {
-          "name": "[REQ-B-7.3] Report Review - Different User",
+          "name": "[REQ-B-7.3] Report Review - Auto-Hide Feature [C-10] [REQ-B-7.2]",
           "event": [
             {
               "listen": "test",
@@ -1476,6 +1692,10 @@
                   "    if (response.success && response.data.id) {",
                   "        pm.environment.set('review_report_id', response.data.id);",
                   "        console.log('Review Report ID saved:', response.data.id);",
+                  "    }",
+                  "    // Verify auto-hide message for REQ-B-7.2",
+                  "    if (response.message && response.message.includes('automatically hidden')) {",
+                  "        console.log('✅ [REQ-B-7.2] Auto-hide feature working: Review automatically hidden');",
                   "    }",
                   "}"
                 ],
@@ -1504,7 +1724,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports"]
             },
-            "description": "Different provider reports the review"
+            "description": "Reports review from different user. [C-10] Review is automatically hidden (isShow=false) when reported. [REQ-B-7.2] API processes report and updates isShow status."
           }
         },
         {
@@ -1588,7 +1808,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports", "{{review_report_id}}"]
             },
-            "description": "Admin resolves report and keeps review visible"
+            "description": "Admin resolves report and keeps review visible. [C-10] [REQ-B-7.2] Review becomes visible again (isShow=true) when admin rejects report."
           }
         },
         {
@@ -1614,7 +1834,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "review-reports", "{{review_report_id}}"]
             },
-            "description": "Admin resolves report and hides review (alternative action)"
+            "description": "Admin resolves report and hides review permanently. [C-10] [REQ-B-7.2] Review remains hidden (isShow=false) when admin approves report."
           }
         },
         {
@@ -1633,6 +1853,77 @@
               "path": ["api", "review-reports", "{{review_report_id}}"]
             },
             "description": "Admin views detailed report information"
+          }
+        },
+        {
+          "name": "[REQ-B-7.4] Customer Edit Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Updated review: Setelah dipikir-pikir, pekerjaan sangat memuaskan! Pelayanan profesional dan hasil kerja berkualitas tinggi. Highly recommended!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/reviews/{{review_id}}/edit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "reviews", "{{review_id}}", "edit"]
+            },
+            "description": "REQ-B-7.4: Customer can edit their own review content"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('Review updated successfully');",
+                  "    pm.test('Review edit successful', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.rating).to.eql(5);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-7.5] Admin Get Hidden Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/reviews/hidden?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "reviews", "hidden"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "REQ-B-7.5: Admin retrieves all reviews with is_show = false (hidden reviews)"
           }
         }
       ]
@@ -1831,6 +2122,73 @@
             },
             "description": "Mark all unread messages as read for current user"
           }
+        },
+        {
+          "name": "[REQ-B-8.4] Get Pending Chat Access Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond?status=PENDING",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            },
+            "description": "REQ-B-8.4: Get pending chat access requests from admin"
+          }
+        },
+        {
+          "name": "[REQ-B-8.4] Customer Generate Chat Access for Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": 1,\n  \"action\": \"approve\",\n  \"response\": \"{{chat_access_context}}\",\n  \"accessHours\": 24\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customer/chat-access/respond",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customer", "chat-access", "respond"]
+            },
+            "description": "REQ-B-8.4: Customer responds to admin chat access request.\nParameters:\n- requestId: ID of admin's chat access request\n- action: 'approve' or 'reject'\n- response: Customer's response message\n- accessHours: Duration of access (optional, default 24 hours)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.accessToken) {",
+                  "        pm.environment.set('chat_access_token', response.data.accessToken);",
+                  "        console.log('✅ [REQ-B-8.4] Chat access token generated:', response.data.accessToken);",
+                  "    }",
+                  "    console.log('✅ [REQ-B-8.4] Customer chat access response processed successfully');",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -3108,7 +3466,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"newStatus\": \"{{order_new_status}}\",\n  \"customerEmail\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
@@ -3126,8 +3484,9 @@
                   "    const response = pm.response.json();",
                   "    if (response.data && response.data.verificationCode) {",
                   "        pm.environment.set('order_status_verification_code', response.data.verificationCode);",
-                  "        console.log('Order status verification code saved:', response.data.verificationCode);",
+                  "        console.log('✅ [REQ-B-15.3] Order status verification code saved:', response.data.verificationCode);",
                   "    }",
+                  "    console.log('✅ [REQ-B-15.3] Email verification sent for order status change');",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -3151,7 +3510,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"verificationCode\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\"\n}"
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"code\": \"{{order_status_verification_code}}\",\n  \"newStatus\": \"{{order_new_status}}\",\n  \"customerEmail\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
@@ -3159,7 +3518,24 @@
               "path": ["api", "email", "order-status-verification"]
             },
             "description": "Verify order status change with verification code"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ [REQ-B-15.3] Order status successfully changed via email verification');",
+                  "    if (response.data && response.data.newStatus) {",
+                  "        console.log('✅ [REQ-B-15.3] New order status:', response.data.newStatus);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "[REQ-B-8.3] Admin Chat Access - Request",

@@ -20,7 +20,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const customerId = parseInt(authResult.user!.userId);
-    const orderId = parseInt(params.id);
+    const { id } = await params;
+    const orderId = parseInt(id);
     const { verificationStatus, notes } = await request.json();
 
     // Validate verification status
@@ -121,7 +122,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const userId = parseInt(authResult.user!.userId);
-    const orderId = parseInt(params.id);
+    const { id } = await params;
+    const orderId = parseInt(id);
 
     // Get order with verification info
     const order = await prisma.order.findFirst({

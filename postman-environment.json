@@ -1,6 +1,6 @@
 {
-  "id": "e-kerja-environment-complete",
-  "name": "E-Kerja Development Environment - Complete API Testing with Email Verification",
+  "id": "e-kerja-environment-complete-with-new-features",
+  "name": "E-Kerja Development Environment - Complete API Testing with REQ-B-7.2/8.4/15.3 Updated",
   "values": [
     {
       "key": "base_url",
@@ -340,15 +340,15 @@
     },
     {
       "key": "verification_email",
-      "value": "test.verification@example.com",
+      "value": "customer.test@example.com",
       "enabled": true,
-      "description": "Email for verification testing (REQ-B-15)"
+      "description": "Email for verification testing (REQ-B-15) - should match register email"
     },
     {
       "key": "verification_full_name",
-      "value": "Test Verification User",
+      "value": "Budi Santoso",
       "enabled": true,
-      "description": "Full name for registration verification testing"
+      "description": "Full name for registration verification testing - should match register name"
     },
     {
       "key": "registration_verification_code",
@@ -439,9 +439,81 @@
       "value": "E-Kerja Platform",
       "enabled": true,
       "description": "Email from name for all outgoing emails"
+    },
+    {
+      "key": "attendance_status",
+      "value": "ARRIVED",
+      "enabled": true,
+      "description": "Provider attendance status for REQ-B-5.4: ON_THE_WAY, ARRIVED, WORKING, COMPLETED"
+    },
+    {
+      "key": "arrival_time",
+      "value": "2025-09-06T10:30:00.000Z",
+      "enabled": true,
+      "description": "Provider arrival time for REQ-B-5.4 attendance tracking"
+    },
+    {
+      "key": "provider_notes",
+      "value": "Arrived at customer location, ready to start work",
+      "enabled": true,
+      "description": "Provider notes for REQ-B-5.4 attendance update"
+    },
+    {
+      "key": "verification_status",
+      "value": "verified",
+      "enabled": true,
+      "description": "Customer verification status for REQ-B-5.5: pending, verified, rejected"
+    },
+    {
+      "key": "verification_notes",
+      "value": "Provider arrived on time and completed work professionally",
+      "enabled": true,
+      "description": "Customer verification notes for REQ-B-5.5"
+    },
+    {
+      "key": "updated_review_text",
+      "value": "Updated review: Setelah dipikir-pikir, pekerjaan sangat memuaskan! Pelayanan profesional dan hasil kerja berkualitas tinggi. Highly recommended!",
+      "enabled": true,
+      "description": "Updated review text for REQ-B-7.4 customer edit review"
+    },
+    {
+      "key": "updated_rating",
+      "value": "5",
+      "enabled": true,
+      "description": "Updated rating for REQ-B-7.4 customer edit review"
+    },
+    {
+      "key": "service_quality_rating",
+      "value": "5",
+      "enabled": true,
+      "description": "Service quality rating for detailed review editing"
+    },
+    {
+      "key": "timeliness_rating",
+      "value": "5",
+      "enabled": true,
+      "description": "Timeliness rating for detailed review editing"
+    },
+    {
+      "key": "communication_rating",
+      "value": "5",
+      "enabled": true,
+      "description": "Communication rating for detailed review editing"
+    },
+    {
+      "key": "encrypted_filename_test",
+      "value": "test-image.jpg",
+      "enabled": true,
+      "description": "Test filename for REQ-B-2.4 encrypted filename testing"
+    },
+    {
+      "key": "duplicate_filename_test",
+      "value": "duplicate-name.jpg",
+      "enabled": true,
+      "description": "Test filename for REQ-B-2.5 unique filename testing"
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-07-25T10:30:00.000Z",
-  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-13/14/15"
+  "_postman_exported_at": "2025-09-06T11:30:00.000Z",
+  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4"
 }
