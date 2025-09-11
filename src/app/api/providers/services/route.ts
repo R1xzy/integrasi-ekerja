@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { createAuthMiddleware } from '@/lib/jwt';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - provider only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['provider']);
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const providerId = parseInt(authResult.user!.userId);
+    const providerId = parseInt(authResult.user.userId as string);
 
     // Get provider services
     const services = await prisma.providerService.findMany({
@@ -41,15 +35,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Validate Bearer token - provider only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['provider']);
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const providerId = parseInt(authResult.user!.userId);
+    const providerId = parseInt(authResult.user.userId as string);
     const body = await request.json();
 
     // Validate required fields

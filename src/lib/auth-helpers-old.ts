@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJWTTokenEdge } from './jwt-edge';
+import { JWTPayload } from 'jose';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyJWTTokenEdge } from './jwt-edge';
+import { JWTPayload } from 'jose';
 
 export interface AuthenticatedUser {
   id: string;
@@ -35,6 +40,45 @@ export async function getAuthenticatedUser(req: NextRequest): Promise<Authentica
     console.error('Authentication error:', error);
     return null;
   }
+}
+
+export function requireAuth(handler: (req: NextRequest, user: AuthenticatedUser) => Promise<NextResponse>) {
+  return async (req: NextRequest) => {
+    const user = await getAuthenticatedUser(req);
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    return handler(req, user);
+  };
+}
+
+export function requireRole(allowedRoles: string[]) {
+  return function(handler: (req: NextRequest, user: AuthenticatedUser) => Promise<NextResponse>) {
+    return async (req: NextRequest) => {
+      const user = await getAuthenticatedUser(req);
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+
+      if (!allowedRoles.includes(user.roleName)) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+
+      return handler(req, user);
+    };
+  };
 }
 
 export function requireAuth(handler: (req: NextRequest, user: AuthenticatedUser) => Promise<NextResponse>) {

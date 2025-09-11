@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import ReusableTable from "@/components/ReusableTable";
+import { authenticatedFetch } from "@/lib/auth-client";
 
 // Tipe data disesuaikan dengan respons dari API backend
 interface ProviderDocument {
@@ -37,7 +38,7 @@ export default function VerifyProvidersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/verification?status=PENDING'); // Ambil yang pending saja
+      const response = await authenticatedFetch('/api/admin/verification?status=PENDING');
       if (!response.ok) {
         throw new Error("Gagal mengambil data penyedia jasa.");
       }
@@ -58,7 +59,7 @@ export default function VerifyProvidersPage() {
   // Fungsi untuk mengirim update verifikasi ke API
   const handleVerification = async (providerId: number, status: "VERIFIED" | "REJECTED", reason?: string) => {
     try {
-      const response = await fetch(`/api/admin/verification?providerId=${providerId}`, {
+      const response = await authenticatedFetch(`/api/admin/verification?providerId=${providerId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -1,21 +1,15 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { updateProfileSchema } from '@/lib/validations';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
-import { createAuthMiddleware } from '@/lib/jwt';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - any authenticated user can get their profile
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware();
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request);
+    if (authResult instanceof Response) return authResult;
+    
+    const userId = parseInt(authResult.user.userId as string);
 
     const userProfile = await prisma.user.findUnique({
       where: { id: userId },
@@ -48,15 +42,10 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     // Validate Bearer token - any authenticated user can update their profile
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware();
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request);
+    if (authResult instanceof Response) return authResult;
+    
+    const userId = parseInt(authResult.user.userId as string);
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
     

@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { createAuthMiddleware } from '@/lib/jwt';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - provider only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['provider']);
-    const authResult = auth(authHeader);
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
 
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
-    }
-
-    const providerId = parseInt(authResult.user!.userId);
+    const providerId = parseInt(authResult.user.userId as string);
 
     // Get provider documents
     const documents = await prisma.providerDocument.findMany({
@@ -34,20 +28,12 @@ export async function POST(request: NextRequest) {
     console.log('🔄 POST /api/providers/documents - Starting request');
     
     // Validate Bearer token - provider only
-    const authHeader = request.headers.get('authorization');
-    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
-    
-    const auth = createAuthMiddleware(['provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      console.log('❌ Auth failed:', authResult.message);
-      return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
-    }
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
     
     console.log('✅ Auth successful for user ID:', authResult.user?.userId);
 
-    const providerId = parseInt(authResult.user!.userId);
+    const providerId = parseInt(authResult.user.userId as string);
     console.log('🆔 Provider ID:', providerId);
     
     const body = await request.json();
