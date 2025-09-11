@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { setAuthData, redirectByRole } from "@/lib/auth-client";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,37 +39,23 @@ export default function Login() {
         
         console.log('Login page: Received data:', data);
         
-        // Store user data in localStorage for client-side access
+        // Store user data using auth utility
         const userDataForStorage = {
           id: data.data.user.id.toString(),
           name: data.data.user.fullName,
           email: data.data.user.email,
           role: data.data.user.role?.roleName || data.data.user.role,
           token: data.data.token,
-          tokenType: data.data.tokenType
+          tokenType: data.data.tokenType || 'Bearer'
         };
         
-        console.log('Login page: Storing in localStorage:', userDataForStorage);
-        localStorage.setItem('user', JSON.stringify(userDataForStorage));
-        localStorage.setItem('token', data.data.token);
+        console.log('Login page: Storing auth data:', userDataForStorage);
+        setAuthData(userDataForStorage);
 
-        // Dispatch custom event to notify components of login
-        window.dispatchEvent(new CustomEvent('userLogin', {
-          detail: userDataForStorage
-        }));
-
-        // Add delay to ensure cookies are set
+        // Add delay to ensure cookies are set and auth data is stored
         setTimeout(() => {
-          // Determine role string (could be object)
-          const roleName = data.data.user.role?.roleName || data.data.user.role;
-          console.log('Login page: Redirecting based on role', roleName);
-          if (roleName === 'admin') {
-            window.location.href = '/dashboard';
-          } else if (roleName === 'provider') {
-            window.location.href = '/provider/dashboard';
-          } else {
-            window.location.href = '/customer/dashboard';
-          }
+          console.log('Login page: Redirecting based on role');
+          redirectByRole();
         }, 1000);
       } else {
         setError(data.error || data.message || 'Login gagal');

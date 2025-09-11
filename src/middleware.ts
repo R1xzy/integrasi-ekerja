@@ -1,22 +1,46 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyJWTTokenEdge, extractBearerToken } from '@/lib/jwt-edge';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Get authentication cookies
-  const authToken = request.cookies.get('auth-token');
-  const userSession = request.cookies.get('user-session');
+  // Get authentication from cookies or Authorization header
+  const authTokenCookie = request.cookies.get('auth-token');
+  const authHeader = request.headers.get('authorization');
+  const userSessionCookie = request.cookies.get('user-session');
+  
+  // Try to get token from cookies first, then from header
+  let token: string | undefined = authTokenCookie?.value;
+  if (!token && authHeader) {
+    const bearerToken = extractBearerToken(authHeader);
+    token = bearerToken || undefined;
+  }
   
   // Check if user is authenticated
-  const isAuthenticated = authToken && userSession;
-  
-  // Parse user role if authenticated
+  let isAuthenticated = false;
   let userRole = null;
-  if (isAuthenticated && userSession) {
+  let userId = null;
+  
+  if (token) {
+    const payload = await verifyJWTTokenEdge(token);
+    if (payload && payload.isActive) {
+      isAuthenticated = true;
+      userRole = payload.roleName;
+      userId = payload.userId;
+    }
+  }
+  
+  // Fallback to session cookie if JWT validation failed
+  if (!isAuthenticated && userSessionCookie) {
     try {
-      const userData = JSON.parse(userSession.value);
-      userRole = userData.role;
+      const userData = JSON.parse(userSessionCookie.value);
+      if (userData.role) {
+        userRole = userData.role;
+        userId = userData.id;
+        // Only consider authenticated if we have valid session data
+        isAuthenticated = true;
+      }
     } catch (error) {
       console.error('Error parsing user session:', error);
     }

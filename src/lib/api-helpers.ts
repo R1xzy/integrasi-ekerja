@@ -77,3 +77,82 @@ export function createPaginatedResponse<T>(
     }
   });
 }
+
+// Import JWT helpers for API authentication
+import { verifyJWTTokenEdge, extractBearerToken, JWTPayload } from './jwt-edge';
+import type { NextRequest } from 'next/server';
+
+/**
+ * Authenticate user from request headers or cookies
+ */
+export async function authenticateRequest(request: NextRequest): Promise<{
+  isAuthenticated: boolean;
+  user?: JWTPayload;
+  error?: string;
+}> {
+  // Try Authorization header first
+  const authHeader = request.headers.get('authorization');
+  let token: string | null = null;
+  
+  if (authHeader) {
+    token = extractBearerToken(authHeader);
+  }
+  
+  // Fallback to cookies
+  if (!token) {
+    const authCookie = request.cookies.get('auth-token');
+    token = authCookie?.value || null;
+  }
+  
+  if (!token) {
+    return {
+      isAuthenticated: false,
+      error: 'No authentication token provided'
+    };
+  }
+  
+  const payload = await verifyJWTTokenEdge(token);
+  
+  if (!payload) {
+    return {
+      isAuthenticated: false,
+      error: 'Invalid or expired token'
+    };
+  }
+  
+  if (!payload.isActive) {
+    return {
+      isAuthenticated: false,
+      error: 'Account is not active'
+    };
+  }
+  
+  return {
+    isAuthenticated: true,
+    user: payload
+  };
+}
+
+/**
+ * Require authentication and optionally specific roles
+ */
+export async function requireAuth(
+  request: NextRequest,
+  allowedRoles?: string[]
+): Promise<{ user: JWTPayload } | NextResponse> {
+  const auth = await authenticateRequest(request);
+  
+  if (!auth.isAuthenticated || !auth.user) {
+    return createErrorResponse(auth.error || 'Authentication required', 401);
+  }
+  
+  // Check role-based access
+  if (allowedRoles && !allowedRoles.includes(auth.user.roleName)) {
+    return createErrorResponse(
+      `Access denied. Required roles: ${allowedRoles.join(', ')}`,
+      403
+    );
+  }
+  
+  return { user: auth.user };
+}

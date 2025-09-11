@@ -5,33 +5,19 @@ import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
+import { requireAuth } from '@/lib/api-helpers';
+
 // REQ-B-8.4: API endpoint bagi Customer untuk mengenerate akses lihat chat kepada Admin
 export async function POST(request: NextRequest) {
   try {
-    // Verify JWT token
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Use new auth helper
+    const authResult = requireAuth(request, ['customer']);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
 
-    const token = authHeader.substring(7);
-    let decoded: any;
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-    } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Check if user is customer
-    const customer = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
-      include: { role: true }
-    });
-
-    if (!customer || customer.role.roleName !== 'customer') {
-      return NextResponse.json({ error: 'Customer access required' }, { status: 403 });
-    }
+    const customer = authResult.user;
+    const customerId = parseInt(customer.userId);
 
     const body = await request.json();
     const { requestId, action, response, accessHours } = body;
@@ -78,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if customer is authorized to respond to this request
-    if (accessRequest.customerId !== customer.id) {
+    if (accessRequest.customerId !== customerId) {
       return NextResponse.json({ 
         error: 'You are not authorized to respond to this request' 
       }, { status: 403 });
@@ -192,30 +178,14 @@ export async function POST(request: NextRequest) {
 // GET: List pending chat access requests for customer
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Use new auth helper
+    const authResult = requireAuth(request, ['customer']);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
 
-    const token = authHeader.substring(7);
-    let decoded: any;
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-    } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Check if user is customer
-    const customer = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
-      include: { role: true }
-    });
-
-    if (!customer || customer.role.roleName !== 'customer') {
-      return NextResponse.json({ error: 'Customer access required' }, { status: 403 });
-    }
+    const customer = authResult.user;
+    const customerId = parseInt(customer.userId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'PENDING';
@@ -227,7 +197,7 @@ export async function GET(request: NextRequest) {
     const [requests, total] = await Promise.all([
       (prisma as any).chatAdminAccess.findMany({
         where: {
-          customerId: customer.id,
+          customerId: customerId,
           status: status.toUpperCase()
         },
         include: {
@@ -260,11 +230,11 @@ export async function GET(request: NextRequest) {
         skip: offset,
         take: limit
       }),
-      (prisma as any).chatAdminAccess.count({ 
-        where: { 
-          customerId: customer.id,
+      (prisma as any).chatAdminAccess.count({
+        where: {
+          customerId: customerId,
           status: status.toUpperCase()
-        } 
+        }
       })
     ]);
 

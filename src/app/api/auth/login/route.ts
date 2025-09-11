@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { loginSchema } from '@/lib/validations';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
-import { generateJWTToken } from '@/lib/jwt';
+import { generateJWTTokenEdge } from '@/lib/jwt-edge';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -35,17 +35,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token sesuai [REQ-B-1.2]
-    const token = generateJWTToken(user);
+    const token = await generateJWTTokenEdge(user);
 
     // Return user data dengan token (without password)
     const { passwordHash, ...userWithoutPassword } = user;
-    
-    return createSuccessResponse({
+
+    // Prepare user session data for cookies
+    const userSession = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role?.roleName || 'user',
+      isActive: user.isActive
+    };
+
+    // Create response with cookies
+    const response = createSuccessResponse({
       user: userWithoutPassword,
       token: token,
       tokenType: 'Bearer',
       expiresIn: '2h' // Sesuai [C-19]
     }, 'Login successful');
+
+    // Set secure httpOnly cookies for authentication
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 2, // 2 hours
+      path: '/'
+    });
+
+    response.cookies.set('user-session', JSON.stringify(userSession), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', 
+      maxAge: 60 * 60 * 2, // 2 hours
+      path: '/'
+    });
+
+    return response;
 
   } catch (error) {
     return handleApiError(error);

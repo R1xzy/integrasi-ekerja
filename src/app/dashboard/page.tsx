@@ -6,6 +6,7 @@ import { Users, Package, DollarSign, Activity, ArrowUp, ArrowDown } from "lucide
 import { BarChart3, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
 import Image from 'next/image';
 import { subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { authenticatedFetch } from '@/lib/auth-client';
 
 // --- PERUBAHAN DI SINI ---
 // Tipe data disesuaikan dengan respons API yang sebenarnya
@@ -65,9 +66,9 @@ export default function AdminDashboard() {
         setLoading(true);
         
         const [ordersRes, providersRes, customersRes] = await Promise.all([
-          fetch('/api/admin/orders'),
-          fetch('/api/admin/providers'),
-          fetch('/api/admin/customers'),
+          authenticatedFetch('/api/admin/orders'),
+          authenticatedFetch('/api/admin/providers'),
+          authenticatedFetch('/api/admin/customers'),
         ]);
 
         if (!ordersRes.ok || !providersRes.ok || !customersRes.ok) {

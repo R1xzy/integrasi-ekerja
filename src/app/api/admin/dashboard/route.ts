@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['admin']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
+    const authResult = await requireAuth(request, ['admin']);
+    
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response
     }
+    
+    const { user } = authResult;
 
     // Get dashboard statistics
     const [
