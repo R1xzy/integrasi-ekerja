@@ -11,13 +11,13 @@ import { requireAuth } from '@/lib/api-helpers';
 export async function POST(request: NextRequest) {
   try {
     // Use new auth helper
-    const authResult = requireAuth(request, ['customer']);
+    const authResult = await requireAuth(request, ['customer']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
     }
 
     const customer = authResult.user;
-    const customerId = parseInt(customer.userId);
+    const customerId = parseInt(customer.userId as string);
 
     const body = await request.json();
     const { requestId, action, response, accessHours } = body;
@@ -179,13 +179,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Use new auth helper
-    const authResult = requireAuth(request, ['customer']);
+    const authResult = await requireAuth(request, ['customer']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
     }
 
     const customer = authResult.user;
-    const customerId = parseInt(customer.userId);
+    const customerId = parseInt(customer.userId as string);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'PENDING';

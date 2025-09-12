@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - authenticated users only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request, ['customer', 'provider']);
+    const userId = parseInt((authResult as { user: any }).user.userId);
 
     // Get all chat conversations where user is a participant
     const chatConversations = await prisma.chatConversation.findMany({
@@ -105,15 +97,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Validate Bearer token - authenticated users only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request, ['customer', 'provider']);
+    const userId = parseInt((authResult as { user: any }).user.userId);
     const body = await request.json();
     const { participantUserId, orderId, conversationTitle } = body;
 

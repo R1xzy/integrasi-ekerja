@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
-import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
+import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
 interface RouteParams {
   params: { id: string }
@@ -10,15 +9,8 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - authenticated users only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request, ['customer', 'provider']);
+    const userId = parseInt((authResult as { user: any }).user.userId);
     const conversationId = parseInt(params.id);
 
     // Check if conversation exists and user is a participant
@@ -93,15 +85,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - authenticated users only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request, ['customer', 'provider']);
+    const userId = parseInt((authResult as { user: any }).user.userId);
     const conversationId = parseInt(params.id);
     const body = await request.json();
     const { messageContent } = body;
@@ -160,15 +145,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - authenticated users only
-    const authHeader = request.headers.get('authorization');
-    const auth = createAuthMiddleware(['customer', 'provider']);
-    const authResult = auth(authHeader);
-
-    if (!authResult.success) {
-      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
-
-    const userId = parseInt(authResult.user!.userId);
+    const authResult = await requireAuth(request, ['customer', 'provider']);
+    const userId = parseInt((authResult as { user: any }).user.userId);
     const conversationId = parseInt(params.id);
 
     // Check if conversation exists and user is a participant
