@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { Users, Package, DollarSign, Activity, ArrowUp, ArrowDown } from "lucide-react";
 import { BarChart3, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
 import Image from 'next/image';
-import { subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { authenticatedFetch } from '@/lib/auth-client';
 
 // --- PERUBAHAN DI SINI ---
@@ -38,6 +37,25 @@ interface CalculatedStats {
   totalRevenue: number;
   orderGrowthPercentage: number;
 }
+
+// Fungsi helper untuk date manipulation
+const subMonths = (date: Date, months: number): Date => {
+  const result = new Date(date);
+  result.setMonth(result.getMonth() - months);
+  return result;
+};
+
+const startOfMonth = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
+const endOfMonth = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+};
+
+const isWithinInterval = (date: Date, interval: { start: Date; end: Date }): boolean => {
+  return date >= interval.start && date <= interval.end;
+};
 
 // Fungsi helper (tidak berubah)
 const formatCurrency = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
