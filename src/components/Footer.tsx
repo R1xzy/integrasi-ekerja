@@ -83,7 +83,7 @@ export default function Footer() {
               {[
                 { href: "/privacy", label: "Kebijakan Privasi" },
                 { href: "/terms", label: "Syarat & Ketentuan" },
-                { href: "/faq", label: "FAQ" },
+                { href: "/FAQ", label: "FAQ" },
               ].map((item, i) => (
                 <li key={i}>
                   <Link href={item.href} className="hover:text-white transition-colors duration-300">

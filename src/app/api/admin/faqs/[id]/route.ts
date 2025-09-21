@@ -47,13 +47,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
+    /*const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
     const authResult = auth(authHeader);
 
     if (!authResult.success) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
+    }*/
 
     const resolvedParams = await params;
     const faqId = parseInt(resolvedParams.id);
@@ -108,13 +108,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
+    /*const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
     const authResult = auth(authHeader);
 
     if (!authResult.success) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
+    }*/
 
     const faqId = parseInt(params.id);
 

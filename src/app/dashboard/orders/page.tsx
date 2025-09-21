@@ -1,96 +1,212 @@
-import Link from "next/link";
-import { Search, Filter, Eye, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+"use client";
 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Clock, CheckCircle, XCircle, AlertCircle, Eye } from "lucide-react";
+import ReusableTable, { Column } from "@/components/ReusableTable";
+import { authenticatedFetch } from "@/lib/auth-client";
+import { formatCurrency } from "@/lib/utils";
+import { formatDate } from "@/lib/utils_new";
+
+// Tipe data disesuaikan dengan respons dari API /api/admin/orders
+interface Customer {
+  id: string;
+  fullName: string;
+  profile?: { photo?: string };
+}
+
+interface Provider {
+  id: string;
+  fullName: string;
+}
+
+interface Service {
+  id: string;
+  serviceTitle: string;
+}
+
+interface Order {
+  id: number;
+  orderNumber: string;
+  status: 'PENDING_ACCEPTANCE' | 'ACCEPTED' | 'REJECTED_BY_PROVIDER' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED_BY_CUSTOMER' | 'DISPUTED';
+  finalAmount: number;
+  createdAt: string;
+  scheduledDate: string;
+  customer: Customer;
+  provider: Provider;
+  providerService: Service;
+}
+
+interface OrdersResponse {
+  data: {
+    orders: Order[];
+    totalOrders: number;
+    completedOrders: number;
+    inProgressOrders: number;
+    pendingOrders: number;
+    cancelledOrders: number;
+  }
+}
 
 export default function OrdersPage() {
-  const orders = [
-    {
-      id: 1,
-      orderNumber: "ORD-2024-001",
-      customer: "John Doe",
-      provider: "Ahmad Teknisi",
-      service: "Service AC",
-      amount: 150000,
-      status: "completed",
-      createdAt: "2024-01-15T10:30:00Z",
-      scheduledAt: "2024-01-16T14:00:00Z"
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-2024-002",
-      customer: "Jane Smith",
-      provider: "Budi Cleaning",
-      service: "Jasa Kebersihan",
-      amount: 200000,
-      status: "in_progress",
-      createdAt: "2024-01-16T09:15:00Z",
-      scheduledAt: "2024-01-17T10:00:00Z"
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-2024-003",
-      customer: "Bob Johnson",
-      provider: "Candra Tukang",
-      service: "Tukang Bangunan",
-      amount: 500000,
-      status: "pending",
-      createdAt: "2024-01-17T11:45:00Z",
-      scheduledAt: "2024-01-18T08:00:00Z"
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-2024-004",
-      customer: "Alice Brown",
-      provider: "Dedi Plumber",
-      service: "Plumbing",
-      amount: 300000,
-      status: "cancelled",
-      createdAt: "2024-01-18T13:20:00Z",
-      scheduledAt: "2024-01-19T15:30:00Z"
-    }
-  ];
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<Omit<OrdersResponse['data'], 'orders'> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Selesai
-          </span>
-        );
-      case 'in_progress':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            <Clock className="w-3 h-3 mr-1" />
-            Berlangsung
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <AlertCircle className="w-3 h-3 mr-1" />
-            Menunggu
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-            <XCircle className="w-3 h-3 mr-1" />
-            Dibatalkan
-          </span>
-        );
-      default:
-        return null;
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authenticatedFetch('/api/admin/orders');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Gagal mengambil data pesanan.");
+      }
+      const data: { data: OrdersResponse['data'] } = await response.json();
+      
+      setOrders(data.data.orders);
+      setStats(data.data);
+    } catch (err: any) {
+      setError(err.message);
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  const getStatusBadge = (status: string) => {
+    const statusClassMap = {
+      'COMPLETED': "bg-green-100 text-green-800",
+      'IN_PROGRESS': "bg-blue-100 text-blue-800",
+      'PENDING_ACCEPTANCE': "bg-yellow-100 text-yellow-800",
+      'PENDING': "bg-yellow-100 text-yellow-800", // Fallback for 'pending'
+      'CANCELLED_BY_CUSTOMER': "bg-red-100 text-red-800",
+      'CANCELLED': "bg-red-100 text-red-800", // Fallback for 'cancelled'
+      'REJECTED_BY_PROVIDER': "bg-red-100 text-red-800",
+    };
+    const statusIconMap = {
+      'COMPLETED': <CheckCircle className="w-3 h-3 mr-1" />,
+      'IN_PROGRESS': <Clock className="w-3 h-3 mr-1" />,
+      'PENDING_ACCEPTANCE': <AlertCircle className="w-3 h-3 mr-1" />,
+      'PENDING': <AlertCircle className="w-3 h-3 mr-1" />,
+      'CANCELLED_BY_CUSTOMER': <XCircle className="w-3 h-3 mr-1" />,
+      'CANCELLED': <XCircle className="w-3 h-3 mr-1" />,
+      'REJECTED_BY_PROVIDER': <XCircle className="w-3 h-3 mr-1" />,
+    };
+    const statusTextMap = {
+      'COMPLETED': "Selesai",
+      'IN_PROGRESS': "Berlangsung",
+      'PENDING_ACCEPTANCE': "Menunggu",
+      'PENDING': "Menunggu",
+      'CANCELLED_BY_CUSTOMER': "Dibatalkan",
+      'CANCELLED': "Dibatalkan",
+      'REJECTED_BY_PROVIDER': "Ditolak",
+    }
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClassMap[status as keyof typeof statusClassMap] || 'bg-gray-100 text-gray-800'}`}>
+        {statusIconMap[status as keyof typeof statusIconMap]}
+        {statusTextMap[status as keyof typeof statusTextMap] || status.replace(/_/g, ' ')}
+      </span>
+    );
+  };
+  
+  const columns: Column<Order>[] = [
+    { header: "Nomor Pesanan", accessorKey: "orderNumber", sortable: true },
+    {
+        header: "Pelanggan",
+        accessorKey: "customer.fullName",
+        cell: (row) => (
+            <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-600 text-sm font-medium">{row.customer.fullName.charAt(0)}</span>
+                </div>
+                <span>{row.customer.fullName}</span>
+            </div>
+        ),
+        sortable: true,
+        sortAccessor: (row) => row.customer.fullName
+    },
+    {
+        header: "Penyedia",
+        accessorKey: "provider.fullName",
+        cell: (row) => (
+            <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-blue-200 flex items-center justify-center">
+                    <span className="text-blue-600 text-sm font-medium">{row.provider.fullName.charAt(0)}</span>
+                </div>
+                <span>{row.provider.fullName}</span>
+            </div>
+        ),
+        sortable: true,
+        sortAccessor: (row) => row.provider.fullName
+    },
+    {
+        header: "Layanan",
+        accessorKey: "providerService.serviceTitle",
+        sortable: true,
+        sortAccessor: (row) => row.providerService.serviceTitle
+    },
+    {
+        header: "Total",
+        accessorKey: "finalAmount",
+        cell: (row) => <span>{formatCurrency(row.finalAmount)}</span>,
+        sortable: true,
+        sortAccessor: (row) => row.finalAmount
+    },
+    {
+        header: "Status",
+        accessorKey: "status",
+        cell: (row) => getStatusBadge(row.status),
+        sortable: true,
+        sortAccessor: (row) => row.status
+    },
+    {
+        header: "Tanggal",
+        accessorKey: "createdAt",
+        cell: (row) => (
+            <div>
+                <div className="text-sm text-gray-900">{formatDate(new Date(row.createdAt))}</div>
+                <div className="text-sm text-gray-500">Jadwal: {formatDate(new Date(row.scheduledDate))}</div>
+            </div>
+        ),
+        sortable: true,
+        sortAccessor: (row) => new Date(row.createdAt).getTime()
+    },
+    {
+        header: "Aksi",
+        cell: (row) => (
+            <Link href={`/dashboard/orders/${row.id}`} className="text-blue-600 hover:text-blue-900">
+                <Eye className="w-4 h-4"/>
+            </Link>
+        )
+    }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Memuat data pesanan...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500">
+        <p>Error: {error}</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Kelola Pesanan</h1>
@@ -106,7 +222,7 @@ export default function OrdersPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Selesai</p>
-                <p className="text-2xl font-bold text-gray-900">1,234</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.completedOrders}</p>
               </div>
             </div>
           </div>
@@ -117,7 +233,7 @@ export default function OrdersPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Berlangsung</p>
-                <p className="text-2xl font-bold text-gray-900">89</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.inProgressOrders}</p>
               </div>
             </div>
           </div>
@@ -128,7 +244,7 @@ export default function OrdersPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Menunggu</p>
-                <p className="text-2xl font-bold text-gray-900">45</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.pendingOrders}</p>
               </div>
             </div>
           </div>
@@ -139,205 +255,21 @@ export default function OrdersPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Dibatalkan</p>
-                <p className="text-2xl font-bold text-gray-900">23</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.cancelledOrders}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow mb-6">
-          <div className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Cari pesanan..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-600"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Semua Status</option>
-                  <option value="completed">Selesai</option>
-                  <option value="in_progress">Berlangsung</option>
-                  <option value="pending">Menunggu</option>
-                  <option value="cancelled">Dibatalkan</option>
-                </select>
-                <select className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Semua Layanan</option>
-                  <option value="ac">Service AC</option>
-                  <option value="cleaning">Jasa Kebersihan</option>
-                  <option value="construction">Tukang Bangunan</option>
-                  <option value="electronics">Elektronik</option>
-                  <option value="plumbing">Plumbing</option>
-                </select>
-                <input
-                  type="date"
-                  className="text-gray-600 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filter
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Orders Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nomor Pesanan
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pelanggan
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Penyedia
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Layanan
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tanggal
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {order.orderNumber}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center">
-                            <span className="text-white text-sm font-medium">
-                              {order.customer.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">
-                            {order.customer}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                            <span className="text-white text-sm font-medium">
-                              {order.provider.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">
-                            {order.provider}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.service}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatCurrency(order.amount)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(order.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatDate(new Date(order.createdAt))}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Jadwal: {formatDate(new Date(order.scheduledAt))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/dashboard/orders/${order.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Detail
-                        </Link>
-                        <button className="text-gray-600 hover:text-gray-900">
-                          Edit
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Pagination */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6 rounded-lg shadow">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Menampilkan <span className="font-medium">1</span> sampai{' '}
-                <span className="font-medium">4</span> dari{' '}
-                <span className="font-medium">1,391</span> hasil
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  2
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  3
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Next
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
+        {/* Orders Table - Menggunakan ReusableTable */}
+        <ReusableTable
+          data={orders || []}
+          columns={columns}
+          enableSearch
+          searchPlaceholder="Cari pesanan..."
+          enablePagination
+          itemsPerPage={10}
+        />
       </div>
     </div>
   );

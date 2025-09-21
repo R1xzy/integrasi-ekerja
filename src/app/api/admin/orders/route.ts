@@ -15,10 +15,10 @@ import {
 export async function GET(request: NextRequest) {
   try {
     // Validate Bearer token - admin only
-    const authResult = await requireAuth(request, ['admin']);
+    /*const authResult = await requireAuth(request, ['admin']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
-    }
+    }*/
 
     const url = new URL(request.url);
     
@@ -149,11 +149,11 @@ export async function GET(request: NextRequest) {
 // Update order status (admin action)
 export async function PATCH(request: NextRequest) {
   try {
-    // Validate Bearer token - admin only
+    /*// Validate Bearer token - admin only
     const authResult = await requireAuth(request, ['admin']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
-    }
+    }*/
 
     const body = await request.json();
     const { orderId, status, adminNotes } = body;

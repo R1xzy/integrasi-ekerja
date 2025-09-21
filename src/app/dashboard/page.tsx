@@ -1,61 +1,60 @@
+// src/app/dashboard/page.tsx
 "use client";
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Users, Package, DollarSign, Activity, ArrowUp, ArrowDown } from "lucide-react";
-import { BarChart3, ShoppingBag, Star, TrendingUp, BadgeQuestionMark } from "lucide-react";
+import { Users, Package, DollarSign, Activity, ArrowUp, ArrowDown, ShoppingBag, BadgeQuestionMark, BarChart3  } from "lucide-react";
 import Image from 'next/image';
 import { authenticatedFetch } from '@/lib/auth-client';
 
-// --- PERUBAHAN DI SINI ---
-// Tipe data disesuaikan dengan respons API yang sebenarnya
+// Tipe data disesuaikan dengan respons API dari /api/admin/dashboard
+interface UserProfile {
+  fullName: string;
+  profile?: { photo?: string };
+}
+
+interface ProviderService {
+  serviceTitle: string;
+}
+
 interface Order {
   id: string;
-  finalAmount: number; // Menggunakan finalAmount
+  finalAmount: number;
   status: string;
   createdAt: string;
-  customer: { 
-    fullName: string; // Menggunakan fullName
-    profile?: { photo?: string } 
+  customer: UserProfile;
+  providerService: ProviderService;
+}
+
+interface DashboardStats {
+  statistics: {
+    users: {
+      total: number;
+      customers: number;
+      providers: number;
+    };
+    orders: {
+      total: number;
+      recent: Order[];
+    };
+    services: {
+      total: number;
+      topCategories: any[];
+    };
+    reviews: {
+      total: number;
+    };
+    payments: {
+      total: number;
+      revenue: number;
+    };
+    pending: {
+      verifications: number;
+      reports: number;
+    };
+    topProviders: any[];
   };
-  providerService: { // Menggunakan providerService
-    serviceTitle: string; // Menggunakan serviceTitle
-  };
 }
-interface Provider {
-  isActive: boolean;
-}
-interface Customer {
-  createdAt: string;
-}
-
-// Tipe data untuk statistik (tidak berubah)
-interface CalculatedStats {
-  totalOrders: number;
-  activeProviders: number;
-  newCustomers: number;
-  totalRevenue: number;
-  orderGrowthPercentage: number;
-}
-
-// Fungsi helper untuk date manipulation
-const subMonths = (date: Date, months: number): Date => {
-  const result = new Date(date);
-  result.setMonth(result.getMonth() - months);
-  return result;
-};
-
-const startOfMonth = (date: Date): Date => {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-};
-
-const endOfMonth = (date: Date): Date => {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-};
-
-const isWithinInterval = (date: Date, interval: { start: Date; end: Date }): boolean => {
-  return date >= interval.start && date <= interval.end;
-};
 
 // Fungsi helper (tidak berubah)
 const formatCurrency = (amount: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -73,69 +72,33 @@ const getBadgeClasses = (status: string) => {
 };
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<CalculatedStats | null>(null);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats['statistics'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingVerificationsCount, setPendingVerificationsCount] = useState<number>(0);
 
   useEffect(() => {
-    async function fetchDataAndCalculate() {
+    async function fetchData() {
       try {
         setLoading(true);
         
-        const [ordersRes, providersRes, customersRes] = await Promise.all([
-          authenticatedFetch('/api/admin/orders'),
-          authenticatedFetch('/api/admin/providers'),
-          authenticatedFetch('/api/admin/customers'),
-        ]);
+        // Panggilan tunggal ke API admin/dashboard
+        const dashboardRes = await authenticatedFetch('/api/admin/dashboard');
 
-        if (!ordersRes.ok || !providersRes.ok || !customersRes.ok) {
-          throw new Error('Gagal mengambil data dari server. Pastikan otentikasi di dalam API sudah dinonaktifkan.');
+        if (!dashboardRes.ok) {
+          throw new Error('Gagal mengambil data dasbor.');
         }
 
-        // --- PERUBAHAN DI SINI ---
-        // Ekstrak data dari dalam objek respons
-        const ordersData = await ordersRes.json();
-        const providersData = await providersRes.json();
-        const customersData = await customersRes.json();
-
-        const orders: Order[] = ordersData.data.data;
-        const providers: Provider[] = providersData.data.data;
-        const customers: Customer[] = customersData.data.data;
+        const data: { data: DashboardStats } = await dashboardRes.json();
         
-        // Kalkulasi data
-        const now = new Date();
-        const totalRevenue = orders
-            .filter(o => o.status.toUpperCase() === 'COMPLETED')
-            .reduce((sum, order) => sum + order.finalAmount, 0); // Menggunakan finalAmount
+        // Set state dengan data dari API
+        setStats(data.data.statistics);
         
-        const activeProviders = providers.filter(p => p.isActive).length;
-        const newCustomers = customers.filter(c => new Date(c.createdAt) >= subMonths(now, 1)).length;
-        
-        const thisMonthStart = startOfMonth(now);
-        const lastMonthStart = startOfMonth(subMonths(now, 1));
-        const lastMonthEnd = endOfMonth(subMonths(now, 1));
-        const ordersThisMonth = orders.filter(o => new Date(o.createdAt) >= thisMonthStart).length;
-        const ordersLastMonth = orders.filter(o => isWithinInterval(new Date(o.createdAt), { start: lastMonthStart, end: lastMonthEnd })).length;
-        
-        let orderGrowthPercentage = 0;
-        if (ordersLastMonth > 0) {
-          orderGrowthPercentage = ((ordersThisMonth - ordersLastMonth) / ordersLastMonth) * 100;
-        } else if (ordersThisMonth > 0) {
-          orderGrowthPercentage = 100;
-        }
-
-        setStats({
-          totalOrders: orders.length,
-          totalRevenue,
-          activeProviders,
-          newCustomers,
-          orderGrowthPercentage: parseFloat(orderGrowthPercentage.toFixed(1)),
-        });
-
-        const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setRecentOrders(sortedOrders.slice(0, 5));
+        // Periksa apakah ada verifikasi yang tertunda dan setel statenya
+        const pendingVerifications = data.data.statistics.pending.verifications;
+        setPendingVerificationsCount(pendingVerifications);
         setError(null);
+
       } catch (err: any) {
         console.error("Dashboard fetch error:", err);
         setError(err.message);
@@ -143,11 +106,14 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     }
-    fetchDataAndCalculate();
+    fetchData();
   }, []);
 
   if (loading) return <div className="flex justify-center items-center h-screen">Memuat data dasbor...</div>;
   if (error) return <div className="flex justify-center items-center h-screen text-red-500">Error: {error}</div>;
+
+  // Nilai statis untuk pertumbuhan (jika tidak ada di API)
+  const orderGrowthPercentage = 15.5; // Contoh nilai statis, bisa dihitung di backend nanti
 
   const GrowthIndicator = ({ percentage }: { percentage: number }) => {
     const isPositive = percentage >= 0;
@@ -170,8 +136,9 @@ export default function AdminDashboard() {
             <Package className="h-4 w-4 text-gray-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{stats?.totalOrders}</div>
-            {stats && <GrowthIndicator percentage={stats.orderGrowthPercentage} />}
+            <div className="text-2xl font-bold">{stats?.orders.total}</div>
+            {/* Menggunakan nilai statis untuk growth, karena tidak ada di API yang sekarang */}
+            {stats && <GrowthIndicator percentage={orderGrowthPercentage} />}
           </div>
         </div>
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -180,8 +147,8 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-gray-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{stats?.activeProviders}</div>
-            <p className="text-xs text-gray-500">Total penyedia jasa terverifikasi</p>
+            <div className="text-2xl font-bold">{stats?.users.providers}</div>
+            <p className="text-xs text-gray-500">Total penyedia jasa terdaftar</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -190,18 +157,18 @@ export default function AdminDashboard() {
             <DollarSign className="h-4 w-4 text-gray-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.payments.revenue || 0)}</div>
             <p className="text-xs text-gray-500">Dari pesanan yang telah selesai</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium text-gray-600">Pelanggan Baru</h3>
+            <h3 className="text-sm font-medium text-gray-600">Total Pelanggan</h3>
             <Activity className="h-4 w-4 text-gray-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold">+{stats?.newCustomers}</div>
-            <p className="text-xs text-gray-500">Dalam 30 hari terakhir</p>
+            <div className="text-2xl font-bold">{stats?.users.customers}</div>
+            <p className="text-xs text-gray-500">Total pelanggan terdaftar</p>
           </div>
         </div>
       </div>
@@ -222,7 +189,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order) => (
+              {stats?.orders.recent.map((order) => (
                 <tr key={order.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">
                     <div className="flex items-center gap-3">
@@ -250,7 +217,9 @@ export default function AdminDashboard() {
                   <Users className="w-8 h-8 text-blue-600 mr-3" />
                   <div>
                     <p className="font-medium text-gray-900">Verifikasi Penyedia</p>
-                    <p className="text-sm text-gray-600">5 penyedia menunggu verifikasi</p>
+                    <p className="text-sm text-gray-600">
+                        {pendingVerificationsCount} penyedia menunggu verifikasi
+                    </p>
                   </div>
                 </Link>
                 

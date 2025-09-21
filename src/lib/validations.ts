@@ -3,13 +3,12 @@ import { z } from 'zod';
 // Validation schemas untuk request body
 
 export const registerSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Invalid email format'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'), // [C-15]
-  phoneNumber: z.string().optional(),
-  roleId: z.number().int().min(1),
+  fullName: z.string().min(3, 'Nama lengkap minimal 3 karakter'),
+  email: z.string().email('Format email tidak valid'),
+  password: z.string().min(8, 'Password minimal 8 karakter'),
+  phoneNumber: z.string().min(10, 'Nomor telepon tidak valid').optional(),
+  address: z.string().min(5, 'Alamat minimal 5 karakter').optional(), // <-- TAMBAHKAN INI
+  role: z.enum(['customer', 'provider']), 
 });
 
 export const loginSchema = z.object({

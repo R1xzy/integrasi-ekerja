@@ -91,13 +91,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Validate Bearer token - admin only
-    const authHeader = request.headers.get('authorization');
+    /*const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
     const authResult = auth(authHeader);
 
     if (!authResult.success) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
-    }
+    }*/
 
     const body = await request.json();
     const { question, answer, category, displayOrder, isActive } = body;

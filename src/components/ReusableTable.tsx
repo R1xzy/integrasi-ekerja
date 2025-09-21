@@ -50,7 +50,16 @@ export default function ReusableTable<T extends object>({
     if (sortConfig && sortConfig.key === sortKey && sortConfig.direction === "ascending") {
       direction = "descending";
     }
-    setSortConfig({ key: sortKey, direction });
+
+    // Type guard to ensure sortKey is keyof T or (row: T) => string | number
+    if (typeof sortKey === "function") {
+      setSortConfig({ key: sortKey, direction });
+    } else if (typeof sortKey === "string" || typeof sortKey === "number") {
+      setSortConfig({ key: sortKey as keyof T, direction });
+    } else {
+      // Do nothing if sortKey is not assignable
+      return;
+    }
   };
 
   const getSortIcon = (column: Column<T>) => {

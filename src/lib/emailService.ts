@@ -96,8 +96,12 @@ export const verifyCode = async (
   return verification;
 };
 
+// --- PERUBAHAN UTAMA DIMULAI DI SINI ---
+
 // Email templates
-export const getEmailTemplate = (type: string, code: string, additionalData?: any) => {
+export const getEmailTemplate = (type: string, data: { code: string; link?: string }, additionalData?: any) => {
+  const { code, link } = data; // Ekstrak kode dan link
+
   const baseStyle = `
     font-family: Arial, sans-serif;
     line-height: 1.6;
@@ -130,8 +134,22 @@ export const getEmailTemplate = (type: string, code: string, additionalData?: an
     letter-spacing: 5px;
   `;
 
+  // Gaya baru untuk tombol
+  const buttonStyle = `
+    display: inline-block;
+    padding: 12px 24px;
+    margin: 20px 0;
+    background-color: #007bff;
+    color: #ffffff !important;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+  `;
+
   switch (type) {
     case 'REGISTRATION':
+      // Template registrasi tetap menggunakan kode
       return {
         subject: 'Verifikasi Registrasi - eKerja Karawang',
         html: `
@@ -140,20 +158,17 @@ export const getEmailTemplate = (type: string, code: string, additionalData?: an
               <h1>Verifikasi Registrasi</h1>
             </div>
             <h2>Selamat datang di eKerja Karawang!</h2>
-            <p>Terima kasih telah mendaftar di platform eKerja Karawang. Untuk menyelesaikan proses registrasi Anda, silakan gunakan kode verifikasi berikut:</p>
+            <p>Terima kasih telah mendaftar. Untuk menyelesaikan proses registrasi, gunakan kode verifikasi berikut:</p>
             <div style="${codeStyle}">${code}</div>
-            <p><strong>Kode verifikasi ini akan kedaluwarsa dalam 10 menit.</strong></p>
-            <p>Jika Anda tidak merasa mendaftar di eKerja Karawang, silakan abaikan email ini.</p>
+            <p><strong>Kode ini akan kedaluwarsa dalam 10 menit.</strong></p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #666;">
-              Email ini dikirim secara otomatis. Mohon jangan membalas email ini.<br>
-              © 2025 eKerja Karawang. Semua hak dilindungi.
-            </p>
+            <p style="font-size: 12px; color: #666;">© 2025 eKerja Karawang. Semua hak dilindungi.</p>
           </div>
         `,
       };
 
     case 'PASSWORD_RESET':
+      // Template reset password sekarang menggunakan link/tombol
       return {
         subject: 'Reset Password - eKerja Karawang',
         html: `
@@ -162,20 +177,22 @@ export const getEmailTemplate = (type: string, code: string, additionalData?: an
               <h1>Reset Password</h1>
             </div>
             <h2>Permintaan Reset Password</h2>
-            <p>Kami menerima permintaan untuk mereset password akun Anda di eKerja Karawang. Gunakan kode verifikasi berikut untuk melanjutkan proses reset password:</p>
-            <div style="${codeStyle}">${code}</div>
-            <p><strong>Kode verifikasi ini akan kedaluwarsa dalam 10 menit.</strong></p>
-            <p style="color: #d9534f;"><strong>Jika Anda tidak meminta reset password, segera hubungi customer service kami.</strong></p>
+            <p>Kami menerima permintaan untuk mereset password akun Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
+            <div style="text-align: center;">
+              <a href="${link}" style="${buttonStyle}" target="_blank">Reset Password Anda</a>
+            </div>
+            <p>Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut di browser Anda:</p>
+            <p style="font-size: 12px; word-break: break-all;">${link}</p>
+            <p><strong>Tautan ini akan kedaluwarsa dalam 10 menit.</strong></p>
+            <p style="color: #d9534f;"><strong>Jika Anda tidak meminta reset password, mohon abaikan email ini.</strong></p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #666;">
-              Email ini dikirim secara otomatis. Mohon jangan membalas email ini.<br>
-              © 2025 eKerja Karawang. Semua hak dilindungi.
-            </p>
+            <p style="font-size: 12px; color: #666;">© 2025 eKerja Karawang. Semua hak dilindungi.</p>
           </div>
         `,
       };
 
     case 'ORDER_STATUS_CHANGE':
+      // Template ini juga tetap menggunakan kode
       const { orderNumber, newStatus, customerName, providerName, serviceName } = additionalData || {};
       return {
         subject: `Perubahan Status Pesanan #${orderNumber} - eKerja Karawang`,
@@ -186,22 +203,18 @@ export const getEmailTemplate = (type: string, code: string, additionalData?: an
             </div>
             <h2>Status pesanan Anda telah diubah</h2>
             <p>Halo <strong>${customerName}</strong>,</p>
-            <p>Status pesanan Anda telah diubah. Berikut detail perubahan:</p>
+            <p>Detail perubahan:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <p><strong>Nomor Pesanan:</strong> #${orderNumber}</p>
               <p><strong>Layanan:</strong> ${serviceName}</p>
               <p><strong>Provider:</strong> ${providerName}</p>
               <p><strong>Status Baru:</strong> <span style="color: #007bff; font-weight: bold;">${newStatus}</span></p>
             </div>
-            <p>Untuk memverifikasi perubahan ini, gunakan kode verifikasi berikut:</p>
+            <p>Untuk memverifikasi perubahan ini, gunakan kode berikut:</p>
             <div style="${codeStyle}">${code}</div>
-            <p><strong>Kode verifikasi ini akan kedaluwarsa dalam 10 menit.</strong></p>
-            <p>Anda dapat menggunakan kode ini untuk mengkonfirmasi perubahan status pesanan melalui aplikasi atau website kami.</p>
+            <p><strong>Kode ini akan kedaluwarsa dalam 10 menit.</strong></p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #666;">
-              Email ini dikirim secara otomatis. Mohon jangan membalas email ini.<br>
-              © 2025 eKerja Karawang. Semua hak dilindungi.
-            </p>
+            <p style="font-size: 12px; color: #666;">© 2025 eKerja Karawang. Semua hak dilindungi.</p>
           </div>
         `,
       };
@@ -218,18 +231,15 @@ export const sendEmail = async (
   html: string
 ): Promise<boolean> => {
   try {
-    // In development mode with demo password, simulate email sending
     if (process.env.NODE_ENV === 'development' && process.env.SMTP_PASSWORD === 'demo-mode-password') {
       console.log('=== EMAIL DEMO MODE ===');
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log('Email content would be sent in production mode');
       console.log('=======================');
       return true;
     }
 
     const transporter = createTransporter();
-
     const mailOptions = {
       from: `"eKerja Karawang" <${process.env.SMTP_USER}>`,
       to,
@@ -254,16 +264,18 @@ export const sendVerificationEmail = async (
   userId?: number
 ): Promise<{ success: boolean; code?: string; error?: string }> => {
   try {
-    // Generate verification code
-    const code = generateVerificationCode();
-
-    // Save to database
+    const code = generateVerificationCode(); // Kode/Token tetap dibuat
     await saveVerificationCode(email, code, type, userId);
 
-    // Get email template
-    const template = getEmailTemplate(type, code, additionalData);
+    let templateData: { code: string; link?: string } = { code };
+    
+    // Jika tipenya adalah PASSWORD_RESET, buat link-nya
+    if (type === 'PASSWORD_RESET') {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      templateData.link = `${baseUrl}/password/resetpassword?token=${code}`;
+    }
 
-    // Send email
+    const template = getEmailTemplate(type, templateData, additionalData);
     const emailSent = await sendEmail(email, template.subject, template.html);
 
     if (!emailSent) {
@@ -276,6 +288,7 @@ export const sendVerificationEmail = async (
     return { success: false, error: 'Internal server error' };
   }
 };
+// --- PERUBAHAN UTAMA SELESAI ---
 
 export default {
   generateVerificationCode,
