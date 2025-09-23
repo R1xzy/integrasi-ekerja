@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body className={geistSans.variable}>
         {/* Cukup panggil satu komponen ini */}
         <NavbarController /> 

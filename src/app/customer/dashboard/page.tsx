@@ -119,7 +119,7 @@ export default function CustomerDashboard() {
             <div className="p-6">
               <div className="grid grid-cols-1 gap-4">
                 <Link
-                  href="/customer/orders/new"
+                  href="/customer/services"
                   className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >
                   <ShoppingBag className="w-8 h-8 text-blue-600 mr-3" />

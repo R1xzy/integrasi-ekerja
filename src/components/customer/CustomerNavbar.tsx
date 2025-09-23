@@ -31,7 +31,7 @@ const navItems: NavItem[] = [
     icon: <User className="w-4 h-4" />,
   },
   {
-    href: "/customer/services",
+    href: "/services",
     label: "Cari Layanan",
     icon: <Search className="w-4 h-4" />,
   },
