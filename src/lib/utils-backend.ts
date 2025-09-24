@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import path from 'path';
+import { prisma } from './db';
 
 // File upload utilities
 export function generateSecureFilename(originalName: string): string {
@@ -109,4 +110,34 @@ export function parsePaginationParams(searchParams: URLSearchParams): Required<P
 
 export function calculateSkip(page: number, limit: number): number {
   return (page - 1) * limit;
+}
+
+export async function calculateFinalAmount(orderId: number): Promise<number> {
+  // 1. Dapatkan harga dasar layanan dari pesanan
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { providerService: true },
+  });
+
+  if (!order) {
+    throw new Error('Order not found for calculation');
+  }
+
+  const basePrice = order.providerService.price;
+
+  // 2. Dapatkan semua biaya tambahan yang sudah disetujui
+  const approvedDetails = await prisma.orderDetail.findMany({
+    where: {
+      orderId: orderId,
+      status: 'APPROVED',
+    },
+  });
+
+  // 3. Hitung total dari biaya tambahan
+  const totalAdditionalCost = approvedDetails.reduce((sum, detail) => {
+    return sum + (detail.quantity * detail.pricePerUnit);
+  }, 0);
+
+  // 4. Kembalikan total akhir
+  return basePrice + totalAdditionalCost;
 }

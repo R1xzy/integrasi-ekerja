@@ -80,7 +80,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (userRole === 'provider' && order.providerId !== userId) {
       return createErrorResponse('Access denied. You can only view orders assigned to you', 403);
     }
-
+    if (order.finalAmount === null) {
+      order.finalAmount = order.providerService.price;
+    }
     return createSuccessResponse(order, 'Order retrieved successfully');
 
   } catch (error) {
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - provider or admin
-    const authResult = await requireAuth(request, ['provider', 'admin']);
+    const authResult = await requireAuth(request, ['customer', 'provider', 'admin']);
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;

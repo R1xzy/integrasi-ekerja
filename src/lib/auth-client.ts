@@ -96,18 +96,29 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const authHeaders = getAuthHeaders();
-  
+  // Ambil token dari localStorage
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+  // Siapkan header default
+  const defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  // Jika token ada, tambahkan header Authorization
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
+  // Gabungkan header default dengan header kustom dari options
   const mergedOptions: RequestInit = {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
+      ...defaultHeaders,
       ...options.headers,
     },
-    credentials: 'include' // Include cookies
   };
   
+  // Lakukan fetch dengan options yang sudah digabungkan
   return fetch(url, mergedOptions);
 }
 
@@ -196,3 +207,5 @@ export async function refreshTokenIfNeeded(): Promise<boolean> {
   // For now, just validate existing token
   return await validateAuth();
 }
+
+
