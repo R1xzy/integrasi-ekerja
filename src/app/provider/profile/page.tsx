@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { Camera, Save, User, Star, Calendar, Award, Shield, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Camera, Save, User, Star, Calendar, Award, Shield, X, RefreshCw } from "lucide-react";
 import ProviderNavbar from "@/components/provider/ProviderNavbar";
+import { authenticatedFetch } from '@/lib/auth-client';
 
 // Definisikan tipe data untuk ulasan agar lebih aman
 interface Review {
   id: number;
-  customer: string;
+  customer: { fullName: string } | string;
   rating: number;
   comment: string;
-  date: string;
-  service: string;
+  createdAt: string;
+  is_show?: boolean; // Added for REQ-F-7.3
+  order?: {
+    service?: { name: string } | null;
+    providerService?: { serviceTitle: string } | null;
+  };
 }
 
 export default function ProviderProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
   const [formData, setFormData] = useState({
     name: "Ahmad Teknisi",
     email: "ahmad.teknisi@email.com",
@@ -39,11 +46,39 @@ export default function ProviderProfilePage() {
     { label: "Verifikasi", value: "Terverifikasi", icon: <Shield className="w-5 h-5" />, color: "text-purple-600" }
   ];
 
-  const reviews: Review[] = [
-    { id: 1, customer: "John Doe", rating: 5, comment: "Service AC sangat memuaskan, teknisi datang tepat waktu dan profesional.", date: "2024-01-15", service: "Service AC" },
-    { id: 2, customer: "Jane Smith", rating: 5, comment: "Perbaikan AC cepat dan hasilnya bagus. Harga juga reasonable.", date: "2024-01-10", service: "Perbaikan AC Split" },
-    { id: 3, customer: "Bob Johnson", rating: 4, comment: "Maintenance rutin berjalan lancar, AC jadi lebih dingin.", date: "2024-01-05", service: "Maintenance AC" }
-  ];
+  // Fetch reviews from API
+  const fetchProviderReviews = async () => {
+    try {
+      setLoadingReviews(true);
+      const response = await authenticatedFetch('/api/reviews');
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // Filter reviews for current provider and only show visible reviews (REQ-F-7.3)
+        const providerReviews = data.data
+          .filter((review: any) => review.provider) // Only reviews that have provider data
+          .filter((review: any) => review.is_show !== false) // Only show reviews that are not hidden (REQ-F-7.3)
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 10); // Show only latest 10 reviews
+        
+        setReviews(providerReviews);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // Fetch reviews on component mount
+  useEffect(() => {
+    fetchProviderReviews();
+    
+    // Auto-refresh reviews every 30 seconds to catch new reviews
+    const interval = setInterval(fetchProviderReviews, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -78,12 +113,63 @@ export default function ProviderProfilePage() {
     setReportModalOpen(true);
   };
 
-  const submitReport = () => {
+  const submitReport = async () => {
     if (!reportReason.trim()) {
       alert("Silakan isi alasan pelaporan!");
       return;
     }
-    console.log("Laporan dikirim:", { reviewId: selectedReview?.id, reason: reportReason });
+    
+    if (!selectedReview?.id) {
+      alert("Data review tidak valid. Silakan coba lagi.");
+      return;
+    }
+    
+    try {
+      const requestData = {
+        reviewId: selectedReview.id,
+        reason: reportReason.trim()
+      };
+      
+      console.log("Submitting report:", requestData);
+      
+      const response = await authenticatedFetch('/api/review-reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("Parsed response:", data);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        alert("Server response tidak valid. Silakan coba lagi.");
+        return;
+      }
+      
+      if (response.ok && data.success) {
+        alert("Laporan berhasil dikirim!");
+        // Refresh reviews to potentially hide reported review
+        fetchProviderReviews();
+      } else {
+        console.error("API Error:", data);
+        const errorMessage = data.error || data.message || `HTTP ${response.status}: ${response.statusText}`;
+        alert("Gagal mengirim laporan: " + errorMessage);
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert("Gagal mengirim laporan: " + (error instanceof Error ? error.message : 'Network error'));
+    }
+    
     setReportModalOpen(false);
     setReportReason("");
     setSelectedReview(null);
@@ -200,25 +286,65 @@ export default function ProviderProfilePage() {
 
             {/* Reviews */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ulasan Terbaru</h3>
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-medium text-gray-900">{review.customer}</p>
-                        <p className="text-sm text-gray-600">{review.service}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center mb-1">{renderStars(review.rating)}</div>
-                        <p className="text-sm text-gray-500">{formatDate(review.date)}</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 mb-2">{review.comment}</p>
-                    <button onClick={() => openReportModal(review)} className="text-xs text-red-500 hover:text-red-700 font-medium">Laporkan</button>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Ulasan Terbaru</h3>
+                {loadingReviews && (
+                  <div className="text-sm text-gray-500">Memuat...</div>
+                )}
               </div>
+              
+              {loadingReviews ? (
+                <div className="animate-pulse space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-gray-200 rounded-lg h-20"></div>
+                  ))}
+                </div>
+              ) : reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {typeof review.customer === 'object' && review.customer?.fullName 
+                              ? review.customer.fullName 
+                              : typeof review.customer === 'string' 
+                                ? review.customer 
+                                : 'Anonymous'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {review.order?.service?.name || 
+                             review.order?.providerService?.serviceTitle || 
+                             'N/A'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center mb-1">{renderStars(review.rating)}</div>
+                          <p className="text-sm text-gray-500">
+                            {new Date(review.createdAt).toLocaleDateString('id-ID', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-2">{review.comment}</p>
+                      <button 
+                        onClick={() => openReportModal(review)} 
+                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Laporkan
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-lg mb-2">Belum ada ulasan</div>
+                  <div className="text-sm">Ulasan pelanggan akan muncul di sini</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -232,7 +358,21 @@ export default function ProviderProfilePage() {
                 <button onClick={() => setReportModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-4">
-                <p className="text-sm mb-2">Ulasan dari: <span className="font-medium">{selectedReview.customer}</span></p>
+                {/* Debug info - temporary */}
+                <div className="text-xs text-gray-400 mb-2">
+                  Debug: Review ID = {selectedReview.id}
+                </div>
+                
+                <p className="text-sm mb-2">
+                  Ulasan dari: 
+                  <span className="font-medium">
+                    {typeof selectedReview.customer === 'object' && selectedReview.customer?.fullName
+                      ? selectedReview.customer.fullName
+                      : typeof selectedReview.customer === 'string'
+                        ? selectedReview.customer
+                        : 'Anonymous'}
+                  </span>
+                </p>
                 <p className="text-sm italic bg-gray-50 p-2 rounded-md mb-4">"{selectedReview.comment}"</p>
                 <textarea
                   className="w-full border rounded p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"

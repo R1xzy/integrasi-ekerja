@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - provider or customer can view services
     const authHeader = request.headers.get('authorization');
@@ -14,7 +14,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const serviceId = parseInt(params.id);
+    const resolvedParams = await params;
+    const serviceId = parseInt(resolvedParams.id);
 
     if (isNaN(serviceId)) {
       return createErrorResponse('Invalid service ID', 400);
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - provider only
     const authHeader = request.headers.get('authorization');
@@ -75,7 +76,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const serviceId = parseInt(params.id);
+    const resolvedParams = await params;
+    const serviceId = parseInt(resolvedParams.id);
     const providerId = parseInt(authResult.user!.userId);
 
     if (isNaN(serviceId)) {
@@ -142,7 +144,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - provider only
     const authHeader = request.headers.get('authorization');
@@ -153,7 +155,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const serviceId = parseInt(params.id);
+    const resolvedParams = await params;
+    const serviceId = parseInt(resolvedParams.id);
     const providerId = parseInt(authResult.user!.userId);
 
     if (isNaN(serviceId)) {

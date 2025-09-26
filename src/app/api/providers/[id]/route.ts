@@ -3,9 +3,10 @@ import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 import { calculateProviderRating } from '@/lib/utils-backend';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const providerId = parseInt(params.id);
+    const resolvedParams = await params;
+    const providerId = parseInt(resolvedParams.id);
     
     // Get provider details
     const provider = await prisma.user.findFirst({

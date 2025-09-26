@@ -16,6 +16,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/providers", label: "Penyedia" },
   { href: "/dashboard/customers", label: "Pelanggan" },
   { href: "/dashboard/services", label: "Layanan" },
+  { href: "/dashboard/hidden-reviews", label: "Ulasan Tersembunyi" },
+  { href: "/dashboard/reported-reviews", label: "Laporan Ulasan" },
 ];
 
 export default function DashboardNavbar() {

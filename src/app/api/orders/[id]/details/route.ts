@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - customer or provider
     const authHeader = request.headers.get('authorization');
@@ -14,7 +14,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const orderId = parseInt(params.id);
+    const resolvedParams = await params;
+    const orderId = parseInt(resolvedParams.id);
     const userId = parseInt(authResult.user!.userId);
     const userRole = authResult.user!.roleName;
 
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - customer, provider, or admin
     const authHeader = request.headers.get('authorization');
@@ -109,7 +110,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const orderId = parseInt(params.id);
+    const resolvedParams = await params;
+    const orderId = parseInt(resolvedParams.id);
     const userId = parseInt(authResult.user!.userId);
     const userRole = authResult.user!.roleName;
 
