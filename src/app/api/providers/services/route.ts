@@ -2,34 +2,78 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
+
 export async function GET(request: NextRequest) {
-  try {
-    // Validate Bearer token - provider only
-    const authResult = await requireAuth(request, ['provider']);
-    if (authResult instanceof Response) return authResult;
+  try {
+    // Validate Bearer token - provider only
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
 
-    const providerId = parseInt(authResult.user.userId as string);
+    const providerId = parseInt(authResult.user.userId as string);
 
-    // Get provider services
-    const services = await prisma.providerService.findMany({
-      where: { providerId },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            iconUrl: true
-          }
+    // 1. Ambil data layanan, termasuk hitungan pesanan (orders)
+    const servicesWithCount = await prisma.providerService.findMany({
+      where: { providerId },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            iconUrl: true
+          }
+        },
+        // PERBAIKAN: Hanya menghitung 'orders' (relasi langsung ProviderService)
+        _count: {
+            select: {
+                orders: true,
+            }
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    // 2. Iterasi dan Hitung Rata-rata Rating serta Review Count (Agregasi Berlapis)
+    const servicesWithStats = await Promise.all(servicesWithCount.map(async (service) => {
+        
+        // Agregasi Review: Cari reviews yang order-nya terhubung ke service ini
+        const reviewAggregation = await prisma.review.aggregate({
+            _avg: {
+                rating: true, // Ambil rata-rata rating
+            },
+            _count: {
+                id: true, // Hitung jumlah review
+            },
+            where: {
+                // PERBAIKAN: Mencari review yang Order-nya terhubung ke ProviderService ini
+                order: { 
+                    providerServiceId: service.id,
+                },
+                isShow: true, // Hanya hitung review yang terlihat
+            },
+        });
+        
+        // PERBAIKAN 3: Menangani 'possibly undefined'
+        const averageRating = reviewAggregation._avg.rating ?? 0;
+        const reviewCount = reviewAggregation._count.id;
+        
+        // PERBAIKAN 4: Destrukturisasi _count dengan aman
+        const { _count, ...restService } = service; 
+        
+        return {
+            ...restService,
+            ordersCount: _count.orders, // Gunakan hasil hitungan orders
+            reviewCount,
+            // Mengformat rating ke 1 desimal, fallback jika 0
+            averageRating: parseFloat(averageRating.toFixed(1)),
+        };
+    }));
 
-    return createSuccessResponse(services, `Found ${services.length} services`);
 
-  } catch (error) {
-    return handleApiError(error);
-  }
+    return createSuccessResponse(servicesWithStats, `Found ${servicesWithStats.length} services with stats`);
+
+  } catch (error) {
+    return handleApiError(error);
+  }
 }
 
 export async function POST(request: NextRequest) {

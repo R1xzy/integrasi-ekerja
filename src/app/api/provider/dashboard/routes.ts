@@ -1,4 +1,3 @@
-
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, requireAuth } from '@/lib/api-helpers';
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
       activeOrdersCount,
       ratingAgg,
       recentOrders,
-      myTopServices // Nama variabel tetap sama
+      myTopServices
     ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: providerId },
@@ -55,28 +54,18 @@ export async function GET(request: NextRequest) {
           providerService: { select: { serviceTitle: true } },
         },
       }),
-      // --- [PERBAIKAN UTAMA DI SINI] ---
-      // Ambil 3 layanan teratas berdasarkan jumlah pesanan.
-      // Kita tidak perlu rating di sini karena sudah ada di statistik utama.
       prisma.providerService.findMany({
         where: { providerId: providerId },
         take: 3,
         orderBy: { orders: { _count: 'desc' } },
         include: {
-          _count: { select: { orders: true } }, // Hanya hitung jumlah pesanan
+          _count: { select: { orders: true } },
         },
       })
-      // ------------------------------------
     ]);
 
-    // ... (sisa kode tidak berubah)
     const thisMonthRevenue = thisMonthOrders.filter(o => o.status === 'COMPLETED').reduce((sum, o) => sum + (o.finalAmount || 0), 0);
-    const lastMonthRevenue = lastMonthOrders.filter(o => o.status === 'COMPLETED').reduce((sum, o) => sum + (o.finalAmount || 0), 0);
-    const calculateGrowth = (current: number, previous: number) => {
-        if (previous === 0) return current > 0 ? 100 : 0;
-        return ((current - previous) / previous) * 100;
-    };
-    const revenueGrowth = calculateGrowth(thisMonthRevenue, lastMonthRevenue);
+    
     const responseData = {
         providerName: providerData?.fullName || '',
         statistics: {
@@ -85,7 +74,6 @@ export async function GET(request: NextRequest) {
             averageRating: { value: ratingAgg._avg.rating?.toFixed(1) || 'N/A' },
             monthlyRevenue: {
                 value: thisMonthRevenue,
-                change: `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth.toFixed(0)}%`
             }
         },
         recentOrders: recentOrders,
