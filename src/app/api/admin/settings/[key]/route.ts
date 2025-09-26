@@ -3,12 +3,12 @@ import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-interface RouteParams {
-  params: { key: string }
-}
-
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ key: string }> }
+) {
   try {
+    const resolvedParams = await params;
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const settingKey = decodeURIComponent(params.key);
+    const settingKey = decodeURIComponent(resolvedParams.key);
 
     // Get specific setting
     const setting = await prisma.setting.findUnique({
@@ -36,8 +36,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ key: string }> }
+) {
   try {
+    const resolvedParams = await params;
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
@@ -47,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const settingKey = decodeURIComponent(params.key);
+    const settingKey = decodeURIComponent(resolvedParams.key);
     const body = await request.json();
     const { settingValue, description } = body;
 
@@ -85,8 +89,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ key: string }> }
+) {
   try {
+    const resolvedParams = await params;
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
     const auth = createAuthMiddleware(['admin']);
@@ -96,7 +104,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const settingKey = decodeURIComponent(params.key);
+    const settingKey = decodeURIComponent(resolvedParams.key);
 
     // Check if setting exists
     const existingSetting = await prisma.setting.findUnique({

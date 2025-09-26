@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -116,7 +116,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }*/
 
-    const faqId = parseInt(params.id);
+    const resolvedParams = await params;
+    const faqId = parseInt(resolvedParams.id);
 
     // Check if FAQ exists
     const existingFaq = await prisma.faq.findUnique({

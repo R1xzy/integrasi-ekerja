@@ -31,7 +31,7 @@ export default function TestAuth() {
 
       } catch (error) {
         console.error('Test error:', error);
-        setAuthData({ error: error.message });
+        setAuthData({ error: error instanceof Error ? error.message : 'Unknown error' });
       } finally {
         setLoading(false);
       }

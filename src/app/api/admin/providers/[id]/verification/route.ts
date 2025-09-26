@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - admin only sesuai [C-2]
     const authHeader = request.headers.get('authorization');
@@ -15,7 +15,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const adminId = parseInt(authResult.user!.userId);
-    const providerId = parseInt(params.id);
+    const resolvedParams = await params;
+    const providerId = parseInt(resolvedParams.id);
     const body = await request.json();
 
     const { verificationStatus, notes } = body;
@@ -85,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - admin only untuk melihat verification detail
     const authHeader = request.headers.get('authorization');
@@ -96,7 +97,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication required', authResult.status || 401);
     }
 
-    const providerId = parseInt(params.id);
+    const resolvedParams = await params;
+    const providerId = parseInt(resolvedParams.id);
 
     // Get provider verification details
     const provider = await prisma.user.findUnique({

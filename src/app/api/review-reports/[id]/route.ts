@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
@@ -14,7 +14,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const reportId = parseInt(params.id);
+    const resolvedParams = await params;
+    const reportId = parseInt(resolvedParams.id);
     const adminId = parseInt(authResult.user!.userId);
 
     if (isNaN(reportId)) {
@@ -130,7 +131,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
@@ -141,7 +142,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const reportId = parseInt(params.id);
+    const resolvedParams = await params;
+    const reportId = parseInt(resolvedParams.id);
 
     if (isNaN(reportId)) {
       return createErrorResponse('Invalid report ID', 400);

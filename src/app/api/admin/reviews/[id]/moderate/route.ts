@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // REQ-B-7.3: Admin toggle review visibility status
@@ -20,7 +20,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const adminId = parseInt(authResult.user!.userId);
-    const reviewId = parseInt(params.id);
+    const resolvedParams = await params;
+    const reviewId = parseInt(resolvedParams.id);
     const { isShow, adminNotes } = await request.json();
 
     // Validate isShow parameter
@@ -109,7 +110,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const reviewId = parseInt(params.id);
+    const resolvedParams = await params;
+    const reviewId = parseInt(resolvedParams.id);
 
     // Get review with all details
     const review = await prisma.review.findUnique({

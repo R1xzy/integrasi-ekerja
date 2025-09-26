@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+// @ts-ignore
 import "./globals.css";
 import NavbarController from "@/components/NavbarController"; // Impor controller baru
 import UniversalFooter from "@/components/Footer"; // Impor footer universal

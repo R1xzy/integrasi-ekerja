@@ -78,6 +78,8 @@ export default function CustomerOrderDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+    const [customerReview, setCustomerReview] = useState<any>(null);
+    const [loadingReview, setLoadingReview] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalAction, setModalAction] = useState<'verify' | 'reject' | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -90,12 +92,41 @@ export default function CustomerOrderDetailPage() {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Gagal memuat detail pesanan.');
             setOrder(result.data);
+            
+            // Fetch review jika order COMPLETED
+            if (result.data.status === 'COMPLETED') {
+                fetchCustomerReview();
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
     }, [orderId]);
+
+    const fetchCustomerReview = async () => {
+        if (!orderId) return;
+        setLoadingReview(true);
+        try {
+            // Try to get all reviews and find review for this order by this customer
+            const response = await authenticatedFetch(`/api/reviews`);
+            const result = await response.json();
+            if (response.ok && result.success && result.data) {
+                // Find review for this specific order by current customer
+                // Assuming the API returns reviews with order information
+                const orderReview = result.data.find((review: any) => {
+                    return review.order && review.order.id === parseInt(orderId as string);
+                });
+                if (orderReview) {
+                    setCustomerReview(orderReview);
+                }
+            }
+        } catch (err: any) {
+            console.log('No review found for this order:', err);
+        } finally {
+            setLoadingReview(false);
+        }
+    };
 
     useEffect(() => {
         fetchOrderDetails();
@@ -360,13 +391,6 @@ export default function CustomerOrderDetailPage() {
                 <div className="bg-white rounded-xl shadow-lg p-6">
                     <h2 className="text-xl font-bold mb-4">Aksi Lainnya</h2>
                      
-                    {order.status === 'COMPLETED' && (
-                        <button 
-                            onClick={() => router.push(`/reviews/new?orderId=${order.id}`)}
-                            className="w-full px-4 py-3 rounded-lg font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center">
-                            <Star className="mr-2"/> Beri Ulasan
-                        </button>
-                    )}
                     {canBeCancelled && (
                         <button 
                             onClick={handleCancelOrder}
@@ -380,8 +404,11 @@ export default function CustomerOrderDetailPage() {
                     {order.status === 'COMPLETED' && (
                         <button 
                             onClick={() => router.push(`/reviews/new?orderId=${order.id}`)}
-                            className="w-full px-4 py-3 rounded-lg font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center">
-                            <Star className="mr-2"/> Beri Ulasan
+                            className="w-full px-4 py-3 rounded-lg font-bold transition-colors bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center"
+                            disabled={loadingReview}
+                        >
+                            <Star className="mr-2"/> 
+                            {loadingReview ? 'Memuat...' : customerReview ? 'Edit Ulasan' : 'Beri Ulasan'}
                         </button>
                     )}
 
