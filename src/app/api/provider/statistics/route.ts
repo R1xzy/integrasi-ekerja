@@ -1,171 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/db'; // Menggunakan prisma instance Anda
+import { requireAuth, handleApiError, createSuccessResponse } from '@/lib/api-helpers'; // Menggunakan helper Anda
 
-const prisma = new PrismaClient();
-
-// REQ-B-13.1: API endpoint untuk akses Provider yang mampu mengembalikan statistik pesanan dan rating
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // 1. Otentikasi dan verifikasi peran provider (menggunakan helper Anda)
+    const authResult = await requireAuth(request, ['provider']);
+    if (authResult instanceof Response) return authResult;
 
-    const token = authHeader.substring(7);
-    let decoded: any;
+    const providerId = parseInt(authResult.user.userId as string);
 
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
-    } catch (error) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Check if user is provider
+    // 2. Ambil data provider untuk mendapatkan tanggal bergabung dan status verifikasi
     const provider = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
-      include: { role: true }
+      where: { id: providerId },
     });
 
-    if (!provider || provider.role.roleName !== 'provider') {
-      return NextResponse.json({ error: 'Provider access required' }, { status: 403 });
+    if (!provider) {
+      return NextResponse.json({ error: 'Provider tidak ditemukan' }, { status: 404 });
     }
 
-    // Get all orders for this provider
-    const allOrders = await prisma.order.findMany({
-      where: { providerId: provider.id },
-      include: {
-        review: true
-      }
-    });
+    // --- [PERBAIKAN LOGIKA PERHITUNGAN YANG LEBIH EFISIEN] ---
 
-    // Calculate statistics
-    const totalOrders = allOrders.length;
-    
-    const acceptedOrders = allOrders.filter(order => 
-      ['ACCEPTED', 'IN_PROGRESS', 'COMPLETED'].includes(order.status)
-    ).length;
-    
-    const rejectedOrders = allOrders.filter(order => 
-      order.status === 'REJECTED_BY_PROVIDER'
-    ).length;
-    
-    const completedOrders = allOrders.filter(order => 
-      order.status === 'COMPLETED'
-    );
-    
-    const completedWithReview = completedOrders.filter(order => 
-      order.review !== null
-    ).length;
-    
-    const completedWithoutReview = completedOrders.filter(order => 
-      order.review === null
-    ).length;
-
-    // Calculate average rating
-    const reviewsWithRating = allOrders
-      .filter(order => order.review !== null)
-      .map(order => order.review!.rating);
-    
-    const averageRating = reviewsWithRating.length > 0 
-      ? reviewsWithRating.reduce((sum, rating) => sum + rating, 0) / reviewsWithRating.length
-      : 0;
-
-    // Get monthly statistics for the last 6 months
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
-    const monthlyStats = await prisma.order.groupBy({
-      by: ['createdAt'],
+    // 3. Hitung Total Pesanan langsung dari database
+    // Ini jauh lebih cepat daripada mengambil semua pesanan lalu menghitungnya di code.
+    const totalOrders = await prisma.order.count({
       where: {
         providerId: provider.id,
-        createdAt: {
-          gte: sixMonthsAgo
+        // Kita hitung semua pesanan yang tidak secara eksplisit ditolak atau dibatalkan
+        NOT: {
+          status: {
+            in: ['REJECTED_BY_PROVIDER', 'CANCELLED_BY_CUSTOMER']
+          }
         }
-      },
-      _count: {
-        id: true
       }
     });
 
-    // Group by month
-    const monthlyGrouped: { [key: string]: number } = {};
+    // 4. Hitung Rata-rata Rating langsung dari tabel Review
+    // Ini adalah cara paling akurat dan efisien untuk mendapatkan rata-rata.
+    const ratingAggregation = await prisma.review.aggregate({
+      _avg: {
+        rating: true, // Minta Prisma untuk menghitung rata-rata dari kolom 'rating'
+      },
+      where: {
+        providerId: provider.id,
+        isShow: true, // Hanya ulasan yang ditampilkan yang dihitung
+      },
+    });
     
-    allOrders.forEach(order => {
-      if (order.createdAt >= sixMonthsAgo) {
-        const monthKey = order.createdAt.toISOString().substring(0, 7); // YYYY-MM
-        monthlyGrouped[monthKey] = (monthlyGrouped[monthKey] || 0) + 1;
-      }
-    });
+    // Ambil hasilnya, jika null (belum ada review), anggap 0
+    const averageRating = ratingAggregation._avg.rating ?? 0;
 
-    // Get recent orders (last 10)
-    const recentOrders = await prisma.order.findMany({
-      where: { providerId: provider.id },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true
-          }
-        },
-        providerService: {
-          include: {
-            category: true
-          }
-        },
-        review: true
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 10
-    });
+    // -----------------------------------------------------------------
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        provider: {
-          id: provider.id,
-          fullName: provider.fullName,
-          email: provider.email,
-          verificationStatus: provider.verificationStatus
-        },
-        statistics: {
-          totalOrders,
-          acceptedOrders,
-          rejectedOrders,
-          completedOrders: completedOrders.length,
-          completedWithReview,
-          completedWithoutReview,
-          averageRating: Math.round(averageRating * 100) / 100, // Round to 2 decimal places
-          totalReviews: reviewsWithRating.length
-        },
-        monthlyStats: Object.entries(monthlyGrouped).map(([month, count]) => ({
-          month,
-          orderCount: count
-        })).sort((a, b) => a.month.localeCompare(b.month)),
-        recentOrders: recentOrders.map(order => ({
-          id: order.id,
-          customer: order.customer,
-          serviceCategory: order.providerService.category.name,
-          serviceTitle: order.providerService.serviceTitle,
-          status: order.status,
-          finalAmount: order.finalAmount,
-          scheduledDate: order.scheduledDate,
-          createdAt: order.createdAt,
-          hasReview: order.review !== null,
-          rating: order.review?.rating || null
-        }))
-      }
-    });
+    // 5. Siapkan data yang akan dikirim ke frontend
+    const statistics = {
+      totalOrders: totalOrders,
+      averageRating: averageRating,
+      joinDate: provider.createdAt.toISOString(), // Ambil langsung dari data provider
+      verificationStatus: provider.verificationStatus, // Ambil langsung dari data provider
+    };
+
+    // Gunakan helper response sukses Anda
+    return createSuccessResponse(statistics, 'Statistik provider berhasil diambil');
 
   } catch (error) {
-    console.error('Error fetching provider statistics:', error);
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error : undefined
-    }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
+    // Gunakan helper error Anda
+    return handleApiError(error);
   }
 }

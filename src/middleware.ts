@@ -75,6 +75,10 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/orders') && userRole !== 'customer') {
       return NextResponse.redirect(new URL('/', request.url));
     }
+    
+    if (pathname.startsWith('/customer') && userRole !== 'customer') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   // Redirect authenticated users away from login/register pages

@@ -99,27 +99,33 @@ export async function authenticatedFetch(
   // Ambil token dari localStorage
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  // Siapkan header default
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
+  // Siapkan header, mulai dengan header kustom dari options
+  const headers: HeadersInit = {
+    ...options.headers,
   };
 
   // Jika token ada, tambahkan header Authorization
   if (token) {
-    defaultHeaders['Authorization'] = `Bearer ${token}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
-
-  // Gabungkan header default dengan header kustom dari options
+  
+  // --- [PERBAIKAN UTAMA] ---
+  // HANYA atur 'Content-Type' ke 'application/json' jika body BUKAN FormData.
+  // Jika body adalah FormData, kita biarkan browser yang mengaturnya secara otomatis.
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  // Gabungkan header yang sudah benar dengan sisa options
   const mergedOptions: RequestInit = {
     ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
+    headers: headers,
   };
   
   // Lakukan fetch dengan options yang sudah digabungkan
-  return fetch(url, mergedOptions);
+  // Menambahkan NEXT_PUBLIC_API_BASE_URL jika ada untuk konsistensi
+  const fullUrl = url.startsWith('http') ? url : `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}${url}`;
+  return fetch(fullUrl, mergedOptions);
 }
 
 /**
