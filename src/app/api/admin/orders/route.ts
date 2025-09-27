@@ -11,14 +11,17 @@ import {
   SEARCH_FIELDS,
   SORT_FIELDS 
 } from '@/lib/data-table-helpers';
+// src/app/api/admin/orders/route.ts
+
+
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['admin']);
     if (authResult instanceof NextResponse) {
-      return authResult; // Return error response
+      return authResult;
     }
 
-    // --- Menghitung Statistik Pesanan ---
+    // --- 1. MENGHITUNG STATISTIK PESANAN (DIGABUNGKAN) ---
     const [
         totalOrders,
         completedOrders,
@@ -34,19 +37,35 @@ export async function GET(request: NextRequest) {
             status: { in: ['CANCELLED_BY_CUSTOMER', 'REJECTED_BY_PROVIDER'] } 
         }}),
     ]);
-    
-    // --- Mengambil semua pesanan (tanpa paginasi untuk saat ini) ---
-    // Logika paginasi Anda sebelumnya dapat ditambahkan kembali di sini jika diperlukan
+
+    // --- 2. LOGIKA FILTER, SORT, DAN PAGINATION ANDA (TETAP SAMA) ---
+    const url = new URL(request.url);
+    const tableParams = parseDataTableParams(url.searchParams);
+    // ... (Filter, sort, where clause Anda tidak perlu diubah)
+    const status = url.searchParams.get('status');
+    const validatedSortBy = validateSortField(tableParams.sortBy, SORT_FIELDS.orders);
+    const whereClause: Record<string, any> = {};
+    if (status) {
+      whereClause.status = status;
+    }
+    if (tableParams.search) {
+      whereClause.AND = [buildSearchWhere(tableParams.search, SEARCH_FIELDS.orders)];
+    }
+    const orderBy = validatedSortBy 
+      ? buildOrderBy(validatedSortBy, tableParams.sortOrder)
+      : { createdAt: 'desc' };
+
+
+    // --- 3. PERBAIKAN PADA QUERY UTAMA ---
     const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: whereClause,
+      // Menggunakan 'include' agar lebih jelas dan pasti mengambil semua data relasi
       include: {
         customer: {
           select: {
             id: true,
             fullName: true,
-            profilePictureUrl: true, // Mengambil URL foto profil
+            profilePictureUrl: true,
           },
         },
         provider: {
@@ -62,17 +81,21 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy,
+      skip: calculateSkip(tableParams.page, tableParams.limit),
+      take: tableParams.limit
     });
 
-    // --- Membuat nomor pesanan unik jika belum ada ---
+    // Menambahkan nomor pesanan unik
     const ordersWithNumber = orders.map(order => ({
         ...order,
         orderNumber: `ORD-${order.id.toString().padStart(6, '0')}`
     }));
 
+    // --- 4. MEMBUAT RESPON SESUAI KEBUTUHAN FRONTEND ---
     return createSuccessResponse({
       orders: ordersWithNumber,
-      // Menambahkan statistik ke dalam respons
+      // Menyertakan statistik di dalam respons
       totalOrders,
       completedOrders,
       inProgressOrders,
@@ -84,7 +107,6 @@ export async function GET(request: NextRequest) {
     return handleApiError(error);
   }
 }
-
 // Update order status (admin action)
 export async function PATCH(request: NextRequest) {
   try {

@@ -269,19 +269,25 @@ export default function ProviderProfilePage() {
     }
   };
 
-  const submitReport = async () => {
-    if (!reportReason.trim() || !selectedReview) {
-      alert("Alasan pelaporan tidak boleh kosong.");
-      return;
-    }
-    setIsReporting(true);
-    try {
-      const response = await authenticatedFetch('/api/review-reports', {
-        method: 'POST',
-        body: JSON.stringify({ reviewId: selectedReview.id, reason: reportReason }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Gagal mengirim laporan.');
+  const submitReport = async () => {
+    if (!reportReason.trim() || !selectedReview) {
+      alert("Alasan pelaporan tidak boleh kosong.");
+      return;
+    }
+    setIsReporting(true);
+    try {
+      const response = await authenticatedFetch('/api/review-reports', {
+        method: 'POST',
+        // Pastikan selectedReview.id adalah angka di sini, yang sudah benar
+        // Tapi jika ada masalah tak terduga, ini bisa membantu:
+        body: JSON.stringify({ reviewId: Number(selectedReview.id), reason: reportReason }), 
+      });
+      const result = await response.json();
+      
+      if (!response.ok) {
+        // Ambil pesan error spesifik dari backend (contoh: 'You have already reported this review')
+        throw new Error(result.message || 'Gagal mengirim laporan.');
+      }
       
       alert("Laporan berhasil dikirim dan akan kami tinjau.");
       setReportModalOpen(false);
