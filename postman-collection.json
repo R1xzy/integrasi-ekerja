@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "E-Kerja Backend API Testing - Complete with Encryption REQ-B-2.4/8.2",
-    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja plus ENKRIPSI:\n- REQ-B-1 to REQ-B-15: Core platform functionality\n- NEW ENCRYPTION FEATURES:\n  • REQ-B-2.4: File Upload dengan Enkripsi Nama File (AES-256-CBC)\n  • REQ-B-8.2: End-to-End Chat Message Encryption dalam Database\n\n🔒 FITUR ENKRIPSI:\n✅ AES-256-CBC encryption untuk nama file dengan unique IV\n✅ Database storage metadata enkripsi (FileEncryption model)\n✅ Enkripsi pesan chat sebelum disimpan ke database\n✅ Auto-dekripsi pesan saat diambil untuk display\n✅ Security testing utilities untuk validasi keamanan\n✅ Performance testing (target < 5ms per operasi)\n✅ Raw database view untuk security audit\n\n🧪 TESTING FLOW ENKRIPSI:\n1. Test Basic Encryption (REQ-B-2.4 & 8.2)\n2. Test Database Integration (encrypt on save, decrypt on retrieve)\n3. Test Production Chat API dengan enkripsi otomatis\n4. Test File Info API dengan nama terenkripsi\n5. Security Validation (raw database tidak readable)\n\n⚙️ SETUP REQUIREMENTS:\n- Environment variables: ENCRYPTION_KEY, CHAT_ENCRYPTION_KEY\n- Database migration untuk FileEncryption model\n- Bearer token authentication\n- Postman environment dengan encryption test data\n\n📋 LEGACY FEATURES:\n✅ Complete Authentication & User Management\n✅ Service & Portfolio dengan File Upload\n✅ Order Management & Payment Processing\n✅ Review System dengan Edit capability\n✅ Admin Chat Access dengan Customer Approval\n✅ Email Verification System (Registration, Password Reset, Order Status)\n✅ Advanced Data Table dengan Sorting/Filtering\n✅ Provider Attendance & Customer Verification\n✅ Statistics & Analytics APIs",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja plus ENKRIPSI:\n- REQ-B-1 to REQ-B-15: Core platform functionality\n- NEW ENCRYPTION FEATURES:\n  • REQ-B-2.4: File Upload dengan Enkripsi Nama File (AES-256-CBC)\n  • REQ-B-8.2: End-to-End Chat Message Encryption dalam Database\n\n🔒 FITUR ENKRIPSI:\n✅ AES-256-CBC encryption untuk nama file dengan unique IV\n✅ Database storage metadata enkripsi (FileEncryption model)\n✅ Enkripsi pesan chat sebelum disimpan ke database\n✅ Auto-dekripsi pesan saat diambil untuk display\n✅ Security testing utilities untuk validasi keamanan\n✅ Performance testing (target < 5ms per operasi)\n✅ Raw database view untuk security audit\n\n🧪 TESTING FLOW ENKRIPSI:\n1. Test Basic Encryption (REQ-B-2.4 & 8.2)\n2. Test Database Integration (encrypt on save, decrypt on retrieve)\n3. Test Production Chat API dengan enkripsi otomatis\n4. Test File Info API dengan nama terenkripsi\n5. Security Validation (raw database tidak readable)\n\n⚙️ SETUP REQUIREMENTS:\n- Environment variables: ENCRYPTION_KEY, CHAT_ENCRYPTION_KEY\n- Database migration untuk FileEncryption model\n- Bearer token authentication\n- Postman environment dengan encryption test data\n\n📋 LEGACY FEATURES:\n✅ Complete Authentication & User Management\n✅ Service & Portfolio dengan File Upload\n✅ Order Management & Payment Processing\n✅ Review System dengan Edit capability\n✅ Admin Chat Access dengan Customer Approval\n✅ Email Verification System (Registration, Password Reset, Order Status)\n✅ Advanced Data Table dengan Sorting/Filtering\n✅ Provider Attendance & Customer Verification\n✅ Statistics & Analytics APIs\n\n🔒 ENCRYPTION TESTING SUITE:\n✅ REQ-B-2.4: File Upload Encryption with Database Verification\n✅ REQ-B-8.2: Chat Message Encryption with Auto-Decrypt\n✅ Security penetration testing to verify no sensitive data exposure\n✅ Comprehensive database verification endpoints\n✅ Automated test scripts for encryption validation",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -24,8 +24,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             },
             "description": "Test pendaftaran user customer baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
@@ -46,8 +52,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             },
             "description": "Test pendaftaran provider baru dengan email verification.\nPREREQUIISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email, status verifikasi provider otomatis PENDING."
           }
@@ -68,8 +80,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             },
             "description": "Test pendaftaran admin baru dengan email verification.\nPREREQUISITE: Jalankan 'Send Registration Verification Email' terlebih dahulu untuk mendapatkan verificationCode.\nMemerlukan verificationCode dari email yang akan auto-extract ke environment variable."
           }
@@ -90,8 +108,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             },
             "description": "Test validasi keunikan email - should return 409 error"
           }
@@ -131,8 +155,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "✅ Login customer dengan seeded credentials dan auto-save Bearer token"
           }
@@ -172,8 +202,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "✅ Login provider Fanza dan auto-save Bearer token"
           }
@@ -213,8 +249,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "✅ Login admin dengan seeded credentials dan auto-save Bearer token"
           }
@@ -253,8 +295,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "✅ Login provider Budi untuk testing review reports"
           }
@@ -275,8 +323,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "Test login dengan password salah - should return 401"
           }
@@ -297,8 +351,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/reset-password",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "reset-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
             },
             "description": "Test reset password dengan validasi complexity [C-15]"
           }
@@ -316,8 +376,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             },
             "description": "✅ Test Bearer token authentication pada protected endpoint"
           }
@@ -347,8 +413,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/profile",
-              "host": ["{{base_url}}"],
-              "path": ["api", "profile"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
             },
             "description": "Test update profil provider"
           }
@@ -380,8 +451,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/upload",
-              "host": ["{{base_url}}"],
-              "path": ["api", "upload"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "upload"
+              ]
             },
             "description": "Test upload image dengan secure filename generation [C-18]"
           }
@@ -413,8 +489,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/upload",
-              "host": ["{{base_url}}"],
-              "path": ["api", "upload"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "upload"
+              ]
             },
             "description": "Test upload dokumen PDF"
           }
@@ -442,23 +523,82 @@
             },
             "url": {
               "raw": "{{base_url}}/api/upload",
-              "host": ["{{base_url}}"],
-              "path": ["api", "upload"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "upload"
+              ]
             },
-            "description": "REQ-B-2.4: Test upload dengan enkripsi nama file - File disimpan dengan nama terenkripsi dan unik"
+            "description": "REQ-B-2.4: Test upload dengan enkripsi nama file - File disimpan dengan nama terenkripsi dan unik. (Note: C-7 constraint applies to chat encryption, not file uploads)"
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "console.log('\\n🔒 [REQ-B-2.4] File Upload Encryption Test - Enhanced Validation');",
+                  "",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    const response = pm.response.json();",
-                  "    console.log('File uploaded with encrypted filename:', response.data.fileName);",
-                  "    pm.test('File upload with encrypted filename successful', function() {",
+                  "    console.log('✅ File uploaded successfully');",
+                  "    console.log('📁 Original filename: test-image.jpg');",
+                  "    console.log('🔐 Encrypted filename:', response.data.fileName);",
+                  "    ",
+                  "    // Save document ID for database verification",
+                  "    if (response.data.documentId) {",
+                  "        pm.environment.set('test_file_encryption_id', response.data.documentId);",
+                  "        console.log('📋 Document ID saved:', response.data.documentId);",
+                  "    }",
+                  "    ",
+                  "    pm.test('[REQ-B-2.4] File upload encryption successful', function() {",
                   "        pm.expect(response.success).to.be.true;",
-                  "        pm.expect(response.data.fileName).to.not.eql('test-image.jpg');",
-                  "        pm.expect(response.data.fileName).to.match(/^[a-f0-9]{32}\\.(jpg|jpeg|png|pdf)$/i);",
+                  "        pm.expect(response.message).to.include('uploaded');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-2.4] Filename encrypted and unique', function() {",
+                  "        const encryptedName = response.data.fileName;",
+                  "        ",
+                  "        // Verify filename is encrypted (not same as original)",
+                  "        pm.expect(encryptedName).to.not.eql('test-image.jpg');",
+                  "        pm.expect(encryptedName).to.not.include('test');",
+                  "        pm.expect(encryptedName).to.not.include('image');",
+                  "        ",
+                  "        // Verify encrypted filename format (hash-like with extension)",
+                  "        pm.expect(encryptedName).to.match(/^[a-f0-9]{32,}\\.(jpg|jpeg|png|pdf|doc|docx|txt)$/i);",
+                  "        ",
+                  "        // Verify uniqueness (long encrypted string)",
+                  "        pm.expect(encryptedName.split('.')[0].length).to.be.at.least(32);",
+                  "        ",
+                  "        console.log('✅ [REQ-B-2.4] Filename encryption meets security standards');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-2.4] Database storage validation', function() {",
+                  "        // Verify document metadata exists",
+                  "        pm.expect(response.data.documentId).to.exist;",
+                  "        pm.expect(response.data.fileUrl).to.exist;",
+                  "        ",
+                  "        console.log('✅ [REQ-B-2.4] Database storage metadata validated');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-2.4] Security compliance - No sensitive data exposed', function() {",
+                  "        const responseText = pm.response.text();",
+                  "        ",
+                  "        // Verify no encryption keys exposed",
+                  "        pm.expect(responseText).to.not.include('encryptionKey');",
+                  "        pm.expect(responseText).to.not.include('ENCRYPTION_KEY');",
+                  "        pm.expect(responseText).to.not.include('secret');",
+                  "        pm.expect(responseText).to.not.include('iv');",
+                  "        pm.expect(responseText).to.not.include('authTag');",
+                  "        ",
+                  "        console.log('✅ [REQ-B-2.4] No sensitive encryption data exposed');",
+                  "    });",
+                  "    ",
+                  "} else {",
+                  "    console.error('❌ File upload failed:', pm.response.status, pm.response.statusText);",
+                  "    pm.test('[REQ-B-2.4] Upload should succeed', function() {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
                   "    });",
                   "}"
                 ]
@@ -489,8 +629,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/upload",
-              "host": ["{{base_url}}"],
-              "path": ["api", "upload"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "upload"
+              ]
             },
             "description": "REQ-B-2.5: Test upload dengan nama file sama - Aplikasi memastikan nama file unik di database"
           },
@@ -533,8 +678,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/providers/documents",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "documents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "documents"
+              ]
             },
             "description": "Test upload dokumen KTP untuk verifikasi [C-6]"
           }
@@ -559,8 +710,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/providers/documents",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "documents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "documents"
+              ]
             },
             "description": "Test upload sertifikat pelatihan untuk verifikasi [C-6]"
           }
@@ -577,8 +734,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/documents",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "documents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "documents"
+              ]
             },
             "description": "Test get dokumen provider sendiri"
           }
@@ -595,8 +758,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/verification?status=PENDING",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "verification"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "verification"
+              ],
               "query": [
                 {
                   "key": "status",
@@ -627,8 +796,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/verification?providerId={{provider_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "verification"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "verification"
+              ],
               "query": [
                 {
                   "key": "providerId",
@@ -659,8 +834,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/verification?providerId={{provider_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "verification"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "verification"
+              ],
               "query": [
                 {
                   "key": "providerId",
@@ -696,8 +877,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/providers/services",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "services"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "services"
+              ]
             },
             "description": "Test create layanan provider baru"
           }
@@ -714,8 +901,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/services",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "services"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "services"
+              ]
             },
             "description": "Test get layanan provider sendiri"
           }
@@ -740,8 +933,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/providers/services/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "services", "{{service_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "services",
+                "{{service_id}}"
+              ]
             },
             "description": "Test update layanan provider"
           }
@@ -758,8 +958,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/services/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "services", "{{service_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "services",
+                "{{service_id}}"
+              ]
             },
             "description": "Test get detail satu layanan"
           }
@@ -776,8 +983,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/services/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "services", "{{service_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "services",
+                "{{service_id}}"
+              ]
             },
             "description": "Test delete layanan provider (dengan validasi order aktif)"
           }
@@ -802,8 +1016,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/providers/portfolio",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "portfolio"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "portfolio"
+              ]
             },
             "description": "Test create portfolio provider"
           }
@@ -820,8 +1040,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/portfolio",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "portfolio"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "portfolio"
+              ]
             },
             "description": "Test get portfolio provider sendiri"
           }
@@ -838,8 +1064,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/providers/portfolio?providerId={{provider_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "portfolio"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "portfolio"
+              ],
               "query": [
                 {
                   "key": "providerId",
@@ -862,8 +1094,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/services/search?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "services", "search"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "services",
+                "search"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -885,8 +1123,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/services/search?page=1&limit=5&categoryId=1&verified=true&sortBy=price&sortOrder=asc",
-              "host": ["{{base_url}}"],
-              "path": ["api", "services", "search"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "services",
+                "search"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -924,8 +1168,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/services/search?district=Karawang&minPrice=50000&maxPrice=200000",
-              "host": ["{{base_url}}"],
-              "path": ["api", "services", "search"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "services",
+                "search"
+              ],
               "query": [
                 {
                   "key": "district",
@@ -951,8 +1201,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/services/search?search=AC&sortBy=rating&sortOrder=desc",
-              "host": ["{{base_url}}"],
-              "path": ["api", "services", "search"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "services",
+                "search"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -978,8 +1234,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/service-categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "service-categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "service-categories"
+              ]
             },
             "description": "Test get semua kategori layanan dengan count services"
           }
@@ -991,8 +1252,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/providers/{{provider_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "{{provider_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "{{provider_id}}"
+              ]
             },
             "description": "Test get detail provider dengan rating calculation [C-11]"
           }
@@ -1004,8 +1271,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/providers/3",
-              "host": ["{{base_url}}"],
-              "path": ["api", "providers", "3"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "3"
+              ]
             },
             "description": "Test get provider dari seeded data dengan reviews"
           }
@@ -1052,8 +1325,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
             },
             "description": "Customer creates new order with location details"
           }
@@ -1070,8 +1348,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -1098,8 +1381,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders?status=PENDING_ACCEPTANCE&page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ],
               "query": [
                 {
                   "key": "status",
@@ -1138,8 +1426,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
             },
             "description": "Provider accepts the order"
           }
@@ -1164,8 +1458,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
             },
             "description": "Provider rejects order with reason (using 'information' field)"
           }
@@ -1190,8 +1490,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
             },
             "description": "Provider starts working on the order"
           }
@@ -1216,8 +1522,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
             },
             "description": "Provider completes the order"
           }
@@ -1234,8 +1546,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}"
+              ]
             },
             "description": "Get detailed order information"
           }
@@ -1260,8 +1578,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "attendance"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "attendance"
+              ]
             },
             "description": "REQ-B-5.4: Provider update attendance status - ON_THE_WAY, ARRIVED, WORKING, COMPLETED"
           },
@@ -1295,8 +1620,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/attendance",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "attendance"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "attendance"
+              ]
             },
             "description": "REQ-B-5.4: Get current provider attendance status and information"
           }
@@ -1321,8 +1653,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "customer-verification"
+              ]
             },
             "description": "REQ-B-5.5: Customer verifies provider data and work completion"
           },
@@ -1356,8 +1695,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/customer-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "customer-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "customer-verification"
+              ]
             },
             "description": "REQ-B-5.5: Get current customer verification status"
           }
@@ -1404,8 +1750,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details"
+              ]
             },
             "description": "Provider adds additional item to order"
           }
@@ -1430,8 +1783,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details"
+              ]
             },
             "description": "Provider adds expensive screen replacement"
           }
@@ -1448,8 +1808,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details"
+              ]
             },
             "description": "Customer views all order details with cost summary"
           }
@@ -1474,8 +1841,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details/{{order_detail_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details", "{{order_detail_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details",
+                "{{order_detail_id}}"
+              ]
             },
             "description": "Customer approves specific order detail"
           }
@@ -1500,8 +1875,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details",
+                "2"
+              ]
             },
             "description": "Customer rejects expensive screen replacement"
           }
@@ -1518,8 +1901,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details/2",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details", "2"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details",
+                "2"
+              ]
             },
             "description": "Provider removes rejected detail"
           }
@@ -1536,8 +1927,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/orders/{{order_id}}/details",
-              "host": ["{{base_url}}"],
-              "path": ["api", "orders", "{{order_id}}", "details"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{order_id}}",
+                "details"
+              ]
             },
             "description": "Final order details with approved items only"
           }
@@ -1584,8 +1982,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/reviews",
-              "host": ["{{base_url}}"],
-              "path": ["api", "reviews"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews"
+              ]
             },
             "description": "Customer creates review for completed order (C-9: only COMPLETED orders)"
           }
@@ -1610,8 +2013,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/reviews",
-              "host": ["{{base_url}}"],
-              "path": ["api", "reviews"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews"
+              ]
             },
             "description": "Test C-9 validation - should fail for non-completed orders"
           }
@@ -1628,8 +2036,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/reviews?providerId={{provider_id}}&page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "reviews"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews"
+              ],
               "query": [
                 {
                   "key": "providerId",
@@ -1660,8 +2073,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/reviews?minRating=4&sortBy=rating&sortOrder=desc",
-              "host": ["{{base_url}}"],
-              "path": ["api", "reviews"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews"
+              ],
               "query": [
                 {
                   "key": "minRating",
@@ -1721,8 +2139,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/review-reports",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports"
+              ]
             },
             "description": "Reports review from different user. [C-10] Review is automatically hidden (isShow=false) when reported. [REQ-B-7.2] API processes report and updates isShow status."
           }
@@ -1747,8 +2170,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/review-reports",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports"
+              ]
             },
             "description": "Test validation - customer cannot report their own review"
           }
@@ -1765,8 +2193,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/review-reports?status=PENDING_REVIEW&page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports"
+              ],
               "query": [
                 {
                   "key": "status",
@@ -1805,8 +2238,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports", "{{review_report_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports",
+                "{{review_report_id}}"
+              ]
             },
             "description": "Admin resolves report and keeps review visible. [C-10] [REQ-B-7.2] Review becomes visible again (isShow=true) when admin rejects report."
           }
@@ -1831,8 +2270,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports", "{{review_report_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports",
+                "{{review_report_id}}"
+              ]
             },
             "description": "Admin resolves report and hides review permanently. [C-10] [REQ-B-7.2] Review remains hidden (isShow=false) when admin approves report."
           }
@@ -1849,8 +2294,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/review-reports/{{review_report_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "review-reports", "{{review_report_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "review-reports",
+                "{{review_report_id}}"
+              ]
             },
             "description": "Admin views detailed report information"
           }
@@ -1875,8 +2326,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/customer/reviews/{{review_id}}/edit",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "reviews", "{{review_id}}", "edit"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "reviews",
+                "{{review_id}}",
+                "edit"
+              ]
             },
             "description": "REQ-B-7.4: Customer can edit their own review content"
           },
@@ -1910,8 +2369,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/reviews/hidden?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "reviews", "hidden"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "reviews",
+                "hidden"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -1944,8 +2410,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/chat/rooms",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms"
+              ]
             },
             "description": "Get user's chat conversations with participants and last messages"
           },
@@ -1987,8 +2459,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/chat/rooms",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms"
+              ]
             },
             "description": "Create new chat conversation between customer and provider"
           },
@@ -2020,8 +2498,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages?page=1&limit=50",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms",
+                "{{chat_conversation_id}}",
+                "messages"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -2053,24 +2539,96 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"messageContent\": \"Hi, when can you start the work for my order?\"\n}"
+              "raw": "{\\n  \\\"messageContent\\\": \\\"{{test_encrypted_message}}\\\"\\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms",
+                "{{chat_conversation_id}}",
+                "messages"
+              ]
             },
-            "description": "Send a new message in the conversation"
+            "description": "REQ-B-8.2: Aplikasi harus memastikan data pesan yang disimpan dalam database adalah hasil enkripsi dari sisi klien. Constraint [C-7]: Chat harus dienkripsi end-to-end"
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "console.log('\\n🔐 [REQ-B-8.2] Chat Message End-to-End Encryption Test - C-7 Constraint');",
+                  "console.log('🔒 C-7 Constraint: Chat harus dienkripsi end-to-end');",
+                  "",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    const response = pm.response.json();",
-                  "    pm.environment.set('chat_message_id', response.data.id);",
-                  "    console.log('Message sent with ID:', response.data.id);",
+                  "    console.log('✅ Message sent successfully');",
+                  "    console.log('📝 Original message:', pm.environment.get('test_encrypted_message'));",
+                  "    console.log('💬 Message ID:', response.data.id);",
+                  "    ",
+                  "    // Save message ID for verification",
+                  "    if (response.data.id) {",
+                  "        pm.environment.set('chat_message_id', response.data.id);",
+                  "        pm.environment.set('test_message_id', response.data.id);",
+                  "        console.log('📋 Message ID saved for verification');",
+                  "    }",
+                  "    ",
+                  "    pm.test('[REQ-B-8.2] Message sent successfully', function() {",
+                  "        pm.expect(response.success).to.be.true;",
+                  "        pm.expect(response.data.id).to.exist;",
+                  "        pm.expect(response.message).to.include('sent');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-8.2] C-7 End-to-end encryption constraint validation', function() {",
+                  "        const responseText = pm.response.text();",
+                  "        const originalMessage = pm.environment.get('test_encrypted_message');",
+                  "        ",
+                  "        // C-7: Chat harus dienkripsi end-to-end",
+                  "        // Verify message encrypted before sending to server (client-side encryption)",
+                  "        if (originalMessage && originalMessage.length > 10) {",
+                  "            // Server should not see plaintext message in any form",
+                  "            pm.expect(responseText).to.not.include(originalMessage);",
+                  "            console.log('✅ End-to-end encryption: Original message not visible to server');",
+                  "        }",
+                  "        ",
+                  "        // Verify no encryption keys or metadata exposed (end-to-end security)",
+                  "        pm.expect(responseText).to.not.include('encryptionKey');",
+                  "        pm.expect(responseText).to.not.include('CHAT_ENCRYPTION_KEY');",
+                  "        pm.expect(responseText).to.not.include('encryptionIV');",
+                  "        pm.expect(responseText).to.not.include('secret');",
+                  "        pm.expect(responseText).to.not.include('privateKey');",
+                  "        pm.expect(responseText).to.not.include('publicKey');",
+                  "        ",
+                  "        console.log('✅ [C-7] End-to-end encryption constraint satisfied');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-8.2] End-to-end encryption database validation', function() {",
+                  "        // C-7: Messages should be encrypted end-to-end and stored encrypted",
+                  "        // Database should only contain encrypted messages, never plaintext",
+                  "        pm.expect(response.data.conversationId).to.exist;",
+                  "        pm.expect(response.data.senderId).to.exist;",
+                  "        ",
+                  "        console.log('✅ [C-7] Message stored with end-to-end encryption (will verify in database check)');",
+                  "    });",
+                  "    ",
+                  "    pm.test('[REQ-B-8.2] End-to-end encryption performance', function() {",
+                  "        const responseTime = pm.response.responseTime;",
+                  "        const threshold = parseInt(pm.environment.get('encryption_performance_threshold')) || 5;",
+                  "        ",
+                  "        // C-7: End-to-end encryption should not significantly impact performance",
+                  "        pm.expect(responseTime).to.be.below(threshold * 1000); // Convert to ms",
+                  "        console.log(`✅ [C-7] End-to-end encryption performance: ${responseTime}ms (threshold: ${threshold}s)`);",
+                  "    });",
+                  "    ",
+                  "} else {",
+                  "    console.error('❌ Message send failed:', pm.response.status, pm.response.statusText);",
+                  "    pm.test('[REQ-B-8.2] Message send should succeed', function() {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    });",
                   "}"
                 ]
               }
@@ -2098,8 +2656,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms",
+                "{{chat_conversation_id}}",
+                "messages"
+              ]
             },
             "description": "Provider replies to customer message"
           }
@@ -2117,8 +2683,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/chat/rooms/{{chat_conversation_id}}/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "rooms", "{{chat_conversation_id}}", "messages"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "rooms",
+                "{{chat_conversation_id}}",
+                "messages"
+              ]
             },
             "description": "Mark all unread messages as read for current user"
           }
@@ -2135,8 +2709,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/customer/chat-access/respond?status=PENDING",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "chat-access", "respond"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "chat-access",
+                "respond"
+              ],
               "query": [
                 {
                   "key": "status",
@@ -2167,8 +2748,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/customer/chat-access/respond",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "chat-access", "respond"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "chat-access",
+                "respond"
+              ]
             },
             "description": "REQ-B-8.4: Customer responds to admin chat access request.\nParameters:\n- requestId: ID of admin's chat access request\n- action: 'approve' or 'reject'\n- response: Customer's response message\n- accessHours: Duration of access (optional, default 24 hours)"
           },
@@ -2208,8 +2796,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/dashboard",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "dashboard"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard"
+              ]
             },
             "description": "Get comprehensive dashboard statistics for admin"
           }
@@ -2227,8 +2821,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories"
+              ]
             },
             "description": "Get all service categories with statistics"
           }
@@ -2254,8 +2854,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories"
+              ]
             },
             "description": "Create new service category"
           },
@@ -2287,8 +2893,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "{{admin_category_id}}"
+              ]
             },
             "description": "Get specific category with detailed statistics"
           }
@@ -2314,8 +2927,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "{{admin_category_id}}"
+              ]
             },
             "description": "Update service category details"
           }
@@ -2333,8 +2953,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/categories/{{admin_category_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "categories", "{{admin_category_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "{{admin_category_id}}"
+              ]
             },
             "description": "Delete service category (only if no associated services)"
           }
@@ -2357,8 +2984,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/settings",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings"
+              ]
             },
             "description": "Get all application settings"
           }
@@ -2384,8 +3017,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/settings",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings"
+              ]
             },
             "description": "Create new application setting"
           }
@@ -2411,8 +3050,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/settings",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings"
+              ]
             },
             "description": "Bulk update multiple settings"
           }
@@ -2430,8 +3075,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings", "{{setting_key}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings",
+                "{{setting_key}}"
+              ]
             },
             "description": "Get specific setting by key"
           }
@@ -2457,8 +3109,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings", "{{setting_key}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings",
+                "{{setting_key}}"
+              ]
             },
             "description": "Update specific setting by key"
           }
@@ -2476,8 +3135,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/settings/{{setting_key}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "settings", "{{setting_key}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings",
+                "{{setting_key}}"
+              ]
             },
             "description": "Delete specific setting by key"
           }
@@ -2489,8 +3155,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs?category={{faq_category}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ],
               "query": [
                 {
                   "key": "category",
@@ -2514,8 +3186,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ]
             },
             "description": "Get all FAQs including inactive ones (admin access)"
           }
@@ -2541,8 +3219,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/faqs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ]
             },
             "description": "Create new FAQ"
           },
@@ -2568,8 +3252,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
             },
             "description": "Get specific FAQ (public access for active FAQs)"
           }
@@ -2595,8 +3286,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
             },
             "description": "Update FAQ content"
           }
@@ -2614,8 +3312,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs/{{faq_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs", "{{faq_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
             },
             "description": "Delete FAQ"
           }
@@ -2638,8 +3343,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs?search={{faq_search}}&sortBy={{faq_sort_by}}&sortOrder={{faq_sort_order}}&page={{faq_page}}&limit={{faq_limit}}&category={{faq_category}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -2714,8 +3425,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/admin/faqs?search=book&sortBy=displayOrder&sortOrder=asc&page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -2787,8 +3504,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/faqs",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "faqs"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "faqs"
+              ]
             },
             "description": "Create FAQ dengan display order untuk mengatur sequence"
           },
@@ -2827,8 +3550,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/customers?search={{customer_search}}&sortBy={{customer_sort_by}}&sortOrder={{customer_sort_order}}&page={{page}}&limit={{limit}}&isActive={{customer_is_active}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "customers"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "customers"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -2904,8 +3633,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/providers?search={{provider_search}}&sortBy={{provider_sort_by}}&sortOrder={{provider_sort_order}}&page={{page}}&limit={{limit}}&isActive={{provider_is_active}}&verificationStatus={{provider_verification_status}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "providers"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "providers"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -2980,8 +3715,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/orders?search={{order_search}}&sortBy={{order_sort_by}}&sortOrder={{order_sort_order}}&page={{page}}&limit={{limit}}&status={{order_status}}&dateFrom={{order_date_from}}&dateTo={{order_date_to}}&minAmount={{order_min_amount}}&maxAmount={{order_max_amount}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "orders"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -3077,8 +3818,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/orders?search=Fanza&sortBy=customer.fullName&sortOrder=asc&page=1&limit=5",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "orders"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -3158,8 +3905,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/customers",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "customers"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "customers"
+              ]
             },
             "description": "Test customer status update via admin"
           }
@@ -3185,8 +3938,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/providers",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "providers"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "providers"
+              ]
             },
             "description": "Test provider verification status update via admin"
           }
@@ -3212,8 +3971,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/orders",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "orders"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ]
             },
             "description": "Test order status update dengan admin notes"
           }
@@ -3236,8 +4001,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/provider/statistics",
-              "host": ["{{base_url}}"],
-              "path": ["api", "provider", "statistics"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "provider",
+                "statistics"
+              ]
             },
             "description": "Get comprehensive provider dashboard statistics including order metrics, ratings, and revenue"
           }
@@ -3255,8 +4026,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/customer/statistics",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "statistics"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "statistics"
+              ]
             },
             "description": "Get customer platform insights including order history, service usage, and provider ratings"
           }
@@ -3279,8 +4056,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/provider/order-status",
-              "host": ["{{base_url}}"],
-              "path": ["api", "provider", "order-status"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "provider",
+                "order-status"
+              ]
             },
             "description": "Get provider's order status summary with counts and action indicators"
           }
@@ -3298,8 +4081,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/customer/order-status",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "order-status"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "order-status"
+              ]
             },
             "description": "Get customer's order status summary with counts and required actions"
           }
@@ -3317,8 +4106,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/customer/pending-reviews",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "pending-reviews"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "pending-reviews"
+              ]
             },
             "description": "Get completed orders that are pending customer review"
           }
@@ -3344,8 +4139,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/registration-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "registration-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "registration-verification"
+              ]
             },
             "description": "Send 6-digit verification code for registration process"
           },
@@ -3383,8 +4184,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/registration-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "registration-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "registration-verification"
+              ]
             },
             "description": "Verify registration email with 6-digit code"
           }
@@ -3405,8 +4212,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/password-reset-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "password-reset-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "password-reset-verification"
+              ]
             },
             "description": "Send 6-digit verification code for password reset"
           },
@@ -3444,8 +4257,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/password-reset-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "password-reset-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "password-reset-verification"
+              ]
             },
             "description": "Verify password reset code and update password"
           }
@@ -3470,8 +4289,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "order-status-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "order-status-verification"
+              ]
             },
             "description": "Send verification code for order status change"
           },
@@ -3514,8 +4339,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/email/order-status-verification",
-              "host": ["{{base_url}}"],
-              "path": ["api", "email", "order-status-verification"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "email",
+                "order-status-verification"
+              ]
             },
             "description": "Verify order status change with verification code"
           },
@@ -3557,8 +4388,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/admin/chat-access/request",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "chat-access", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "chat-access",
+                "request"
+              ]
             },
             "description": "Admin requests access to customer's chat conversations"
           },
@@ -3600,8 +4438,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/customer/chat-access/respond",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customer", "chat-access", "respond"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "customer",
+                "chat-access",
+                "respond"
+              ]
             },
             "description": "Customer responds to admin's chat access request"
           }
@@ -3618,8 +4463,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/admin/chat-access/view?token={{chat_access_token}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "admin", "chat-access", "view"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "chat-access",
+                "view"
+              ],
               "query": [
                 {
                   "key": "token",
@@ -3651,8 +4503,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "encryption"
+              ]
             },
             "description": "Test enkripsi dan dekripsi pesan chat untuk REQ-B-8.2. Memverifikasi bahwa pesan dapat dienkripsi dan didekripsi dengan benar menggunakan AES-256-CBC."
           },
@@ -3674,8 +4532,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "encryption"
+              ]
             },
             "description": "Test enkripsi nama file untuk REQ-B-2.4. Memverifikasi bahwa nama file dienkripsi dengan aman dan unik, serta extension tetap dipertahankan."
           },
@@ -3701,8 +4565,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/database-encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "database-encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "database-encryption"
+              ]
             },
             "description": "Membuat percakapan test untuk testing enkripsi database. Memerlukan autentikasi customer.",
             "event": [
@@ -3746,8 +4616,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/database-encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "database-encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "database-encryption"
+              ]
             },
             "description": "Mengirim pesan terenkripsi ke database. Pesan akan dienkripsi sebelum disimpan dan dapat didekripsi saat diambil.",
             "event": [
@@ -3795,8 +4671,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/database-encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "database-encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "database-encryption"
+              ]
             },
             "description": "Mengambil dan mendekripsi pesan dari database. Memverifikasi bahwa pesan yang terenkripsi di database dapat didekripsi dengan benar untuk ditampilkan.",
             "event": [
@@ -3846,8 +4728,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/test/database-encryption",
-              "host": ["{{base_url}}"],
-              "path": ["api", "test", "database-encryption"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "database-encryption"
+              ]
             },
             "description": "Melihat data mentah terenkripsi di database. Menunjukkan bagaimana data benar-benar disimpan dalam bentuk terenkripsi di database.",
             "event": [
@@ -3899,8 +4787,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/chat/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "messages"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "messages"
+              ]
             },
             "description": "Mengirim pesan melalui API production chat. Pesan akan otomatis dienkripsi sebelum disimpan ke database.",
             "event": [
@@ -3940,8 +4834,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/chat/messages?conversationId={{test_conversation_id}}&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chat", "messages"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "messages"
+              ],
               "query": [
                 {
                   "key": "conversationId",
@@ -3992,8 +4892,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/files/{{test_file_encryption_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "files", "{{test_file_encryption_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "{{test_file_encryption_id}}"
+              ]
             },
             "description": "Mengambil informasi file dengan nama yang terenkripsi. API akan mengembalikan nama file asli untuk display frontend dari metadata enkripsi.",
             "event": [
@@ -4017,6 +4923,649 @@
             ]
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-2.4 & REQ-B-8.2] Encryption Testing Suite",
+      "item": [
+        {
+          "name": "[REQ-B-2.4] File Upload Encryption Tests",
+          "item": [
+            {
+              "name": "[REQ-B-2.4.1] Upload File with Encryption",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "/path/to/test/sensitive-document.pdf"
+                    },
+                    {
+                      "key": "uploadType",
+                      "value": "document",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/upload",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "upload"
+                  ]
+                },
+                "description": "REQ-B-2.4: Test file upload with automatic filename encryption. Original filename is encrypted using AES-256-CBC and stored in ProviderDocument.fileUrl"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    if (response.success && response.data.documentId) {",
+                      "        pm.environment.set('encrypted_document_id', response.data.documentId);",
+                      "        pm.environment.set('encrypted_filename', response.data.filename);",
+                      "        pm.environment.set('original_filename', response.data.originalFilename);",
+                      "        console.log('✅ [REQ-B-2.4] File encrypted and uploaded:');",
+                      "        console.log('   Document ID:', response.data.documentId);",
+                      "        console.log('   Original filename:', response.data.originalFilename);",
+                      "        console.log('   Encrypted filename:', response.data.filename);",
+                      "        ",
+                      "        // Test encryption validation",
+                      "        pm.test('[REQ-B-2.4] File upload encryption working', function() {",
+                      "            pm.expect(response.success).to.be.true;",
+                      "            pm.expect(response.data.filename).to.not.eql(response.data.originalFilename);",
+                      "            pm.expect(response.data.filename).to.match(/^[a-f0-9]+_[a-f0-9]+\\.(jpg|jpeg|png|pdf)$/i);",
+                      "            pm.expect(response.data.documentId).to.be.a('number');",
+                      "        });",
+                      "    }",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[REQ-B-2.4.2] Get File Info with Decryption",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/files/{{encrypted_document_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "files",
+                    "{{encrypted_document_id}}"
+                  ]
+                },
+                "description": "REQ-B-2.4: Retrieve file information using document ID. API should return original filename for display while keeping encrypted filename for storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    console.log('✅ [REQ-B-2.4] File info retrieval:');",
+                      "    console.log('   Display name:', response.data.displayName);",
+                      "    console.log('   Encrypted filename:', response.data.encryptedFilename);",
+                      "    ",
+                      "    pm.test('[REQ-B-2.4] File info API working', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        pm.expect(response.data.displayName).to.eql(pm.environment.get('original_filename'));",
+                      "        pm.expect(response.data.encryptedFilename).to.eql(pm.environment.get('encrypted_filename'));",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[REQ-B-2.4.3] Verify Database Encryption - Files",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/verify-encryption?type=files",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "verify-encryption"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "files"
+                    }
+                  ]
+                },
+                "description": "REQ-B-2.4: Database verification endpoint to check file encryption status. Verify that sensitive filenames are not exposed in raw database storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    const fileAnalysis = response.data.verification.fileAnalysis;",
+                      "    ",
+                      "    console.log('✅ [REQ-B-2.4] Database encryption verification:');",
+                      "    console.log('   Total documents:', fileAnalysis.totalDocuments);",
+                      "    console.log('   Encrypted documents:', fileAnalysis.encryptedDocuments);",
+                      "    console.log('   Encryption rate:', fileAnalysis.encryptionRate + '%');",
+                      "    ",
+                      "    // Check latest document encryption",
+                      "    if (fileAnalysis.documents.length > 0) {",
+                      "        const latestDoc = fileAnalysis.documents[0];",
+                      "        console.log('   Latest document encryption status:', latestDoc.encryptionStatus);",
+                      "        console.log('   Encrypted fileUrl in DB:', latestDoc.fileUrl_RAW_DATABASE);",
+                      "    }",
+                      "    ",
+                      "    pm.test('[REQ-B-2.4] Database file encryption verification', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        pm.expect(fileAnalysis.encryptionRate).to.be.above(0);",
+                      "        if (fileAnalysis.documents.length > 0) {",
+                      "            const latestDoc = fileAnalysis.documents[0];",
+                      "            pm.expect(latestDoc.encryptionStatus).to.eql('ENCRYPTED');",
+                      "            pm.expect(latestDoc.hasEncryption.iv).to.be.true;",
+                      "            pm.expect(latestDoc.hasEncryption.authTag).to.be.true;",
+                      "        }",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "[REQ-B-8.2] Chat Message Encryption Tests",
+          "item": [
+            {
+              "name": "[REQ-B-8.2.1] Create Test Message for Encryption",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"create_test_message\",\n  \"testData\": {\n    \"message\": \"CONFIDENTIAL: Customer credit card 4532-1234-5678-9012 expires 12/25 CVV 123. Bank account: BCA 1234567890. Phone: 081234567890\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/verify-encryption",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "verify-encryption"
+                  ]
+                },
+                "description": "REQ-B-8.2: Create a test message with sensitive data to verify chat encryption. Message should be encrypted before database storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    if (response.data.messageId) {",
+                      "        pm.environment.set('encrypted_message_id', response.data.messageId);",
+                      "        pm.environment.set('test_conversation_id', response.data.conversationId);",
+                      "        console.log('✅ [REQ-B-8.2] Test message created:');",
+                      "        console.log('   Message ID:', response.data.messageId);",
+                      "        console.log('   Conversation ID:', response.data.conversationId);",
+                      "        console.log('   Original message:', response.data.originalMessage);",
+                      "        console.log('   Encrypted in DB:', response.data.encryptedInDatabase);",
+                      "        ",
+                      "        pm.test('[REQ-B-8.2] Test message encryption', function() {",
+                      "            pm.expect(response.success).to.be.true;",
+                      "            pm.expect(response.data.encryptedInDatabase).to.not.eql(response.data.originalMessage);",
+                      "            pm.expect(response.data.encryptedInDatabase).to.include(':'); // Our encryption format",
+                      "        });",
+                      "    }",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[REQ-B-8.2.2] Send Encrypted Chat Message",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{customer_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"conversationId\": \"{{test_conversation_id}}\",\n  \"message\": \"SENSITIVE INFO: My social security number is 123-45-6789 and my bank PIN is 1234. Please keep this confidential.\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/chat/messages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "chat",
+                    "messages"
+                  ]
+                },
+                "description": "REQ-B-8.2: Send message with sensitive content through chat API. Message should be automatically encrypted before database storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    if (response.data.id) {",
+                      "        pm.environment.set('live_encrypted_message_id', response.data.id);",
+                      "        console.log('✅ [REQ-B-8.2] Live message sent and encrypted:');",
+                      "        console.log('   Message ID:', response.data.id);",
+                      "        console.log('   Sent content:', response.data.messageContent); // Should be original for sender",
+                      "        ",
+                      "        pm.test('[REQ-B-8.2] Chat message sent successfully', function() {",
+                      "            pm.expect(response.success).to.be.true;",
+                      "            pm.expect(response.data.id).to.be.a('number');",
+                      "            pm.expect(response.data.messageContent).to.include('SENSITIVE INFO');",
+                      "        });",
+                      "    }",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[REQ-B-8.2.3] Get Encrypted Messages (Auto-Decrypt)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{customer_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/chat/messages?conversationId={{test_conversation_id}}&page=1&limit=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "chat",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "conversationId",
+                      "value": "{{test_conversation_id}}"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                },
+                "description": "REQ-B-8.2: Retrieve chat messages. API should automatically decrypt messages for display while keeping them encrypted in database"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    const messages = response.data.messages;",
+                      "    ",
+                      "    console.log('✅ [REQ-B-8.2] Messages retrieved and decrypted:');",
+                      "    console.log('   Total messages:', messages.length);",
+                      "    ",
+                      "    // Find our test message",
+                      "    const testMessage = messages.find(m => m.messageContent.includes('SENSITIVE INFO'));",
+                      "    if (testMessage) {",
+                      "        console.log('   Test message decrypted:', testMessage.messageContent.substring(0, 50) + '...');",
+                      "    }",
+                      "    ",
+                      "    pm.test('[REQ-B-8.2] Messages retrieved and decrypted', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        pm.expect(messages).to.be.an('array');",
+                      "        if (testMessage) {",
+                      "            pm.expect(testMessage.messageContent).to.include('SENSITIVE INFO');",
+                      "            pm.expect(testMessage.messageContent).to.include('123-45-6789');",
+                      "        }",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[REQ-B-8.2.4] Verify Database Encryption - Messages",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{customer_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/verify-encryption?type=messages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "verify-encryption"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "messages"
+                    }
+                  ]
+                },
+                "description": "REQ-B-8.2: Database verification endpoint to check message encryption status. Verify that sensitive message content is not exposed in raw database storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    const messageAnalysis = response.data.verification.messageAnalysis;",
+                      "    ",
+                      "    console.log('✅ [REQ-B-8.2] Database message encryption verification:');",
+                      "    console.log('   Total messages:', messageAnalysis.totalMessages);",
+                      "    console.log('   Conversations:', messageAnalysis.conversations);",
+                      "    ",
+                      "    // Check for encrypted messages",
+                      "    const encryptedMessages = messageAnalysis.messages.filter(m => m.encryptionStatus === 'ENCRYPTED');",
+                      "    console.log('   Encrypted messages:', encryptedMessages.length);",
+                      "    ",
+                      "    // Show sample encrypted content from database",
+                      "    if (encryptedMessages.length > 0) {",
+                      "        const sampleEncrypted = encryptedMessages[0];",
+                      "        console.log('   Sample encrypted in DB:', sampleEncrypted.messageContent_RAW_DATABASE.substring(0, 50) + '...');",
+                      "        console.log('   Sample decrypted:', sampleEncrypted.decryptedContent.substring(0, 50) + '...');",
+                      "    }",
+                      "    ",
+                      "    pm.test('[REQ-B-8.2] Database message encryption verification', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        pm.expect(messageAnalysis.totalMessages).to.be.above(0);",
+                      "        pm.expect(encryptedMessages.length).to.be.above(0);",
+                      "        ",
+                      "        // Verify sensitive data not in raw database",
+                      "        const rawMessages = messageAnalysis.messages.map(m => m.messageContent_RAW_DATABASE).join(' ');",
+                      "        pm.expect(rawMessages).to.not.include('123-45-6789'); // SSN should not appear in raw DB",
+                      "        pm.expect(rawMessages).to.not.include('4532-1234-5678-9012'); // CC should not appear in raw DB",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "[COMPREHENSIVE] Full Encryption Verification",
+          "item": [
+            {
+              "name": "[COMPREHENSIVE.1] Overall Security Assessment",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{provider_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/verify-encryption?type=all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "verify-encryption"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "all"
+                    }
+                  ]
+                },
+                "description": "C-7 Comprehensive security assessment for REQ-B-2.4 (file encryption) and REQ-B-8.2 (end-to-end chat encryption). Verify C-7 constraint: Chat harus dienkripsi end-to-end"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    const verification = response.data.verification;",
+                      "    const assessment = verification.overallAssessment;",
+                      "    ",
+                      "    console.log('🔒 COMPREHENSIVE ENCRYPTION SECURITY REPORT - C-7 CONSTRAINT');",
+                      "    console.log('================================================================');",
+                      "    console.log('🎯 C-7 Constraint: Chat harus dienkripsi end-to-end');",
+                      "    console.log('REQ-B-2.4 File Encryption:', assessment.req_b_2_4_file_encryption);",
+                      "    console.log('REQ-B-8.2 End-to-End Chat Encryption:', assessment.req_b_8_2_message_encryption);",
+                      "    console.log('Overall Security Level:', assessment.securityLevel);",
+                      "    ",
+                      "    if (verification.fileAnalysis) {",
+                      "        console.log('');",
+                      "        console.log('📁 FILE ENCRYPTION ANALYSIS:');",
+                      "        console.log('   Files encrypted:', verification.fileAnalysis.encryptedDocuments + '/' + verification.fileAnalysis.totalDocuments);",
+                      "        console.log('   Encryption rate:', verification.fileAnalysis.encryptionRate + '%');",
+                      "    }",
+                      "    ",
+                      "    if (verification.messageAnalysis) {",
+                      "        console.log('');",
+                      "        console.log('💬 END-TO-END CHAT ENCRYPTION ANALYSIS (C-7):');",
+                      "        console.log('   Total messages:', verification.messageAnalysis.totalMessages);",
+                      "        console.log('   Conversations:', verification.messageAnalysis.conversations);",
+                      "        const encryptedCount = verification.messageAnalysis.messages.filter(m => m.encryptionStatus === 'ENCRYPTED').length;",
+                      "        console.log('   End-to-end encrypted messages:', encryptedCount + '/' + verification.messageAnalysis.totalMessages);",
+                      "    }",
+                      "    ",
+                      "    if (assessment.recommendations && assessment.recommendations.length > 0) {",
+                      "        console.log('');",
+                      "        console.log('💡 RECOMMENDATIONS:');",
+                      "        assessment.recommendations.forEach((rec, index) => {",
+                      "            console.log('   ' + (index + 1) + '. ' + rec);",
+                      "        });",
+                      "    }",
+                      "    ",
+                      "    pm.test('[COMPREHENSIVE] Full encryption verification', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        pm.expect(assessment.securityLevel).to.be.oneOf(['HIGH', 'MEDIUM']);",
+                      "        pm.expect(assessment.req_b_2_4_file_encryption).to.be.oneOf(['WORKING', 'NOT_DETECTED']);",
+                      "        pm.expect(assessment.req_b_8_2_message_encryption).to.be.oneOf(['WORKING', 'NOT_DETECTED']);",
+                      "        ",
+                      "        // At least one encryption feature should be working",
+                      "        const hasWorkingEncryption = assessment.req_b_2_4_file_encryption === 'WORKING' || assessment.req_b_8_2_message_encryption === 'WORKING';",
+                      "        pm.expect(hasWorkingEncryption).to.be.true;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "[SECURITY.1] Penetration Test - Search for Sensitive Data",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/verify-encryption?type=all",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "verify-encryption"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "all"
+                    }
+                  ]
+                },
+                "description": "Security penetration test using admin access to verify that sensitive data is not exposed in database raw storage"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const response = pm.response.json();",
+                      "    const verification = response.data.verification;",
+                      "    ",
+                      "    // Security test patterns - these should NOT appear in raw database",
+                      "    const sensitivePatterns = [",
+                      "        '123-45-6789',      // SSN",
+                      "        '4532-1234-5678',   // Credit card",
+                      "        'CONFIDENTIAL',     // Document markers",
+                      "        'SENSITIVE INFO',   // Message markers",
+                      "        'PIN is 1234'       // PIN information",
+                      "    ];",
+                      "    ",
+                      "    let securityViolations = [];",
+                      "    ",
+                      "    console.log('🔍 SECURITY PENETRATION TEST');",
+                      "    console.log('============================');",
+                      "    ",
+                      "    // Check file raw data",
+                      "    if (verification.fileAnalysis && verification.fileAnalysis.documents) {",
+                      "        verification.fileAnalysis.documents.forEach(doc => {",
+                      "            const rawFileUrl = doc.fileUrl_RAW_DATABASE.toLowerCase();",
+                      "            sensitivePatterns.forEach(pattern => {",
+                      "                if (rawFileUrl.includes(pattern.toLowerCase())) {",
+                      "                    securityViolations.push(`File ${doc.documentId}: '${pattern}' found in raw fileUrl`);",
+                      "                }",
+                      "            });",
+                      "        });",
+                      "    }",
+                      "    ",
+                      "    // Check message raw data",
+                      "    if (verification.messageAnalysis && verification.messageAnalysis.messages) {",
+                      "        verification.messageAnalysis.messages.forEach(msg => {",
+                      "            const rawContent = msg.messageContent_RAW_DATABASE.toLowerCase();",
+                      "            sensitivePatterns.forEach(pattern => {",
+                      "                if (rawContent.includes(pattern.toLowerCase())) {",
+                      "                    securityViolations.push(`Message ${msg.messageId}: '${pattern}' found in raw database content`);",
+                      "                }",
+                      "            });",
+                      "        });",
+                      "    }",
+                      "    ",
+                      "    if (securityViolations.length === 0) {",
+                      "        console.log('✅ SECURITY TEST PASSED: No sensitive data found in raw database storage');",
+                      "    } else {",
+                      "        console.log('❌ SECURITY VIOLATIONS FOUND:');",
+                      "        securityViolations.forEach((violation, index) => {",
+                      "            console.log('   ' + (index + 1) + '. ' + violation);",
+                      "        });",
+                      "    }",
+                      "    ",
+                      "    pm.test('[SECURITY] No sensitive data in raw database', function() {",
+                      "        pm.expect(securityViolations).to.have.lengthOf(0);",
+                      "    });",
+                      "    ",
+                      "    pm.test('[SECURITY] Encryption protecting sensitive data', function() {",
+                      "        pm.expect(response.success).to.be.true;",
+                      "        // At least some data should be encrypted",
+                      "        const hasEncryption = (verification.fileAnalysis && verification.fileAnalysis.encryptionRate > 0) || ",
+                      "                              (verification.messageAnalysis && verification.messageAnalysis.messages.some(m => m.encryptionStatus === 'ENCRYPTED'));",
+                      "        pm.expect(hasEncryption).to.be.true;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     }

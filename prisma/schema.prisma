@@ -75,9 +75,6 @@ model User {
   // Email verification relations
   emailVerifications EmailVerification[]
 
-  // File encryption relations
-  uploadedFiles FileEncryption[]
-
   @@map("users")
 }
 
@@ -136,7 +133,10 @@ model ProviderDocument {
   documentName        String       @map("document_name")
   issuingOrganization String?      @map("issuing_organization")
   credentialId        String?      @map("credential_id")
-  fileUrl             String       @map("file_url")
+  fileUrl             String       @map("file_url") // This will store encrypted filename
+  originalFileName    String?      @map("original_file_name") // Store original filename
+  encryptionIV        String?      @map("encryption_iv") // IV for decryption
+  authTag             String?      @map("auth_tag") // Auth tag for verification
   issuedAt            DateTime?    @map("issued_at")
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")
@@ -438,20 +438,4 @@ enum EmailVerificationType {
   ORDER_STATUS_CHANGE @map("order_status_change")
 
   @@map("email_verification_type")
-}
-
-// REQ-B-2.4: File encryption metadata storage
-model FileEncryption {
-  id                Int      @id @default(autoincrement())
-  encryptedFilename String   @unique @map("encrypted_filename")
-  originalFilename  String   @map("original_filename")
-  encryptionIV      String   @map("encryption_iv")
-  authTag           String   @map("auth_tag")
-  fileType          String   @map("file_type") // image, document
-  uploadedBy        Int      @map("uploaded_by")
-  createdAt         DateTime @default(now()) @map("created_at")
-
-  uploader User @relation(fields: [uploadedBy], references: [id])
-
-  @@map("file_encryptions")
 }

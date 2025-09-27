@@ -1,11 +1,10 @@
-// src/app/api/files/[encryptionId]/route.ts
+// src/app/api/files/[documentId]/route.ts
 
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
-import { decryptFilename } from '@/lib/utils-backend';
 
-// REQ-B-2.4: Get file information with decrypted filename for display
+// REQ-B-2.4: Get provider document information with encrypted fileUrl
 export async function GET(request: NextRequest, { params }: { params: { encryptionId: string } }) {
   console.log("\n--- [FILE INFO API] Menerima request untuk informasi file ---");
   
@@ -14,25 +13,25 @@ export async function GET(request: NextRequest, { params }: { params: { encrypti
     if (authResult instanceof Response) return authResult;
     
     const userId = parseInt(authResult.user.userId as string);
-    const encryptionId = parseInt(params.encryptionId);
+    const documentId = parseInt(params.encryptionId); // Keep param name for backward compatibility
     
-    console.log(`[FILE INFO API] User ID: ${userId}, Encryption ID: ${encryptionId}`);
+    console.log(`[FILE INFO API] User ID: ${userId}, Document ID: ${documentId}`);
 
-    // Get file encryption metadata
-    const fileEncryption = await (prisma as any).fileEncryption.findUnique({
-      where: { id: encryptionId },
+    // Get provider document with encrypted fileUrl
+    const providerDocument = await prisma.providerDocument.findUnique({
+      where: { id: documentId },
       include: {
-        uploader: {
+        provider: {
           select: { id: true, fullName: true }
         }
       }
-    });
+    }) as any; // Cast to any temporarily for new fields
 
-    if (!fileEncryption) {
-      return createErrorResponse('File tidak ditemukan', 404);
+    if (!providerDocument) {
+      return createErrorResponse('Dokumen tidak ditemukan', 404);
     }
 
-    // Check if user has access to this file (either uploader or admin)
+    // Check if user has access to this document (either provider owner or admin)
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { role: true }
@@ -42,30 +41,37 @@ export async function GET(request: NextRequest, { params }: { params: { encrypti
       return createErrorResponse('User tidak ditemukan', 404);
     }
 
-    const isAdmin = user.role.roleName === 'Admin';
-    const isOwner = fileEncryption.uploadedBy === userId;
+    const isAdmin = user.role.roleName === 'admin';
+    const isOwner = providerDocument.providerId === userId;
 
     if (!isAdmin && !isOwner) {
-      return createErrorResponse('Anda tidak memiliki akses ke file ini', 403);
+      return createErrorResponse('Anda tidak memiliki akses ke dokumen ini', 403);
     }
 
-    // Return file info with decrypted filename for display
+    // Determine file type from originalFileName or documentName
+    const fileExtension = providerDocument.originalFileName || providerDocument.documentName;
+    const fileType = fileExtension?.toLowerCase().includes('.pdf') || 
+                    fileExtension?.toLowerCase().includes('.doc') ? 'document' : 'image';
+
+    // Return document info with encrypted filename
     const response = {
-      id: fileEncryption.id,
-      encryptedFilename: fileEncryption.encryptedFilename,
-      originalFilename: decryptFilename(fileEncryption.encryptedFilename, fileEncryption.originalFilename),
-      displayName: fileEncryption.originalFilename, // For user display
-      fileType: fileEncryption.fileType,
-      fileUrl: `/uploads/${fileEncryption.fileType === 'image' ? 'images' : 'documents'}/${fileEncryption.encryptedFilename}`,
-      uploadedBy: fileEncryption.uploader,
-      createdAt: fileEncryption.createdAt
+      id: providerDocument.id,
+      encryptedFilename: providerDocument.fileUrl, // This contains encrypted filename
+      originalFilename: providerDocument.originalFileName || providerDocument.documentName,
+      displayName: providerDocument.originalFileName || providerDocument.documentName, // For user display
+      documentName: providerDocument.documentName,
+      documentType: providerDocument.documentType,
+      fileType: fileType,
+      fileUrl: `/uploads/${fileType === 'image' ? 'images' : 'documents'}/${providerDocument.fileUrl}`,
+      uploadedBy: providerDocument.provider,
+      createdAt: providerDocument.createdAt
     };
 
-    console.log(`[FILE INFO API] File info berhasil diambil untuk encryption ID: ${encryptionId}`);
-    return createSuccessResponse(response, 'Informasi file berhasil diambil');
+    console.log(`[FILE INFO API] Document info berhasil diambil untuk document ID: ${documentId}`);
+    return createSuccessResponse(response, 'Informasi dokumen berhasil diambil');
 
   } catch (error) {
-    console.error("❌ [FILE INFO API] Error mengambil informasi file:", error);
+    console.error("❌ [FILE INFO API] Error mengambil informasi dokumen:", error);
     return handleApiError(error);
   }
 }
