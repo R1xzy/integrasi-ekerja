@@ -2,7 +2,7 @@
 'use client'; 
 
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 // @ts-ignore
 import "./globals.css";
 
@@ -16,8 +16,8 @@ import { useRouter } from 'next/navigation';
 import NavbarController from "@/components/NavbarController"; 
 import UniversalFooter from "@/components/Footer"; 
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const interSans = Inter({
+  variable: "--font-inter-sans",
   subsets: ["latin"],
 });
 
@@ -146,7 +146,7 @@ export default function RootLayout({
         <title>E-Kerja Karawang - Platform Jasa Terpercaya</title>
         <meta name="description" content="Platform terpercaya untuk menemukan dan menyediakan berbagai layanan jasa profesional di Karawang, di Indonesia" />
       </head>
-      <body className={geistSans.variable}>
+      <body className={interSans.variable}>
         {/* Cukup panggil satu komponen ini */}
         <NavbarController /> 
         <main className="duration-300">{children}</main>

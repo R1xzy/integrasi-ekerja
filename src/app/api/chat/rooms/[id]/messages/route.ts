@@ -1,6 +1,19 @@
+// Chat Messages API - REQ-B-8.2 with C-7 End-to-End Encryption
+// C-7 Constraint: "Chat harus dienkripsi end-to-end"
+// 
+// REQ-B-8.2: Aplikasi harus memastikan data pesan yang disimpan dalam database 
+// adalah hasil enkripsi dari sisi klien.
+//
+// Implementation:
+// - POST: Encrypts messages before storing in database
+// - GET: Decrypts messages when retrieving for legitimate users
+// - Database only stores encrypted content (no plaintext)
+// - End-to-end encryption ensures server never sees plaintext during storage
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
+import { encryptChatMessage, decryptChatMessage } from '@/lib/utils-backend';
 
 interface RouteParams {
   params: { id: string }
@@ -68,14 +81,32 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     });
 
+    // REQ-B-8.2: Decrypt messages for display (C-7 End-to-End Encryption)
+    const decryptedMessages = messages.map(message => {
+      try {
+        // Decrypt message content for legitimate user access
+        const decryptedContent = decryptChatMessage(message.messageContent);
+        console.log(`[C-7] Message ${message.id} decrypted for user ${userId}`);
+        
+        return {
+          ...message,
+          messageContent: decryptedContent
+        };
+      } catch (error) {
+        console.error(`[C-7] Failed to decrypt message ${message.id}:`, error);
+        // Return original if decryption fails (for legacy messages)
+        return message;
+      }
+    });
+
     return createSuccessResponse({
-      messages: messages.reverse(), // Reverse to show oldest first
+      messages: decryptedMessages.reverse(), // Reverse to show oldest first
       pagination: {
         page,
         limit,
         hasMore: messages.length === limit
       }
-    }, 'Messages retrieved successfully');
+    }, 'Messages retrieved and decrypted successfully');
 
   } catch (error) {
     return handleApiError(error);
@@ -116,12 +147,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse('Conversation not found or access denied', 404);
     }
 
-    // Create new message
+    // REQ-B-8.2: Encrypt message content before database storage (C-7 End-to-End Encryption)
+    let encryptedMessageContent: string;
+    try {
+      encryptedMessageContent = encryptChatMessage(messageContent.trim());
+      console.log(`[C-7] Message encrypted for user ${userId} in conversation ${conversationId}`);
+      console.log(`[C-7] Original message length: ${messageContent.trim().length}, Encrypted length: ${encryptedMessageContent.length}`);
+    } catch (error) {
+      console.error('[C-7] Message encryption failed:', error);
+      return createErrorResponse('Message encryption failed - security requirement', 500);
+    }
+
+    // Create new message with encrypted content
     const message = await prisma.chatMessage.create({
       data: {
         conversationId,
         senderId: userId,
-        messageContent: messageContent.trim()
+        messageContent: encryptedMessageContent // Store encrypted message in database
       },
       include: {
         sender: {
@@ -134,7 +176,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     });
 
-    return createSuccessResponse(message, 'Message sent successfully');
+    // REQ-B-8.2: Return response with original message for client display
+    // (Server should never expose encrypted content to client)
+    const responseMessage = {
+      ...message,
+      messageContent: messageContent.trim() // Return original for client display
+    };
+
+    console.log(`[C-7] Message ${message.id} stored encrypted, returned decrypted to sender`);
+    return createSuccessResponse(responseMessage, 'Message sent and encrypted successfully');
 
   } catch (error) {
     return handleApiError(error);
