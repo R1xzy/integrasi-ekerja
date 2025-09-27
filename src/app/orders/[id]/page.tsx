@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/auth-client';
 import Image from 'next/image';
-
+import Avatar from '@/components/Avatar';
 // --- Tipe Data ---
 interface OrderDetail {
     id: number;
@@ -42,6 +42,7 @@ interface OrderDetail {
         fullName: string;
         profilePictureUrl: string | null;
         phoneNumber: string;
+        email: string;
     };
     // PERBAIKAN 1: Menambahkan kembali quantity dan pricePerUnit
     orderDetails: {
@@ -229,12 +230,11 @@ export default function CustomerOrderDetailPage() {
                     <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-blue-500">
                         <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Provider Telah Tiba di Lokasi</h2>
                         <div className="flex flex-col items-center gap-4">
-                            <Image 
-                                src={order.provider.profilePictureUrl || '/default-avatar.png'} 
+                            <Avatar
+                                src={order.provider.profilePictureUrl}
+                                email={order.provider.email || ''}
                                 alt={order.provider.fullName}
-                                width={100}
-                                height={100}
-                                className="rounded-full object-cover"
+                                size={100} // Ukuran 100px
                             />
                             <p className="text-lg font-semibold">{order.provider.fullName}</p>
                             <p className="text-gray-600 text-center">Pastikan data provider sesuai dengan yang datang ke lokasi Anda sebelum melakukan verifikasi.</p>
@@ -293,13 +293,12 @@ export default function CustomerOrderDetailPage() {
                             <h3 className="text-lg font-bold mb-4 flex items-center"><User className="mr-2"/> Info Penyedia Jasa</h3>
                             <div className="flex items-center gap-4">
                                 <div className="relative h-16 w-16">
-                                    <Image
-                                        src={order.provider.profilePictureUrl || '/default-avatar.png'}
-                                        alt={order.provider.fullName}
-                                        layout="fill"
-                                        objectFit="cover"
-                                        className="rounded-full"
-                                    />
+                                    <Avatar
+                                src={order.provider.profilePictureUrl}
+                                email={order.provider.email || ''}
+                                alt={order.provider.fullName}
+                                size={100} // Ukuran 100px
+                            />
                                 </div>
                                 <div className="space-y-1 text-gray-700">
                                     <p><strong>Nama:</strong> {order.provider.fullName}</p>

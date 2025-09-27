@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Star, Tag, CheckCircle, ShoppingCart, MessageSquare, Calendar, X as XIcon, MapPin } from 'lucide-react';
 import { StartChatButton } from '@/components/chat/StartChatButton';
 import { authenticatedFetch } from '@/lib/auth-client';
+import Avatar from '@/components/Avatar';
+
 
 // --- Tipe Data (Disesuaikan dengan API) ---
 interface Review {
@@ -31,6 +33,7 @@ interface ServiceDetail {
     profilePictureUrl: string | null;
     averageRating: number; // Menggunakan averageRating sesuai API
     totalReviews: number; // Menggunakan totalReviews sesuai API
+    email: string;
   };
   reviews: Review[];
 }
@@ -227,7 +230,13 @@ export default function ServiceDetailPage() {
                           service.reviews.map(review => (
                               <div key={review.id} className="border-b pb-6">
                                   <div className="flex items-start">
-                                      <img src={review.customer.profilePictureUrl || '/default-avatar.png'} alt={review.customer.fullName} className="w-12 h-12 rounded-full mr-4 object-cover"/>
+                                      <Avatar
+                                                        src={service.provider.profilePictureUrl}
+                                                        email={service.provider.email}
+                                                        alt={service.provider.fullName}
+                                                        size={48} // 48px (w-12 h-12)
+                                                        className="mr-4"
+                                                    />
                                       <div>
                                           <p className="font-bold">{review.customer.fullName}</p>
                                           <div className="flex items-center">
@@ -242,13 +251,20 @@ export default function ServiceDetailPage() {
                   </div>
                 </div>
             </div>
-            <div className="lg:col-span-1">
-              <div className="bg-gray-50 p-6 rounded-lg shadow-md sticky top-28">
+            <div className="lg:col-span-1 items-center">
+              <div className="bg-gray-50 p-6 rounded-lg shadow-md sticky top-28 items-center">
                   <div className="text-center border-b pb-4 mb-4">
-                      <img src={service.provider.profilePictureUrl || '/default-avatar.png'} alt={service.provider.fullName} className="w-24 h-24 rounded-full mx-auto mb-3 object-cover"/>
-                      <h3 className="text-xl font-bold">{service.provider.fullName}</h3>
-                      <p className="text-sm text-gray-500">Penyedia Jasa</p>
-                  </div>
+        <Avatar
+            src={service.provider.profilePictureUrl}
+            email={service.provider.email}
+            alt={service.provider.fullName}
+            size={80} 
+           
+            className="mx-auto mb-4" 
+        />
+        <h3 className="text-xl font-bold">{service.provider.fullName}</h3>
+        <p className="text-sm text-gray-500">Penyedia Jasa</p>
+    </div>
                   <div className="text-2xl text-center font-bold text-gray-800 my-4">Rp{new Intl.NumberFormat('id-ID').format(service.price)}</div>
                   <p className="text-xs text-center text-gray-500 mb-6">Harga final dapat bervariasi</p>
                   <div className="space-y-3">

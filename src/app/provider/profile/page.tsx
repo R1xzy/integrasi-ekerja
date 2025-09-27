@@ -419,10 +419,10 @@ export default function ProviderProfilePage() {
                     onChange={(e) => setSelectedDocType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600"
                   >
-                    <option value="OTHER">Lainnya</option>
+                  
                     <option value="KTP">KTP</option>
                     <option value="CERTIFICATE">Sertifikat</option>
-                    <option value="LICENSE">Lisensi</option>
+                    
                   </select>
                 </div>
                 {/* --------------------------------------------- */}

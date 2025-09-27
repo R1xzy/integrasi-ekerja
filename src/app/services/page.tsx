@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
 import { Star, Tag, Search, List, ArrowUpDown } from 'lucide-react';
-
+import Avatar from '@/components/Avatar';
 // Tipe data yang akan kita gunakan
 interface Service {
   id: number;
@@ -20,6 +20,7 @@ interface Service {
     profilePictureUrl: string | null;
     rating: number;
     reviewCount: number;
+    email: string;
   };
 }
 
@@ -173,7 +174,13 @@ export default function ServicesPage() {
                        <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out cursor-pointer h-full flex flex-col">
                         <div className="p-6 flex-grow">
                           <div className="flex items-center mb-4">
-                            <img src={service.provider.profilePictureUrl || '/default-avatar.png'} alt={service.provider.fullName} className="w-12 h-12 rounded-full mr-4 object-cover"/>
+                            <Avatar
+                                                        src={service.provider.profilePictureUrl}
+                                                        email={service.provider.email}
+                                                        alt={service.provider.fullName}
+                                                        size={48} // 48px (w-12 h-12)
+                                                        className="mr-4"
+                                                    />
                             <div>
                               <p className="font-semibold text-gray-800">{service.provider.fullName}</p>
                               <div className="flex items-center text-sm text-yellow-500">

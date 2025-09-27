@@ -1,7 +1,8 @@
+
 import Link from "next/link";
 import { Star, MapPin, Clock, Shield, Award, MessageCircle, Calendar, ChevronRight, Phone, Mail, CheckCircle, Users, Trophy, Loader } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-
+import Avatar from '@/components/Avatar';
 // =================================================================
 // 1. DEFINISI TIPE & DATA FETCHING (Tetap sama)
 // =================================================================
@@ -114,7 +115,13 @@ function ProviderHeader({ provider }: { provider: ProviderData }) {
             </div>
             <div className="p-6 flex flex-col md:flex-row md:items-start gap-6">
                 <div className="relative -mt-24 flex-shrink-0">
-                    <img src={provider.profilePictureUrl || '/default-avatar.png'} alt={provider.fullName} className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"/>
+                    <Avatar
+                        src={provider.profilePictureUrl}
+                        email={provider.email || ''}
+                        alt={provider.fullName}
+                        size={96} // 96px (w-24 h-24)
+                        className="border-4 border-white"
+                    /> 
                     {isVerified && (
                         <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-4 border-white">
                             <Shield className="w-5 h-5 text-white" />
@@ -296,11 +303,12 @@ function ProviderSidebar({ provider }: { provider: ProviderData }) {
 // 3. KOMPONEN UTAMA HALAMAN (Sekarang Jauh Lebih Rapi)
 // =================================================================
 
-export default async function ProviderDetailPage({ params }: { params: { id: string } }) {
+export default async function ProviderDetailPage({ params: { id } }: { params: { id: string } }) {
   let providerData: ProviderData;
   
   try {
-    providerData = await fetchProviderData(params.id);
+    // Langsung gunakan 'id'
+    providerData = await fetchProviderData(id);
   } catch (err: any) {
     return <div className="text-center py-20 text-red-600">Error: {err.message}</div>;
   }

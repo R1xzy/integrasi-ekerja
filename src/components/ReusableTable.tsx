@@ -8,14 +8,12 @@ type Column<T> = {
   accessorKey?: keyof T;
   cell?: (row: T, index: number) => React.ReactNode;
   sortable?: boolean;
-  // BARU: Fungsi untuk mendapatkan nilai yang akan di-sort.
-  // Ini sangat berguna untuk kolom dengan data objek atau data terformat.
   sortAccessor?: (row: T) => string | number;
   filterValues?: string[];
 };
 
 type SortConfig<T> = {
-  key: keyof T | ((row: T) => string | number); // Kunci bisa berupa accessorKey atau fungsi sortAccessor
+  key: keyof T | ((row: T) => string | number);
   direction: "ascending" | "descending";
 } | null;
 
@@ -29,12 +27,12 @@ type ReusableTableProps<T> = {
 };
 
 export default function ReusableTable<T extends object>({
-  data,
+  data = [], // Kita tetap pertahankan default prop ini sebagai praktik yang baik
   columns,
   enableSearch = false,
   searchPlaceholder = "Cari...",
   enablePagination = false,
-  itemsPerPage = 10, // Default items per page
+  itemsPerPage = 10,
 }: ReusableTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,7 +40,6 @@ export default function ReusableTable<T extends object>({
   const [currentPage, setCurrentPage] = useState(1);
 
   const handleSort = (column: Column<T>) => {
-    // Gunakan sortAccessor jika ada, jika tidak, gunakan accessorKey
     const sortKey = column.sortAccessor || column.accessorKey;
     if (!sortKey) return;
 
@@ -51,14 +48,10 @@ export default function ReusableTable<T extends object>({
       direction = "descending";
     }
 
-    // Type guard to ensure sortKey is keyof T or (row: T) => string | number
     if (typeof sortKey === "function") {
       setSortConfig({ key: sortKey, direction });
     } else if (typeof sortKey === "string" || typeof sortKey === "number") {
       setSortConfig({ key: sortKey as keyof T, direction });
-    } else {
-      // Do nothing if sortKey is not assignable
-      return;
     }
   };
 
@@ -75,6 +68,12 @@ export default function ReusableTable<T extends object>({
   };
 
   const filteredData = useMemo(() => {
+    // ✨ SOLUSI UTAMA ADA DI SINI ✨
+    // Penjaga ini akan menangani kasus 'undefined', 'null', atau tipe data lain yang bukan array.
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
     let temp = [...data];
 
     // Filter
@@ -93,7 +92,7 @@ export default function ReusableTable<T extends object>({
       );
     }
 
-    // Sorting - DIPERBARUI untuk menangani sortAccessor
+    // Sorting
     if (sortConfig) {
       temp.sort((a, b) => {
         const aValue = typeof sortConfig.key === 'function' ? sortConfig.key(a) : a[sortConfig.key as keyof T];

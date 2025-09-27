@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
-
+import { encryptChatMessage, decryptChatMessage } from '@/lib/utils-backend';// Pastikan path ini sesuai dengan struktur proyek Anda
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAuth(request, ['customer', 'provider', 'admin']);
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       include: {
         participants: {
           include: {
-            user: { select: { id: true, fullName: true, profilePictureUrl: true } }
+            user: { select: { id: true, fullName: true, profilePictureUrl: true, email: true } }
           }
         },
         messages: {
@@ -52,9 +52,14 @@ export async function GET(request: NextRequest) {
       participants: conversation.participants.map((p: any) => ({
         userId: p.userId,
         fullName: p.user.fullName,
-        profilePictureUrl: p.user.profilePictureUrl
+        profilePictureUrl: p.user.profilePictureUrl,
+        email: p.user.email
       })),
-      lastMessage: conversation.messages[0] || null,
+      lastMessage: conversation.messages[0] ? {
+    messageContent: decryptChatMessage(conversation.messages[0].messageContent),
+    sentAt: conversation.messages[0].sentAt,
+    senderId: conversation.messages[0].senderId,
+} : null,
       unreadCount: conversation._count.messages,
       createdAt: conversation.createdAt
     }));

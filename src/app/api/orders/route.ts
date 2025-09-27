@@ -192,6 +192,7 @@ export async function GET(request: NextRequest) {
             priceUnit: true
           }
         },
+        review: true,
         orderDetails: true,
         payment: {
           select: {

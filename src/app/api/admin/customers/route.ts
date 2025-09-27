@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        profilePictureUrl: true, 
         // Count related data
         _count: {
           select: {

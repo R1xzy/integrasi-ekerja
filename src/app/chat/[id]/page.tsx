@@ -7,6 +7,7 @@ import { getAuthData, AuthUser } from '@/lib/auth-client';
 import { Send, ArrowLeft, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Avatar from '@/components/Avatar';
 
 // Type Definitions
 interface Message {
@@ -19,6 +20,7 @@ interface Participant {
     userId: number;
     fullName: string;
     profilePictureUrl: string | null;
+    email: string;
 }
 interface Conversation {
     id: number;
@@ -175,7 +177,12 @@ const ConversationPage = () => {
     <div className="flex flex-col h-screen bg-gray-50 text-gray-600">
       <header className="p-4 bg-white border-b border-gray-300 flex items-center shadow-sm sticky top-0 z-10">
         <Link href="/chat" className="p-2 rounded-full hover:bg-gray-100 mr-2"><ArrowLeft size={20} /></Link>
-        <Image src={otherParticipant?.profilePictureUrl || '/default-avatar.png'} alt="avatar" width={40} height={40} className="w-10 h-10 rounded-full mr-4"/>
+        <Avatar
+            src={otherParticipant?.profilePictureUrl}
+            email={otherParticipant?.email || ''}
+            alt={otherParticipant?.fullName || 'Avatar'}
+            size={40} // 40px (w-10 h-10)
+        />
         <div>
             <h3 className="font-bold">{otherParticipant?.fullName || 'Pengguna'}</h3>
             <p className="text-sm text-gray-500">{conversation.conversationTitle}</p>

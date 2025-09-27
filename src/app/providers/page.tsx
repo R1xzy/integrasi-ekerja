@@ -5,7 +5,7 @@ import { Search, Filter, Star, MapPin, Clock, ChevronRight, Award, Shield, Loade
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { authenticatedFetch } from '@/lib/auth-client';
 import { useDebounce } from 'use-debounce'; // Pastikan Anda sudah menginstal 'use-debounce'
-
+import Avatar from '@/components/Avatar';
 // =================================================================
 // 1. DEFINISI TIPE DATA
 // =================================================================
@@ -20,6 +20,7 @@ interface ProviderListing {
   id: number;
   name: string;
   avatar: string;
+  email?: string;
   specialties: string[]; // Diambil dari kategori layanan yang ditawarkan
   rating: number; 
   reviewCount: number; 
@@ -48,6 +49,7 @@ interface ServiceData {
     providerBio: string | null;
     rating: number; 
     reviewCount: number; 
+    email: string;
   };
   category: {
     name: string;
@@ -437,11 +439,13 @@ export default function ProvidersPage() {
                   <div className="p-6">
                     <div className="flex items-start space-x-4 mb-4">
                       <div className="relative">
-                        <img
+                          <Avatar
                           src={provider.avatar}
+                          email={provider.email || ''} // Gunakan email jika ada, jika tidak string kosong
                           alt={provider.name}
-                          className="w-16 h-16 rounded-full object-cover"
+                          size={64} // 64px (w-16 h-16)
                         />
+                        
                         {provider.isVerified && (
                           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                             <Shield className="w-3 h-3 text-white" />

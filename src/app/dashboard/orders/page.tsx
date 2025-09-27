@@ -9,17 +9,21 @@ import { authenticatedFetch } from "@/lib/auth-client";
 import { formatCurrency } from "@/lib/utils";
 import { formatDate } from "@/lib/utils_new";
 import Image from "next/image"; // Import Image
+import Avatar from "@/components/Avatar";
 
 // Tipe data disesuaikan dengan respons dari API
 interface Customer {
   id: string;
   fullName: string;
   profilePictureUrl?: string | null; // Disesuaikan dengan skema
+  email?: string; // Tambahkan properti email
 }
 
 interface Provider {
   id: string;
   fullName: string;
+  email?: string; // Tambahkan properti email
+  profilePictureUrl?: string | null; // Disesuaikan dengan skema
 }
 
 interface Service {
@@ -119,12 +123,12 @@ export default function OrdersPage() {
         accessorKey: "customer.fullName",
         cell: (row) => (
             <div className="flex items-center gap-2">
-                <Image 
-                    src={row.customer.profilePictureUrl || '/default-avatar.png'} 
-                    alt={row.customer.fullName}
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full object-cover"
+                <Avatar
+                    src={row.customer.profilePictureUrl || undefined}
+                    email={row.customer.email || ''}
+                    alt={row.customer.fullName || 'Avatar'}
+                    size={32} // 32px (w-8 h-8)
+                    className="flex-shrink-0"
                 />
                 <span>{row.customer.fullName}</span>
             </div>

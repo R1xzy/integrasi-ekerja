@@ -218,13 +218,7 @@ export default function AdminDashboard() {
                   <td className="px-6 py-4 font-medium text-gray-900">
                     <div className="flex items-center gap-3">
                       {/* --- PERBAIKAN PADA SUMBER GAMBAR --- */}
-                      <Image 
-                        src={order.customer.profilePictureUrl || '/default-avatar.png'} 
-                        alt={order.customer.fullName} 
-                        width={32} 
-                        height={32} 
-                        className="rounded-full object-cover" 
-                      />
+                      
                       {order.customer.fullName}
                     </div>
                   </td>
