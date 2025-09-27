@@ -1,6 +1,6 @@
 {
-  "id": "e-kerja-environment-complete-with-encryption-testing",
-  "name": "E-Kerja Development Environment - Complete API Testing with REQ-B-2.4/8.2 Encryption",
+  "id": "e-kerja-environment-c7-end-to-end-encryption",
+  "name": "E-Kerja Development Environment - C-7 End-to-End Chat Encryption",
   "values": [
     {
       "key": "base_url",
@@ -504,7 +504,7 @@
       "key": "encrypted_filename_test",
       "value": "test-image.jpg",
       "enabled": true,
-      "description": "Test filename for REQ-B-2.4 encrypted filename testing"
+      "description": "REQ-B-2.4 [C-7] - Test filename for encrypted filename storage validation (file names must be encrypted and unique)"
     },
     {
       "key": "duplicate_filename_test",
@@ -520,9 +520,9 @@
     },
     {
       "key": "test_encrypted_message",
-      "value": "Data pribadi customer yang harus dilindungi dengan enkripsi AES-256-CBC",
+      "value": "SENSITIVE CHAT: Customer personal info - SSN: 123-45-6789, Account: 987654321 - Testing C-7 end-to-end encryption constraint",
       "enabled": true,
-      "description": "REQ-B-8.2 - Test message for database encryption validation"
+      "description": "REQ-B-8.2 [C-7] - Test message for end-to-end chat encryption validation (C-7: Chat harus dienkripsi end-to-end)"
     },
     {
       "key": "production_test_message",
@@ -571,9 +571,123 @@
       "value": "5",
       "enabled": true,
       "description": "Maximum milliseconds allowed for encryption/decryption operations"
+    },
+    {
+      "key": "encryption_algorithm",
+      "value": "aes-256-cbc",
+      "enabled": true,
+      "description": "Encryption algorithm used for REQ-B-2.4 & REQ-B-8.2 - AES-256-CBC"
+    },
+    {
+      "key": "iv_length",
+      "value": "16",
+      "enabled": true,
+      "description": "Initialization Vector length in bytes for AES-256-CBC encryption"
+    },
+    {
+      "key": "auth_tag_length",
+      "value": "16",
+      "enabled": true,
+      "description": "Authentication tag length for file encryption integrity check"
+    },
+    {
+      "key": "max_file_size_mb",
+      "value": "10",
+      "enabled": true,
+      "description": "Maximum file size in MB for upload testing (REQ-B-2.4)"
+    },
+    {
+      "key": "supported_file_types",
+      "value": "jpg,jpeg,png,pdf,doc,docx,txt",
+      "enabled": true,
+      "description": "Supported file types for encrypted upload testing"
+    },
+    {
+      "key": "decrypt_test_type",
+      "value": "all",
+      "enabled": true,
+      "description": "Verification endpoint filter: files, messages, or all"
+    },
+    {
+      "key": "database_integrity_check",
+      "value": "true",
+      "enabled": true,
+      "description": "Enable database integrity validation for encryption testing"
+    },
+    {
+      "key": "performance_benchmark",
+      "value": "1000",
+      "enabled": true,
+      "description": "Maximum milliseconds for encryption operations benchmark"
+    },
+    {
+      "key": "test_sample_size",
+      "value": "5",
+      "enabled": true,
+      "description": "Number of test records to create for batch encryption validation"
+    },
+    {
+      "key": "encryption_key_rotation",
+      "value": "false",
+      "enabled": true,
+      "description": "Flag for testing encryption key rotation scenarios"
+    },
+    {
+      "key": "security_audit_mode",
+      "value": "production",
+      "enabled": true,
+      "description": "Security audit mode: development or production"
+    },
+    {
+      "key": "compliance_validation",
+      "value": "gdpr",
+      "enabled": true,
+      "description": "Compliance standard for data protection validation: gdpr, hipaa, etc"
+    },
+    {
+      "key": "test_batch_id",
+      "value": "",
+      "enabled": true,
+      "description": "Auto-generated batch ID for grouping related encryption tests"
+    },
+    {
+      "key": "encryption_status",
+      "value": "active",
+      "enabled": true,
+      "description": "System encryption status: active, disabled, maintenance"
+    },
+    {
+      "key": "c7_constraint_validation",
+      "value": "end-to-end",
+      "enabled": true,
+      "description": "C-7 Constraint: Chat harus dienkripsi end-to-end - validation mode"
+    },
+    {
+      "key": "end_to_end_test_message",
+      "value": "Private conversation: Meeting at 3PM regarding confidential project Alpha-7",
+      "enabled": true,
+      "description": "C-7 End-to-end encryption test message - should never appear in plaintext on server"
+    },
+    {
+      "key": "chat_encryption_algorithm",
+      "value": "AES-256-GCM",
+      "enabled": true,
+      "description": "C-7 End-to-end encryption algorithm for chat messages"
+    },
+    {
+      "key": "key_exchange_method",
+      "value": "ECDH",
+      "enabled": true,
+      "description": "C-7 Key exchange method for end-to-end encryption"
+    },
+    {
+      "key": "e2e_encryption_status",
+      "value": "enabled",
+      "enabled": true,
+      "description": "C-7 End-to-end encryption status: enabled, disabled, testing"
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-01-28T12:00:00.000Z",
-  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-2.4/8.2 Encryption Support"
+  "_postman_exported_at": "2025-09-27T12:45:35.497Z",
+  "_postman_exported_using": "Postman/C-7 End-to-End Chat Encryption Testing Suite"
 }

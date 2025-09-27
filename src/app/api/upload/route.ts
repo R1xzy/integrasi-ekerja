@@ -33,11 +33,14 @@ export async function POST(request: NextRequest) {
     const maxSize = fileType === 'image' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
     if (file.size > maxSize) return createErrorResponse(`File too large. Max size: ${maxSize / 1024 / 1024}MB`, 400);
     // REQ-B-2.4: Generate encrypted filename and store metadata
+    console.log(`[UPLOAD API] About to generate encrypted filename for: ${file.name}`);
     const encryptedFileInfo = encryptFilename(file.name, authResult.user.userId as string);
     const secureFilename = encryptedFileInfo.encryptedFilename;
     
     console.log(`[UPLOAD API] Original filename: ${file.name}`);
     console.log(`[UPLOAD API] Encrypted filename: ${secureFilename}`);
+    console.log(`[UPLOAD API] Encryption IV: ${encryptedFileInfo.encryptionIV}`);
+    console.log(`[UPLOAD API] Auth Tag: ${encryptedFileInfo.authTag}`);
     
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', fileType === 'image' ? 'images' : 'documents');
     if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
@@ -48,19 +51,27 @@ export async function POST(request: NextRequest) {
     
     const fileUrl = `/uploads/${fileType === 'image' ? 'images' : 'documents'}/${secureFilename}`;
     
-    // Store file encryption metadata in database
-    const fileEncryption = await (prisma as any).fileEncryption.create({
-      data: {
-        encryptedFilename: secureFilename,
-        originalFilename: file.name,
-        encryptionIV: encryptedFileInfo.encryptionIV,
-        authTag: encryptedFileInfo.authTag,
-        fileType: fileType,
-        uploadedBy: parseInt(authResult.user.userId as string)
-      }
-    });
-    
-    console.log(`[UPLOAD API] File encryption metadata saved with ID: ${fileEncryption.id}`);
+    // REQ-B-2.4: Store encrypted file info in ProviderDocument for document uploads
+    let providerDocumentId = null;
+    if (fileType === 'document') {
+      const providerId = parseInt(authResult.user.userId as string);
+      
+      // Create ProviderDocument with encrypted filename
+      const providerDocument = await prisma.providerDocument.create({
+        data: {
+          providerId: providerId,
+          documentType: 'CERTIFICATE', // Default type, can be updated later
+          documentName: file.name.split('.')[0], // Use original name without extension for display
+          fileUrl: secureFilename, // Store encrypted filename
+          originalFileName: file.name, // Store original filename
+          encryptionIV: encryptedFileInfo.encryptionIV,
+          authTag: encryptedFileInfo.authTag
+        } as any // Temporary type assertion to fix Prisma type issue
+      });
+      
+      providerDocumentId = providerDocument.id;
+      console.log(`[UPLOAD API] ProviderDocument created with ID: ${providerDocument.id}`);
+    }
     
     // --- [BLOK DEBUGGING UTAMA] ---
     if (uploadType === 'profile_picture') {
@@ -94,11 +105,18 @@ export async function POST(request: NextRequest) {
       fileUrl, 
       filename: secureFilename,
       originalFilename: file.name,
-      encryptionId: fileEncryption.id
+      documentId: providerDocumentId // Return document ID instead of encryption ID
     }, 'File uploaded and encrypted successfully');
     
-  } catch (error) {
-    console.error("❌ [UPLOAD API] Terjadi error di blok utama:", error);
+  } catch (error: any) {
+    console.error("❌ [UPLOAD API] Terjadi error di blok utama:");
+    console.error("Error message:", error?.message || 'Unknown error');
+    console.error("Error stack:", error?.stack || 'No stack trace');
+    
+    if (error?.code) {
+      console.error("Error code:", error.code);
+    }
+    
     return handleApiError(error);
   }
 }
