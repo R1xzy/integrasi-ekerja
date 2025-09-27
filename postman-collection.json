@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "E-Kerja Backend API Testing - Complete with New Features REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4",
-    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja:\n- REQ-B-1 to REQ-B-12: Core platform functionality\n- REQ-B-13: Statistics APIs for dashboard insights\n- REQ-B-14: Order status tracking and management\n- REQ-B-15: Email verification system with 2-way verification\n- NEW FEATURES:\n  • REQ-B-2.4: Encrypted filename storage for file uploads\n  • REQ-B-2.5: Unique filename generation and validation\n  • REQ-B-5.4: Provider attendance status tracking at location\n  • REQ-B-5.5: Customer verification of provider data\n  • REQ-B-7.2: Auto-hide reviews when reported (C-10 compliance)\n  • REQ-B-7.4: Customer edit review functionality\n  • REQ-B-7.5: Admin access to hidden reviews\n  • REQ-B-8.4: Customer-generated admin chat access\n  • REQ-B-15.3: Email verification for order status changes\n\nFeatures:\n✅ Bearer Token Authentication\n✅ Encrypted File Upload with Unique Names\n✅ Provider Location Attendance Tracking\n✅ Customer Verification System\n✅ Review Editing Capabilities\n✅ Admin Chat Access Management\n✅ Email Verification (Registration, Password Reset, Order Status)\n✅ Provider & Customer Statistics\n✅ Advanced Order Status Tracking\n✅ Complete data table functionality\n✅ Auto-extraction of verification codes and tokens",
+    "name": "E-Kerja Backend API Testing - Complete with Encryption REQ-B-2.4/8.2",
+    "description": "Koleksi testing lengkap untuk semua requirement backend API E-Kerja plus ENKRIPSI:\n- REQ-B-1 to REQ-B-15: Core platform functionality\n- NEW ENCRYPTION FEATURES:\n  • REQ-B-2.4: File Upload dengan Enkripsi Nama File (AES-256-CBC)\n  • REQ-B-8.2: End-to-End Chat Message Encryption dalam Database\n\n🔒 FITUR ENKRIPSI:\n✅ AES-256-CBC encryption untuk nama file dengan unique IV\n✅ Database storage metadata enkripsi (FileEncryption model)\n✅ Enkripsi pesan chat sebelum disimpan ke database\n✅ Auto-dekripsi pesan saat diambil untuk display\n✅ Security testing utilities untuk validasi keamanan\n✅ Performance testing (target < 5ms per operasi)\n✅ Raw database view untuk security audit\n\n🧪 TESTING FLOW ENKRIPSI:\n1. Test Basic Encryption (REQ-B-2.4 & 8.2)\n2. Test Database Integration (encrypt on save, decrypt on retrieve)\n3. Test Production Chat API dengan enkripsi otomatis\n4. Test File Info API dengan nama terenkripsi\n5. Security Validation (raw database tidak readable)\n\n⚙️ SETUP REQUIREMENTS:\n- Environment variables: ENCRYPTION_KEY, CHAT_ENCRYPTION_KEY\n- Database migration untuk FileEncryption model\n- Bearer token authentication\n- Postman environment dengan encryption test data\n\n📋 LEGACY FEATURES:\n✅ Complete Authentication & User Management\n✅ Service & Portfolio dengan File Upload\n✅ Order Management & Payment Processing\n✅ Review System dengan Edit capability\n✅ Admin Chat Access dengan Customer Approval\n✅ Email Verification System (Registration, Password Reset, Order Status)\n✅ Advanced Data Table dengan Sorting/Filtering\n✅ Provider Attendance & Customer Verification\n✅ Statistics & Analytics APIs",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -3629,6 +3629,394 @@
             },
             "description": "Admin views customer's chat conversations using approved access token"
           }
+        }
+      ]
+    },
+    {
+      "name": "[REQ-B-2.4 & 8.2] API Enkripsi Testing",
+      "item": [
+        {
+          "name": "[REQ-B-8.2] Test Chat Encryption - Basic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testType\": \"chat\",\n  \"data\": {\n    \"message\": \"{{test_chat_message}}\",\n    \"userId\": \"{{customer_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "encryption"]
+            },
+            "description": "Test enkripsi dan dekripsi pesan chat untuk REQ-B-8.2. Memverifikasi bahwa pesan dapat dienkripsi dan didekripsi dengan benar menggunakan AES-256-CBC."
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-2.4] Test Filename Encryption - Basic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testType\": \"filename\",\n  \"data\": {\n    \"filename\": \"{{test_filename}}\",\n    \"userId\": \"{{provider_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "encryption"]
+            },
+            "description": "Test enkripsi nama file untuk REQ-B-2.4. Memverifikasi bahwa nama file dienkripsi dengan aman dan unik, serta extension tetap dipertahankan."
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Test Chat Database Encryption - Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"create_conversation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/database-encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "database-encryption"]
+            },
+            "description": "Membuat percakapan test untuk testing enkripsi database. Memerlukan autentikasi customer.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Extract conversation ID untuk testing selanjutnya",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    if (response.data && response.data.conversationId) {",
+                    "        pm.environment.set('test_conversation_id', response.data.conversationId);",
+                    "        console.log('✅ Test Conversation ID extracted:', response.data.conversationId);",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Test Chat Database Encryption - Send Encrypted Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"send_message\",\n  \"conversationId\": {{test_conversation_id}},\n  \"message\": \"{{test_encrypted_message}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/database-encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "database-encryption"]
+            },
+            "description": "Mengirim pesan terenkripsi ke database. Pesan akan dienkripsi sebelum disimpan dan dapat didekripsi saat diambil.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Verify message was encrypted and stored",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ Message encrypted and stored successfully');",
+                    "    console.log('Original Message:', response.data.originalMessage);",
+                    "    console.log('Encrypted in DB:', response.data.encryptedInDatabase.substring(0, 50) + '...');",
+                    "    ",
+                    "    // Store message ID for further testing",
+                    "    if (response.data.messageId) {",
+                    "        pm.environment.set('test_message_id', response.data.messageId);",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Test Chat Database Encryption - Get Decrypted Messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"get_messages\",\n  \"conversationId\": {{test_conversation_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/database-encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "database-encryption"]
+            },
+            "description": "Mengambil dan mendekripsi pesan dari database. Memverifikasi bahwa pesan yang terenkripsi di database dapat didekripsi dengan benar untuk ditampilkan.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Verify messages were decrypted correctly",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ Messages retrieved and decrypted successfully');",
+                    "    console.log('Total messages:', response.data.totalMessages);",
+                    "    ",
+                    "    if (response.data.messages && response.data.messages.length > 0) {",
+                    "        response.data.messages.forEach((msg, index) => {",
+                    "            console.log(`Message ${index + 1}:`);",
+                    "            console.log('  Decrypted:', msg.decryptedContent);",
+                    "            console.log('  Raw DB:', msg.rawEncrypted.substring(0, 50) + '...');",
+                    "        });",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Test Chat Database Encryption - View Raw Database Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"raw_database\",\n  \"conversationId\": {{test_conversation_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/test/database-encryption",
+              "host": ["{{base_url}}"],
+              "path": ["api", "test", "database-encryption"]
+            },
+            "description": "Melihat data mentah terenkripsi di database. Menunjukkan bagaimana data benar-benar disimpan dalam bentuk terenkripsi di database.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Show raw encrypted data in database",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ Raw database data retrieved');",
+                    "    console.log('This is what attackers would see in database:');",
+                    "    ",
+                    "    if (response.data.rawDatabaseData && response.data.rawDatabaseData.length > 0) {",
+                    "        response.data.rawDatabaseData.forEach((msg, index) => {",
+                    "            console.log(`Raw Message ${index + 1}:`);",
+                    "            console.log('  ID:', msg.id);",
+                    "            console.log('  Encrypted Content:', msg.messageContent_RAW.substring(0, 60) + '...');",
+                    "            console.log('  Is Encrypted:', msg.isEncrypted);",
+                    "            console.log('  Content Length:', msg.contentLength);",
+                    "        });",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Send Encrypted Chat Message - Production API",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": {{test_conversation_id}},\n  \"message\": \"{{production_test_message}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "messages"]
+            },
+            "description": "Mengirim pesan melalui API production chat. Pesan akan otomatis dienkripsi sebelum disimpan ke database.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Extract message ID and verify encryption",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ Production chat message sent successfully');",
+                    "    console.log('Message ID:', response.data.id);",
+                    "    console.log('Message Content (displayed):', response.data.messageContent);",
+                    "    ",
+                    "    // Store for further testing",
+                    "    if (response.data.id) {",
+                    "        pm.environment.set('production_message_id', response.data.id);",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-8.2] Get Encrypted Chat Messages - Production API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/messages?conversationId={{test_conversation_id}}&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "messages"],
+              "query": [
+                {
+                  "key": "conversationId",
+                  "value": "{{test_conversation_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Mengambil pesan chat melalui API production. Pesan akan otomatis didekripsi dari database untuk ditampilkan.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Verify messages are decrypted for display",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ Production chat messages retrieved successfully');",
+                    "    console.log('Total messages:', response.data.pagination.total);",
+                    "    ",
+                    "    if (response.data.messages && response.data.messages.length > 0) {",
+                    "        console.log('Recent messages (decrypted for display):');",
+                    "        response.data.messages.slice(-3).forEach((msg, index) => {",
+                    "            console.log(`  ${index + 1}. ${msg.sender.fullName}: ${msg.messageContent}`);",
+                    "        });",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
+        },
+        {
+          "name": "[REQ-B-2.4] Get File Info - Test Encrypted Filename",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{provider_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/files/{{test_file_encryption_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "files", "{{test_file_encryption_id}}"]
+            },
+            "description": "Mengambil informasi file dengan nama yang terenkripsi. API akan mengembalikan nama file asli untuk display frontend dari metadata enkripsi.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "// Verify file info with decrypted filename",
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    console.log('✅ File info retrieved successfully');",
+                    "    console.log('Encrypted filename:', response.data.encryptedFilename);",
+                    "    console.log('Display name (original):', response.data.displayName);",
+                    "    console.log('File type:', response.data.fileType);",
+                    "    console.log('File URL:', response.data.fileUrl);",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": []
         }
       ]
     }

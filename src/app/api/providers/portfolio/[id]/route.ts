@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { createAuthMiddleware } from '@/lib/jwt';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Validate Bearer token - provider or customer can view portfolio
     const authHeader = request.headers.get('authorization');
@@ -14,8 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const portfolioId = parseInt(resolvedParams.id);
+    const portfolioId = parseInt(params.id);
 
     if (isNaN(portfolioId)) {
       return createErrorResponse('Invalid portfolio ID', 400);
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Validate Bearer token - provider only
     const authHeader = request.headers.get('authorization');
@@ -66,8 +65,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const portfolioId = parseInt(resolvedParams.id);
+    const portfolioId = parseInt(params.id);
     const providerId = parseInt(authResult.user!.userId);
 
     if (isNaN(portfolioId)) {
@@ -138,7 +136,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Validate Bearer token - provider only
     const authHeader = request.headers.get('authorization');
@@ -149,8 +147,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const portfolioId = parseInt(resolvedParams.id);
+    const portfolioId = parseInt(params.id);
     const providerId = parseInt(authResult.user!.userId);
 
     if (isNaN(portfolioId)) {

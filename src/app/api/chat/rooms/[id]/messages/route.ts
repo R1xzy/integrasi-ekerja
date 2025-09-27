@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteParams {
+  params: { id: string }
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const resolvedParams = await params;
     // Validate Bearer token - authenticated users only
     const authResult = await requireAuth(request, ['customer', 'provider']);
     const userId = parseInt((authResult as { user: any }).user.userId);
-    const conversationId = parseInt(resolvedParams.id);
+    const conversationId = parseInt(params.id);
 
     // Check if conversation exists and user is a participant
     const conversation = await prisma.chatConversation.findFirst({
@@ -82,16 +82,12 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const resolvedParams = await params;
     // Validate Bearer token - authenticated users only
     const authResult = await requireAuth(request, ['customer', 'provider']);
     const userId = parseInt((authResult as { user: any }).user.userId);
-    const conversationId = parseInt(resolvedParams.id);
+    const conversationId = parseInt(params.id);
     const body = await request.json();
     const { messageContent } = body;
 
@@ -146,16 +142,12 @@ export async function POST(
 }
 
 // Mark messages as read
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const resolvedParams = await params;
     // Validate Bearer token - authenticated users only
     const authResult = await requireAuth(request, ['customer', 'provider']);
     const userId = parseInt((authResult as { user: any }).user.userId);
-    const conversationId = parseInt(resolvedParams.id);
+    const conversationId = parseInt(params.id);
 
     // Check if conversation exists and user is a participant
     const conversation = await prisma.chatConversation.findFirst({

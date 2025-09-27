@@ -3,7 +3,11 @@ import { createAuthMiddleware } from '@/lib/jwt';
 import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+interface RouteParams {
+  params: { id: string }
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
@@ -14,8 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const { id } = await params;
-    const categoryId = parseInt(id);
+    const categoryId = parseInt(params.id);
 
     // Get service category with statistics
     const category = await prisma.serviceCategory.findUnique({
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
@@ -66,8 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const { id } = await params;
-    const categoryId = parseInt(id);
+    const categoryId = parseInt(params.id);
     const body = await request.json();
     const { name, description, iconUrl } = body;
 
@@ -118,7 +120,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     // Validate Bearer token - admin only
     const authHeader = request.headers.get('authorization');
@@ -129,8 +131,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const { id } = await params;
-    const categoryId = parseInt(id);
+    const categoryId = parseInt(params.id);
 
     // Check if category exists
     const existingCategory = await prisma.serviceCategory.findUnique({

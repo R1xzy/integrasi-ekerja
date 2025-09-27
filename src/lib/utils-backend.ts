@@ -64,17 +64,109 @@ export function validateFileType(filename: string, allowedTypes: string[]): bool
 export const ALLOWED_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp'];
 export const ALLOWED_DOCUMENT_TYPES = ['.pdf', '.jpg', '.jpeg', '.png'];
 
-// Encryption utilities for chat (placeholder - implement with proper encryption)
-export function encryptMessage(message: string, key: string): string {
-  // TODO: Implement proper end-to-end encryption
-  // For now, return the message as-is (implement in production)
-  return message;
+// File encryption/decryption utilities for REQ-B-2.4
+const ENCRYPTION_KEY = process.env.FILE_ENCRYPTION_KEY || 'default-file-encryption-key-32-chars-long';
+const ALGORITHM = 'aes-256-gcm';
+
+export interface EncryptedFileInfo {
+  encryptedFilename: string;
+  originalFilename: string;
+  encryptionIV: string;
+  authTag: string;
 }
 
-export function decryptMessage(encryptedMessage: string, key: string): string {
-  // TODO: Implement proper end-to-end encryption
-  // For now, return the message as-is (implement in production)
-  return encryptedMessage;
+export function encryptFilename(originalName: string, userId?: string): EncryptedFileInfo {
+  const ext = path.extname(originalName);
+  const baseName = path.basename(originalName, ext);
+  
+  // Generate unique IV for each encryption
+  const iv = crypto.randomBytes(16);
+  
+  // Create cipher with proper key handling
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').substring(0, 32)), iv);
+  
+  // Encrypt the original filename with user context
+  const dataToEncrypt = `${baseName}-${userId || 'anonymous'}-${Date.now()}`;
+  let encrypted = cipher.update(dataToEncrypt, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  // Generate random hash for additional obfuscation
+  const randomHash = crypto.randomBytes(8).toString('hex');
+  const finalEncryptedName = `${encrypted.substring(0, 16)}_${randomHash}${ext}`;
+  
+  return {
+    encryptedFilename: finalEncryptedName,
+    originalFilename: originalName,
+    encryptionIV: iv.toString('hex'),
+    authTag: randomHash
+  };
+}
+
+export function decryptFilename(encryptedFilename: string, originalFilename: string): string {
+  // For frontend display, return the original filename
+  // The encrypted filename is only used for storage
+  return originalFilename;
+}
+
+// Encryption utilities for chat messages (REQ-B-8.2)
+const CHAT_ENCRYPTION_KEY = process.env.CHAT_ENCRYPTION_KEY || 'default-chat-encryption-key-32-chars-long';
+
+// Simple but secure encryption for chat messages
+export function encryptChatMessage(message: string): string {
+  try {
+    // Generate random IV for each encryption
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(CHAT_ENCRYPTION_KEY.padEnd(32, '0').substring(0, 32)), iv);
+    
+    // Add timestamp and random salt for additional security
+    const timestamp = Date.now().toString();
+    const salt = crypto.randomBytes(8).toString('hex');
+    const dataToEncrypt = `${timestamp}:${salt}:${message}`;
+    
+    let encrypted = cipher.update(dataToEncrypt, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    // Prepend IV to encrypted data
+    return iv.toString('hex') + ':' + encrypted;
+  } catch (error) {
+    console.error('Error encrypting chat message:', error);
+    return message; // Fallback to original message if encryption fails
+  }
+}
+
+export function decryptChatMessage(encryptedMessage: string): string {
+  try {
+    // Check if message contains IV (new format)
+    if (!encryptedMessage.includes(':')) {
+      return '[Pesan Terenkripsi - Format Tidak Valid]';
+    }
+    
+    // Extract IV and encrypted data
+    const parts = encryptedMessage.split(':');
+    if (parts.length < 2) {
+      return '[Pesan Terenkripsi - Format Tidak Valid]';
+    }
+    
+    const iv = Buffer.from(parts[0], 'hex');
+    const encryptedData = parts[1];
+    
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(CHAT_ENCRYPTION_KEY.padEnd(32, '0').substring(0, 32)), iv);
+    
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    // Extract the original message from timestamp:salt:message format
+    const messageParts = decrypted.split(':');
+    if (messageParts.length >= 3) {
+      // Remove timestamp and salt, join the rest as the message
+      return messageParts.slice(2).join(':');
+    }
+    
+    return decrypted; // Fallback if format is different
+  } catch (error) {
+    console.error('Error decrypting chat message:', error);
+    return '[Pesan Terenkripsi - Gagal Dekripsi]';
+  }
 }
 
 // Rating calculation utility

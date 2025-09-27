@@ -1,11 +1,9 @@
-// src/app/api/upload/route.ts
-
 import { NextRequest } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { handleApiError, createSuccessResponse, createErrorResponse, requireAuth } from '@/lib/api-helpers';
-import { generateUniqueFilename, validateFileType, ALLOWED_IMAGE_TYPES, ALLOWED_DOCUMENT_TYPES } from '@/lib/utils-backend';
+import { generateUniqueFilename, validateFileType, ALLOWED_IMAGE_TYPES, ALLOWED_DOCUMENT_TYPES, encryptFilename } from '@/lib/utils-backend';
 import { prisma } from '@/lib/db';
 import crypto from 'crypto';
 
@@ -34,19 +32,35 @@ export async function POST(request: NextRequest) {
     if (!validateFileType(file.name, allowedTypes)) return createErrorResponse(`Invalid file type. Allowed: ${allowedTypes.join(', ')}`, 400);
     const maxSize = fileType === 'image' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
     if (file.size > maxSize) return createErrorResponse(`File too large. Max size: ${maxSize / 1024 / 1024}MB`, 400);
-    const checkFilenameExists = async (filename: string): Promise<boolean> => {
-      const docExists = await (prisma as any).providerDocument.findFirst({ where: { fileUrl: { contains: filename } } });
-      const portfolioExists = await prisma.providerPortfolio.findFirst({ where: { imageUrl: { contains: filename } } });
-      const userExists = await prisma.user.findFirst({ where: { profilePictureUrl: { contains: filename } } });
-      return !!(docExists || portfolioExists || userExists);
-    };
-    const secureFilename = await generateUniqueFilename(file.name, authResult.user.userId as string, checkFilenameExists);
+    // REQ-B-2.4: Generate encrypted filename and store metadata
+    const encryptedFileInfo = encryptFilename(file.name, authResult.user.userId as string);
+    const secureFilename = encryptedFileInfo.encryptedFilename;
+    
+    console.log(`[UPLOAD API] Original filename: ${file.name}`);
+    console.log(`[UPLOAD API] Encrypted filename: ${secureFilename}`);
+    
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', fileType === 'image' ? 'images' : 'documents');
     if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
+    
     const filePath = path.join(uploadDir, secureFilename);
     const bytes = await file.arrayBuffer();
     await writeFile(filePath, Buffer.from(bytes));
+    
     const fileUrl = `/uploads/${fileType === 'image' ? 'images' : 'documents'}/${secureFilename}`;
+    
+    // Store file encryption metadata in database
+    const fileEncryption = await (prisma as any).fileEncryption.create({
+      data: {
+        encryptedFilename: secureFilename,
+        originalFilename: file.name,
+        encryptionIV: encryptedFileInfo.encryptionIV,
+        authTag: encryptedFileInfo.authTag,
+        fileType: fileType,
+        uploadedBy: parseInt(authResult.user.userId as string)
+      }
+    });
+    
+    console.log(`[UPLOAD API] File encryption metadata saved with ID: ${fileEncryption.id}`);
     
     // --- [BLOK DEBUGGING UTAMA] ---
     if (uploadType === 'profile_picture') {
@@ -76,7 +90,12 @@ export async function POST(request: NextRequest) {
     // ------------------------------------
     
     console.log("[UPLOAD API] Mengirim respons sukses ke frontend.");
-    return createSuccessResponse({ fileUrl, filename: secureFilename }, 'File uploaded successfully');
+    return createSuccessResponse({ 
+      fileUrl, 
+      filename: secureFilename,
+      originalFilename: file.name,
+      encryptionId: fileEncryption.id
+    }, 'File uploaded and encrypted successfully');
     
   } catch (error) {
     console.error("❌ [UPLOAD API] Terjadi error di blok utama:", error);

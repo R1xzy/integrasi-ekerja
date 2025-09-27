@@ -6,10 +6,9 @@ import { handleApiError, createSuccessResponse, createErrorResponse } from '@/li
 // REQ-B-5.4: API endpoint untuk mengubah status kehadiran Provider di lokasi
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } } // Perbaikan 1: Signature fungsi yang benar
 ) {
   try {
-    const resolvedParams = await params;
     console.log('🔄 PUT /api/orders/[id]/attendance - Provider attendance update');
     
     const authHeader = request.headers.get('authorization');
@@ -21,7 +20,7 @@ export async function PUT(
     }
 
     const providerId = parseInt(authResult.user!.userId);
-    const orderId = parseInt(resolvedParams.id);
+    const orderId = parseInt(params.id); // Perbaikan 1: Mengambil ID dari params
     
     if (isNaN(orderId)) {
         return createErrorResponse('Invalid Order ID', 400);
@@ -112,12 +111,12 @@ export async function PUT(
   }
 }
 
+// Fungsi GET (tidak perlu diubah, tapi sertakan untuk kelengkapan)
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const resolvedParams = await params;
     console.log('🔄 GET /api/orders/[id]/attendance - Get attendance status');
     
     // Validate Bearer token - provider or customer
@@ -131,7 +130,7 @@ export async function GET(
 
     const userId = parseInt(authResult.user!.userId);
     const userRole = authResult.user!.roleName;
-    const orderId = parseInt(resolvedParams.id);
+    const orderId = parseInt(params.id);
 
     console.log('🆔 User ID:', userId, 'Role:', userRole, 'Order ID:', orderId);
 
