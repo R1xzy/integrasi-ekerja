@@ -1,73 +1,90 @@
-"use client";
-import { useState } from "react";
-import { Paperclip, Send } from "lucide-react";
+'use client';
 
-export default function ChatPage() {
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "them", text: "Halo, ada yang bisa saya bantu?" },
-    { id: 2, sender: "me", text: "Ya, saya mau tanya tentang layanan Anda." },
-  ]);
-  const [input, setInput] = useState("");
+import { useState, useEffect } from 'react';
+import { getAuthData, AuthUser } from '@/lib/auth-client'; // -> Impor yang benar
+import { authenticatedFetch } from '@/lib/auth-client';
+import Image from 'next/image';
+import Link from 'next/link';
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { id: Date.now(), sender: "me", text: input }]);
-    setInput("");
-  };
+interface Conversation {
+  id: number;
+  conversationTitle: string;
+  participants: { userId: number; fullName: string; profilePictureUrl: string | null; }[];
+  lastMessage: { messageContent: string; sentAt: string; } | null;
+  unreadCount: number;
+}
+
+const ChatListPage = () => {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null); // -> State untuk user
+
+  useEffect(() => {
+    setUser(getAuthData());
+  }, []);
+
+  useEffect(() => {
+    if (!user) return; // Jalankan hanya jika user sudah ada
+    
+    const fetchConversations = async () => {
+      setIsLoading(true);
+      try {
+        const res = await authenticatedFetch('/api/chat/rooms');
+        const data = await res.json();
+        if (res.ok) setConversations(data.data);
+      } catch (error) {
+        console.error('Gagal memuat percakapan:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchConversations();
+  }, [user]); // Tambahkan user sebagai dependency
+
+  if (isLoading) return <div className="flex items-center justify-center h-screen">Memuat percakapan...</div>;
+  if (!user) return <div className="flex items-center justify-center h-screen">Mengarahkan...</div>;
+
+  const loggedInUserId = parseInt(user.id);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b p-4 shadow-sm flex items-center">
-        <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold mr-3">
-          C
-        </div>
-        <div>
-          <h2 className="font-semibold text-gray-900">Customer Service</h2>
-          <p className="text-sm text-green-500">Online</p>
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`px-4 py-2 rounded-2xl max-w-xs shadow text-sm ${
-                msg.sender === "me"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-gray-200 text-gray-800 rounded-bl-none"
-              }`}
-            >
-              {msg.text}
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-2xl mx-auto py-8">
+        <header className="px-4 mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">Percakapan Anda</h1>
+        </header>
+        <main>
+          {conversations.length > 0 ? (
+            <div className="bg-white rounded-lg shadow-md">
+              {conversations.map((convo) => {
+                const otherParticipant = convo.participants.find(p => p.userId !== loggedInUserId);
+                return (
+                  <Link href={`/chat/${convo.id}`} key={convo.id} className="block hover:bg-gray-50 transition-colors duration-150">
+                    <div className="p-4 flex items-center border-b last:border-b-0">
+                      <Image src={otherParticipant?.profilePictureUrl || '/default-avatar.png'} alt="avatar" width={48} height={48} className="w-12 h-12 rounded-full mr-4"/>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="flex justify-between">
+                            <p className="font-semibold text-gray-900 truncate">{otherParticipant?.fullName}</p>
+                            {convo.lastMessage && <p className="text-xs text-gray-500 flex-shrink-0 ml-2">{new Date(convo.lastMessage.sentAt).toLocaleDateString('id-ID')}</p>}
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                            <p className="text-sm text-gray-600 truncate">{convo.lastMessage?.messageContent || 'Belum ada pesan.'}</p>
+                            {convo.unreadCount > 0 && <span className="bg-green-500 text-white text-xs font-bold rounded-full px-2 py-1">{convo.unreadCount}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Input Box */}
-      <div className="bg-white border-t p-3 flex items-center space-x-2">
-        <button className="p-2 text-gray-500 hover:text-blue-600 transition">
-          <Paperclip className="w-5 h-5" />
-        </button>
-        <input
-          type="text"
-          placeholder="Tulis pesan..."
-          className="text-gray-600 flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-        />
-        <button
-          onClick={sendMessage}
-          className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition"
-        >
-          <Send className="w-5 h-5" />
-        </button>
+          ) : (
+            <div className="text-center py-12 px-4 bg-white rounded-lg shadow-md">
+                <p className="text-gray-500">Anda belum memiliki percakapan.</p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
-}
+};
+
+export default ChatListPage;

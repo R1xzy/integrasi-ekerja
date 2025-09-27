@@ -102,3 +102,20 @@ export function createAuthMiddleware(allowedRoles?: string[]) {
     return { success: true, user: payload };
   };
 }
+
+export function decodeTokenPayload(token: string): JWTPayload | null {
+  try {
+    // Menggunakan jwt.decode() untuk mendapatkan payload tanpa secret
+    const decoded = jwt.decode(token) as JWTPayload | null;
+    
+    // Memastikan decoded bukan null dan memiliki properti yang diharapkan
+    if (!decoded || !decoded.exp) {
+        return null;
+    }
+    
+    return decoded;
+  } catch (error) {
+    console.error('JWT decode failed:', error);
+    return null;
+  }
+}

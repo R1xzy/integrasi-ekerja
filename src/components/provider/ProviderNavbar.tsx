@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X, BarChart3, Briefcase, ShoppingBag, Settings } from "lucide-react";
+import { LogOut, Menu, X, BarChart3, Briefcase, ShoppingBag, Settings, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 interface NavItem {
@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { href: "/provider/services", label: "Layanan Saya", icon: <Briefcase className="w-4 h-4" /> },
   { href: "/provider/orders", label: "Pesanan Masuk", icon: <ShoppingBag className="w-4 h-4" /> },
   { href: "/provider/profile", label: "Profil", icon: <Settings className="w-4 h-4" /> },
+  {href: "/chat",label: "Inbox",icon: <MessageSquare className="w-4 h-4" />,},
 ];
 
 export default function ProviderNavbar() {

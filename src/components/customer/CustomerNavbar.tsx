@@ -11,6 +11,7 @@ import {
   Settings,
   Search,
 } from "lucide-react";
+import { MessageSquare, Loader2 } from 'lucide-react';
 import { useState, useEffect, ReactNode } from "react";
 
 interface NavItem {
@@ -44,6 +45,11 @@ const navItems: NavItem[] = [
     href: "/customer/profile",
     label: "Profil",
     icon: <Settings className="w-4 h-4" />,
+  },
+  {
+    href: "/chat",
+    label: "Inbox",
+    icon: <MessageSquare className="w-4 h-4" />,
   },
 ];
 
