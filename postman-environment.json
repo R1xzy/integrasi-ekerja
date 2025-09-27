@@ -1,6 +1,6 @@
 {
-  "id": "e-kerja-environment-complete-with-new-features",
-  "name": "E-Kerja Development Environment - Complete API Testing with REQ-B-7.2/8.4/15.3 Updated",
+  "id": "e-kerja-environment-complete-with-encryption-testing",
+  "name": "E-Kerja Development Environment - Complete API Testing with REQ-B-2.4/8.2 Encryption",
   "values": [
     {
       "key": "base_url",
@@ -511,9 +511,69 @@
       "value": "duplicate-name.jpg",
       "enabled": true,
       "description": "Test filename for REQ-B-2.5 unique filename testing"
+    },
+    {
+      "key": "test_chat_message",
+      "value": "Pesan rahasia untuk testing enkripsi chat - sensitif data customer!",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Test message for chat encryption validation"
+    },
+    {
+      "key": "test_encrypted_message",
+      "value": "Data pribadi customer yang harus dilindungi dengan enkripsi AES-256-CBC",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Test message for database encryption validation"
+    },
+    {
+      "key": "production_test_message",
+      "value": "Ini adalah pesan produksi yang akan dienkripsi sebelum disimpan di database",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Production chat API test message"
+    },
+    {
+      "key": "test_filename",
+      "value": "confidential-document.pdf",
+      "enabled": true,
+      "description": "REQ-B-2.4 - Test filename for encryption validation"
+    },
+    {
+      "key": "test_conversation_id",
+      "value": "",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Auto-extracted conversation ID for encryption testing"
+    },
+    {
+      "key": "test_message_id",
+      "value": "",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Auto-extracted message ID for encryption testing"
+    },
+    {
+      "key": "production_message_id",
+      "value": "",
+      "enabled": true,
+      "description": "REQ-B-8.2 - Auto-extracted production message ID"
+    },
+    {
+      "key": "test_file_encryption_id",
+      "value": "",
+      "enabled": true,
+      "description": "REQ-B-2.4 - Auto-extracted file encryption ID for testing"
+    },
+    {
+      "key": "encryption_test_filename",
+      "value": "sensitive-customer-data.xlsx",
+      "enabled": true,
+      "description": "REQ-B-2.4 - Additional test filename for encryption scenarios"
+    },
+    {
+      "key": "encryption_performance_threshold",
+      "value": "5",
+      "enabled": true,
+      "description": "Maximum milliseconds allowed for encryption/decryption operations"
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-09-06T11:30:00.000Z",
-  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-2.4/2.5/5.4/5.5/7.4/7.5/8.4"
+  "_postman_exported_at": "2025-01-28T12:00:00.000Z",
+  "_postman_exported_using": "Postman/Complete API Testing with REQ-B-2.4/8.2 Encryption Support"
 }

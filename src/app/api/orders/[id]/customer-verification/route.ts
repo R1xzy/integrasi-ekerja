@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
 interface RouteParams {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 // REQ-B-5.5: Customer Verification of Provider Data
@@ -19,8 +19,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const customerId = parseInt(authResult.user!.userId);
-    const resolvedParams = await params;
-    const orderId = parseInt(resolvedParams.id);
+    const orderId = parseInt(params.id);
     const { verificationStatus, notes } = await request.json();
 
     const validStatuses = ['verified', 'rejected'];
@@ -92,8 +91,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const userId = parseInt(authResult.user!.userId);
-    const resolvedParams = await params;
-    const orderId = parseInt(resolvedParams.id);
+    const { id } = await params;
+    const orderId = parseInt(id);
 
     // Get order with verification info
     const order = await prisma.order.findFirst({

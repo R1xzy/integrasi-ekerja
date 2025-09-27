@@ -6,7 +6,7 @@ import { handleApiError, createSuccessResponse, createErrorResponse } from '@/li
 // DELETE /api/admin/reviews/[id] - Delete review permanently
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     // Validate Bearer token - admin only
@@ -18,8 +18,7 @@ export async function DELETE(
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const reviewId = parseInt(resolvedParams.id);
+    const reviewId = parseInt(params.id);
 
     // Check if review exists
     const review = await prisma.review.findUnique({
