@@ -685,6 +685,18 @@
       "value": "enabled",
       "enabled": true,
       "description": "C-7 End-to-end encryption status: enabled, disabled, testing"
+    },
+    {
+      "key": "production_chat_room_id",
+      "value": "6",
+      "enabled": true,
+      "description": "REQ-B-8.2 Production chat room ID for testing encryption"
+    },
+    {
+      "key": "production_test_message",
+      "value": "🔐 Production Test: Customer financial info - Account: BCA 123-456-789, Amount: Rp 5,000,000 🔐",
+      "enabled": true,
+      "description": "REQ-B-8.2 Production chat message for encryption testing"
     }
   ],
   "_postman_variable_scope": "environment",
