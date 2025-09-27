@@ -1,132 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Filter, Star, MapPin, Clock, ChevronRight, Award, Shield } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Search, Filter, Star, MapPin, Clock, ChevronRight, Award, Shield, Loader } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { authenticatedFetch } from '@/lib/auth-client';
+import { useDebounce } from 'use-debounce'; // Pastikan Anda sudah menginstal 'use-debounce'
 
-export default function ProvidersPage() {
-  // State for filters
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedRating, setSelectedRating] = useState("");
-  const [verificationFilters, setVerificationFilters] = useState({
-    verified: false,
-    topRated: false,
-    fastResponse: false
-  });
-  const [sortBy, setSortBy] = useState("relevance");
-  const categories = [
-    { id: 1, name: "Semua", count: 456 },
-    { id: 2, name: "Service AC", count: 89 },
-    { id: 3, name: "Jasa Kebersihan", count: 76 },
-    { id: 4, name: "Tukang Bangunan", count: 65 },
-    { id: 5, name: "Elektronik", count: 54 },
-    { id: 6, name: "Plumbing", count: 43 },
-    { id: 7, name: "Tukang Kayu", count: 32 },
-    { id: 8, name: "Taman & Kebun", count: 28 }
-  ];
+// =================================================================
+// 1. DEFINISI TIPE DATA
+// =================================================================
 
-  const providers = [
-    {
-      id: 1,
-      name: "Ahmad Teknisi",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Service AC", "Elektronik"],
-      rating: 4.8,
-      reviewCount: 156,
-      completedOrders: 234,
-      location: "Karawang Barat",
-      responseTime: "< 1 jam",
-      startingPrice: 150000,
-      isVerified: true,
-      joinDate: "2023-01-15",
-      bio: "Teknisi AC berpengalaman 10+ tahun. Spesialis service dan perbaikan AC semua merk.",
-      badges: ["Top Rated", "Fast Response"]
-    },
-    {
-      id: 2,
-      name: "Budi Cleaning Service",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Jasa Kebersihan"],
-      rating: 4.6,
-      reviewCount: 89,
-      completedOrders: 167,
-      location: "Karawang Timur",
-      responseTime: "< 2 jam",
-      startingPrice: 200000,
-      isVerified: true,
-      joinDate: "2023-03-20",
-      bio: "Layanan kebersihan profesional untuk rumah dan kantor dengan peralatan modern.",
-      badges: ["Verified", "Eco Friendly"]
-    },
-    {
-      id: 3,
-      name: "Candra Tukang Bangunan",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Tukang Bangunan", "Tukang Kayu"],
-      rating: 4.9,
-      reviewCount: 234,
-      completedOrders: 345,
-      location: "Karawang Tengah",
-      responseTime: "< 30 menit",
-      startingPrice: 500000,
-      isVerified: true,
-      joinDate: "2022-11-10",
-      bio: "Kontraktor bangunan berpengalaman dengan tim profesional dan peralatan lengkap.",
-      badges: ["Top Rated", "Expert", "Fast Response"]
-    },
-    {
-      id: 4,
-      name: "Dedi Plumber",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Plumbing"],
-      rating: 4.5,
-      reviewCount: 67,
-      completedOrders: 123,
-      location: "Karawang Utara",
-      responseTime: "< 45 menit",
-      startingPrice: 300000,
-      isVerified: true,
-      joinDate: "2024-01-05",
-      bio: "Spesialis perbaikan pipa dan instalasi plumbing dengan garansi kerja.",
-      badges: ["Verified", "Warranty"]
-    },
-    {
-      id: 5,
-      name: "Eko Elektronik",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Elektronik", "Service AC"],
-      rating: 4.7,
-      reviewCount: 123,
-      completedOrders: 189,
-      location: "Karawang Barat",
-      responseTime: "< 1 jam",
-      startingPrice: 100000,
-      isVerified: false,
-      joinDate: "2023-08-15",
-      bio: "Service dan reparasi peralatan elektronik rumah tangga dengan harga terjangkau.",
-      badges: ["Affordable"]
-    },
-    {
-      id: 6,
-      name: "Fajar Furniture",
-      avatar: "/api/placeholder/100/100",
-      specialties: ["Tukang Kayu"],
-      rating: 4.8,
-      reviewCount: 91,
-      completedOrders: 156,
-      location: "Karawang Timur",
-      responseTime: "< 2 jam",
-      startingPrice: 750000,
-      isVerified: true,
-      joinDate: "2023-05-10",
-      bio: "Pembuat furniture custom dan perbaikan perabotan kayu berkualitas tinggi.",
-      badges: ["Top Rated", "Custom Work"]
-    }
-  ];
+interface Category {
+  id: number;
+  name: string;
+  serviceCount: number;
+}
 
-  const getBadgeColor = (badge: string) => {
+interface ProviderListing {
+  id: number;
+  name: string;
+  avatar: string;
+  specialties: string[]; // Diambil dari kategori layanan yang ditawarkan
+  rating: number; 
+  reviewCount: number; 
+  completedOrders: number; // MOCK: Tidak tersedia di API services/search
+  location: string; // Diambil dari address/district provider
+  responseTime: string; // MOCK: Tidak tersedia di API services/search
+  startingPrice: number; // Harga terendah dari layanan yang ditawarkan
+  isVerified: boolean;
+  joinDate: string;
+  bio: string; // Diambil dari providerBio
+  badges: string[]; // Diderivasi dari rating/verifikasi
+}
+
+interface ServiceData {
+  id: number;
+  serviceTitle: string;
+  price: number;
+  providerId: number;
+  description: string;
+  provider: {
+    id: number;
+    fullName: string;
+    profilePictureUrl: string | null;
+    verificationStatus: string;
+    address: string | null;
+    providerBio: string | null;
+    rating: number; 
+    reviewCount: number; 
+  };
+  category: {
+    name: string;
+  };
+}
+
+// =================================================================
+// 2. HELPER UTILITY
+// =================================================================
+
+const getBadgeColor = (badge: string) => {
     switch (badge) {
       case 'Top Rated':
         return 'bg-yellow-100 text-yellow-800';
@@ -134,131 +66,201 @@ export default function ProvidersPage() {
         return 'bg-green-100 text-green-800';
       case 'Fast Response':
         return 'bg-blue-100 text-blue-800';
-      case 'Expert':
-        return 'bg-purple-100 text-purple-800';
-      case 'Eco Friendly':
-        return 'bg-green-100 text-green-800';
-      case 'Warranty':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'Affordable':
-        return 'bg-orange-100 text-orange-800';
-      case 'Custom Work':
-        return 'bg-pink-100 text-pink-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
+};
 
-  // Filter and sort providers
-  const filteredProviders = useMemo(() => {
-    let filtered = providers.filter(provider => {
-      // Category filter
-      if (selectedCategory !== "Semua") {
-        if (!provider.specialties.includes(selectedCategory)) {
-          return false;
-        }
-      }
-
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        if (!provider.name.toLowerCase().includes(query) &&
-            !provider.specialties.some(s => s.toLowerCase().includes(query)) &&
-            !provider.bio.toLowerCase().includes(query)) {
-          return false;
-        }
-      }
-
-      // Location filter
-      if (selectedLocation) {
-        if (!provider.location.toLowerCase().includes(selectedLocation.toLowerCase())) {
-          return false;
-        }
-      }
-
-      // Rating filter
-      if (selectedRating) {
-        if (provider.rating < parseFloat(selectedRating)) {
-          return false;
-        }
-      }
-
-      // Verification filters
-      if (verificationFilters.verified && !provider.isVerified) {
-        return false;
-      }
-      if (verificationFilters.topRated && !provider.badges.includes("Top Rated")) {
-        return false;
-      }
-      if (verificationFilters.fastResponse && !provider.badges.includes("Fast Response")) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // Sort providers
-    switch (sortBy) {
-      case "rating":
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case "orders":
-        filtered.sort((a, b) => b.completedOrders - a.completedOrders);
-        break;
-      case "response":
-        filtered.sort((a, b) => a.responseTime.localeCompare(b.responseTime));
-        break;
-      case "newest":
-        filtered.sort((a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime());
-        break;
-      default:
-        // Keep original order for relevance
-        break;
-    }
-
-    return filtered;
-  }, [providers, selectedCategory, searchQuery, selectedLocation, selectedRating, verificationFilters, sortBy]);
-
-  const formatCurrency = (amount: number) => {
+const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
+};
+
+// =================================================================
+// 3. KOMPONEN UTAMA
+// =================================================================
+
+export default function ProvidersPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allServices, setAllServices] = useState<ServiceData[]>([]);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State Filter & Search
+  const [selectedCategoryName, setSelectedCategoryName] = useState("Semua");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null); 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedRating, setSelectedRating] = useState("");
+  const [verificationFilters, setVerificationFilters] = useState({
+    verified: false,
+    topRated: false, // Ditangani di client-side logic
+    fastResponse: false // MOCK
+  });
+  const [sortBy, setSortBy] = useState("relevance");
+  
+  // --- FETCHING DATA ---
+  const fetchInitialData = useCallback(async () => {
+    setError(null);
+    try {
+        // 1. Fetch Categories
+        const catResponse = await fetch('/api/service-categories');
+        const catResult = await catResponse.json();
+        if (!catResponse.ok || !catResult.success) throw new Error("Gagal memuat kategori.");
+        
+        // Tambahkan opsi "Semua"
+        const totalCount = catResult.data.reduce((sum: number, c: Category) => sum + c.serviceCount, 0);
+        const allCategory: Category = { id: 0, name: "Semua", serviceCount: totalCount };
+        setCategories([allCategory, ...catResult.data]);
+        
+    } catch (err: any) {
+        setError(err.message);
+    } 
+  }, []);
+
+  const fetchProviders = useCallback(async (isInitialLoad = false) => {
+      if (!isInitialLoad) setIsLoading(true); // Tampilkan loading saat filter berubah
+
+      const [sortField, sortOrder] = sortBy === 'rating' ? ['rating', 'desc'] : 
+                                     sortBy === 'orders' ? ['orders', 'desc'] : // Jika API mendukung orders
+                                     ['serviceTitle', 'asc']; 
+
+      const params = new URLSearchParams();
+      if (selectedCategoryId) params.append('categoryId', String(selectedCategoryId));
+      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
+      if (verificationFilters.verified) params.append('verified', 'true');
+      
+      params.append('sortBy', sortField);
+      params.append('sortOrder', sortOrder);
+      params.append('limit', '100'); // Ambil banyak untuk pengelompokan provider
+
+      try {
+          const response = await authenticatedFetch(`/api/services/search?${params.toString()}`);
+          const result = await response.json();
+
+          if (!response.ok || !result.success) throw new Error(result.message || "Gagal memuat daftar penyedia.");
+          
+          setAllServices(result.data || []);
+      } catch (err: any) {
+          setError(err.message);
+      } finally {
+          if (isInitialLoad) setIsLoading(false);
+      }
+  }, [selectedCategoryId, debouncedSearchQuery, verificationFilters.verified, sortBy]);
+
+  // Efek untuk memuat data awal
+  useEffect(() => {
+    fetchInitialData();
+    fetchProviders(true);
+  }, [fetchInitialData, fetchProviders]);
+  
+  // Efek untuk memuat ulang saat filter diubah (jika bukan initial load)
+  useEffect(() => {
+    fetchProviders();
+  }, [selectedCategoryId, debouncedSearchQuery, verificationFilters.verified, sortBy]);
+
+
+  // --- LOGIKA UTAMA: NORMALISASI SERVICE KE PROVIDER (Client-Side) ---
+  const normalizedProviders = useMemo(() => {
+    const providerMap = new Map<number, ProviderListing>();
+
+    allServices.forEach(service => {
+        const pId = service.provider.id;
+        const sPrice = service.price;
+        const pRating = service.provider.rating;
+        const pReviewCount = service.provider.reviewCount;
+        const vStatus = service.provider.verificationStatus;
+        
+        // 1. Derivasi Badges (MOCK untuk non-API data)
+        const badges = [
+          vStatus === 'VERIFIED' ? 'Verified' : null,
+          pRating >= 4.7 ? 'Top Rated' : null,
+          // MOCK: Fast Response tidak tersedia di API
+          verificationFilters.fastResponse ? 'Fast Response' : null
+        ].filter(Boolean) as string[];
+
+        // 2. Agregasi data service ke provider
+        if (providerMap.has(pId)) {
+            const existingProvider = providerMap.get(pId)!;
+            
+            // Ambil harga terendah
+            if (sPrice < existingProvider.startingPrice) {
+                 existingProvider.startingPrice = sPrice;
+            }
+            
+            // Gabungkan specialties
+            const newSpecialty = service.category.name;
+            if (!existingProvider.specialties.includes(newSpecialty)) {
+                existingProvider.specialties.push(newSpecialty);
+            }
+            
+        } else {
+             // Provider baru
+            providerMap.set(pId, {
+                id: pId,
+                name: service.provider.fullName,
+                avatar: service.provider.profilePictureUrl || '/default-avatar.png',
+                specialties: [service.category.name],
+                rating: pRating,
+                reviewCount: pReviewCount,
+                completedOrders: 0, // MOCK
+                location: service.provider.address || 'Karawang', // MOCK/Sederhana
+                responseTime: '< 1 jam', // MOCK
+                startingPrice: sPrice,
+                isVerified: vStatus === 'VERIFIED',
+                joinDate: '2023-01-01', // MOCK
+                bio: service.provider.providerBio || 'Provider ini belum mengisi bio.',
+                badges: badges
+            });
+        }
+    });
+
+    let finalProviders = Array.from(providerMap.values());
+    
+    // --- PENERAPAN FILTER CLIENT-SIDE (Rating, Top Rated) ---
+    
+    // Filter Rating Client-Side (Jika filter rating dipilih)
+    if (selectedRating) {
+        const minRating = parseFloat(selectedRating);
+        finalProviders = finalProviders.filter(p => p.rating >= minRating);
+    }
+    
+    // Filter Top Rated (Karena tidak bisa dilakukan di API search service)
+    if (verificationFilters.topRated) {
+        finalProviders = finalProviders.filter(p => p.badges.includes('Top Rated'));
+    }
+    
+    // Sorting tambahan (Jika diperlukan)
+    if (sortBy === 'newest') {
+         // Tidak bisa diurutkan tanpa data joinDate
+    }
+    
+    return finalProviders;
+    
+  }, [allServices, selectedRating, verificationFilters.topRated, verificationFilters.fastResponse, sortBy]);
+
+
+  // Handler untuk kategori
+  const handleCategoryChange = (name: string, id: number) => {
+      setSelectedCategoryName(name);
+      setSelectedCategoryId(id === 0 ? null : id);
   };
+  
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen"><Loader className="animate-spin h-10 w-10 text-blue-600" /><p className="ml-4 text-lg">Memuat daftar penyedia...</p></div>;
+  }
+  if (error) {
+    return <div className="text-center py-20 text-red-600">Terjadi Kesalahan: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      {/* Duplicate header hidden because global MainNavbar */}
-<header className="hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">E</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900">E-Kerja Karawang</span>
-              </Link>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-blue-600">Beranda</Link>
-              <Link href="/services" className="text-gray-700 hover:text-blue-600">Layanan</Link>
-              <Link href="/providers" className="text-blue-600 font-medium">Penyedia</Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600">Tentang</Link>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-gray-700 hover:text-blue-600">Masuk</Link>
-              <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                Daftar
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
@@ -282,15 +284,15 @@ export default function ProvidersPage() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category.name)}
+                    onClick={() => handleCategoryChange(category.name, category.id)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                      selectedCategory === category.name
+                      selectedCategoryName === category.name
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <span className="font-medium">{category.name}</span>
-                    <span className="text-sm text-gray-500">({category.count})</span>
+                    <span className="text-sm text-gray-500">({category.serviceCount})</span>
                   </button>
                 ))}
               </div>
@@ -302,7 +304,7 @@ export default function ProvidersPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lokasi
+                    Lokasi (Mock)
                   </label>
                   <select 
                     value={selectedLocation}
@@ -312,8 +314,6 @@ export default function ProvidersPage() {
                     <option value="">Semua Lokasi</option>
                     <option value="karawang-barat">Karawang Barat</option>
                     <option value="karawang-timur">Karawang Timur</option>
-                    <option value="karawang-tengah">Karawang Tengah</option>
-                    <option value="karawang-utara">Karawang Utara</option>
                   </select>
                 </div>
 
@@ -329,8 +329,6 @@ export default function ProvidersPage() {
                     <option value="">Semua Rating</option>
                     <option value="4.5">4.5+ ⭐</option>
                     <option value="4.0">4.0+ ⭐</option>
-                    <option value="3.5">3.5+ ⭐</option>
-                    <option value="3.0">3.0+ ⭐</option>
                   </select>
                 </div>
 
@@ -364,7 +362,7 @@ export default function ProvidersPage() {
                         onChange={(e) => setVerificationFilters(prev => ({ ...prev, fastResponse: e.target.checked }))}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
                       />
-                      <span className="ml-2 text-sm text-gray-700">Fast Response</span>
+                      <span className="ml-2 text-sm text-gray-700">Fast Response (Mock)</span>
                     </label>
                   </div>
                 </div>
@@ -372,7 +370,8 @@ export default function ProvidersPage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => {
-                      setSelectedCategory("Semua");
+                      setSelectedCategoryName("Semua");
+                      setSelectedCategoryId(null);
                       setSearchQuery("");
                       setSelectedLocation("");
                       setSelectedRating("");
@@ -415,9 +414,7 @@ export default function ProvidersPage() {
                   >
                     <option value="relevance">Paling Relevan</option>
                     <option value="rating">Rating Tertinggi</option>
-                    <option value="orders">Pesanan Terbanyak</option>
-                    <option value="response">Respon Tercepat</option>
-                    <option value="newest">Terbaru</option>
+                    <option value="orders">Pesanan Terbanyak (Mock)</option>
                   </select>
                 </div>
               </div>
@@ -426,16 +423,16 @@ export default function ProvidersPage() {
             {/* Results Info */}
             <div className="mb-6">
               <p className="text-gray-600">
-                Menampilkan {filteredProviders.length} dari {providers.length} penyedia jasa
-                {selectedCategory !== "Semua" && ` dalam kategori "${selectedCategory}"`}
+                Menampilkan {normalizedProviders.length} penyedia jasa
+                {selectedCategoryName !== "Semua" && ` dalam kategori "${selectedCategoryName}"`}
                 {searchQuery && ` dengan pencarian "${searchQuery}"`}
               </p>
             </div>
 
             {/* Providers Grid */}
-            {filteredProviders.length > 0 ? (
+            {normalizedProviders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProviders.map((provider) => (
+                {normalizedProviders.map((provider) => (
                 <div key={provider.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
                   <div className="p-6">
                     <div className="flex items-start space-x-4 mb-4">
@@ -458,7 +455,7 @@ export default function ProvidersPage() {
                         <div className="flex items-center mb-2">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
                           <span className="text-sm font-medium text-gray-900 ml-1">
-                            {provider.rating}
+                            {provider.rating.toFixed(1)}
                           </span>
                           <span className="text-sm text-gray-500 ml-1">
                             ({provider.reviewCount} ulasan)
@@ -499,12 +496,12 @@ export default function ProvidersPage() {
                     </div>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {provider.bio}
+                      {provider.bio || 'Bio provider tidak tersedia.'}
                     </p>
 
                     <div className="flex items-center justify-between mb-4">
                       <div className="text-sm text-gray-600">
-                        <span className="font-medium">{provider.completedOrders}</span> pesanan selesai
+                        <span className="font-medium">{provider.completedOrders}</span> pesanan selesai (Mock)
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Mulai dari</p>
@@ -522,11 +519,11 @@ export default function ProvidersPage() {
                         Lihat Profil
                       </Link>
                       <Link
-  href="/chat"
-  className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors"
->
-  Chat Sekarang
-</Link>
+                        href="/chat"
+                        className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        Chat Sekarang
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -538,44 +535,11 @@ export default function ProvidersPage() {
                   <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada penyedia jasa ditemukan</h3>
                   <p className="text-gray-500 mb-4">Coba ubah filter atau kata kunci pencarian Anda</p>
-                  <button 
-                    onClick={() => {
-                      setSelectedCategory("Semua");
-                      setSearchQuery("");
-                      setSelectedLocation("");
-                      setSelectedRating("");
-                      setVerificationFilters({ verified: false, topRated: false, fastResponse: false });
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Reset Semua Filter
-                  </button>
                 </div>
               </div>
             )}
 
-            {/* Pagination - only show if there are results */}
-            {filteredProviders.length > 0 && (
-              <div className="mt-8 flex justify-center">
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Previous
-                  </button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    1
-                  </button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                    2
-                  </button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    3
-                  </button>
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    Next
-                  </button>
-                </nav>
-              </div>
-            )}
+            {/* Pagination Dihapus */}
           </div>
         </div>
       </div>
