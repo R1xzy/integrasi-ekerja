@@ -1,92 +1,106 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { createAuthMiddleware } from '@/lib/jwt';
+import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-helpers';
 
+// PUT /api/admin/reviews/[id]/visibility - Update review visibility
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const resolvedParams = await params;
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Validate Bearer token - admin only
+    const authHeader = request.headers.get('authorization');
+    const auth = createAuthMiddleware(['admin']);
+    const authResult = auth(authHeader);
+
+    if (!authResult.success) {
+      return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    let decoded;
+    const adminId = parseInt(authResult.user!.userId);
+    const reviewId = parseInt(params.id);
+
+    // Parse request body
+    let body;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
+      body = await request.json();
     } catch (error) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return createErrorResponse('Invalid JSON body', 400);
     }
 
-    if (decoded.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { is_show } = body;
+
+    // Validate required fields
+    if (typeof is_show !== 'boolean') {
+      return createErrorResponse('Missing required field: is_show (boolean)', 400);
     }
 
-    const { visible } = await request.json();
-    
-    const updatedReview = await prisma.review.update({
-      where: {
-        id: parseInt(resolvedParams.id),
-      },
-      data: {
-        isShow: visible,
-      },
-    });
-
-    return NextResponse.json(updatedReview);
-  } catch (error) {
-    console.error("Error updating review visibility:", error);
-    return NextResponse.json(
-      { error: "Failed to update review visibility" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const resolvedParams = await params;
-    const token = request.cookies.get("auth_token")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
-    } catch (error) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    if (decoded.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
+    // Check if review exists
     const review = await prisma.review.findUnique({
-      where: {
-        id: parseInt(resolvedParams.id),
-      },
-      select: {
-        id: true,
-        isShow: true,
-      },
+      where: { id: reviewId },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        provider: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        }
+      }
     });
 
     if (!review) {
-      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+      return createErrorResponse('Review not found', 404);
     }
 
-    return NextResponse.json(review);
-  } catch (error) {
-    console.error("Error fetching review visibility:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch review visibility" },
-      { status: 500 }
+    // Update review visibility
+    const updatedReview = await prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        isShow: is_show,
+        moderatedAt: new Date(),
+        moderatedBy: adminId
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        provider: {
+          select: {
+            id: true,
+            fullName: true
+          }
+        },
+        order: {
+          select: {
+            id: true,
+            providerService: {
+              select: {
+                serviceTitle: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const action = is_show ? 'shown' : 'hidden';
+    
+    return createSuccessResponse(
+      updatedReview, 
+      `Review has been ${action} successfully`
     );
+
+  } catch (error) {
+    return handleApiError(error);
   }
 }

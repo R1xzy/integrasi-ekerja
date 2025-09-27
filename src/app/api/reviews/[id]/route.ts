@@ -5,11 +5,10 @@ import { handleApiError, createSuccessResponse, createErrorResponse } from '@/li
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const resolvedParams = await params;
-    const reviewId = parseInt(resolvedParams.id);
+    const reviewId = parseInt(params.id);
     
     if (isNaN(reviewId)) {
       return NextResponse.json(

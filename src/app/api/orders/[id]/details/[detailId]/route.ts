@@ -5,7 +5,7 @@ import { handleApiError, createSuccessResponse, createErrorResponse } from '@/li
 import { calculateFinalAmount } from '@/lib/utils-backend'; // Helper baru
 
 interface RouteParams {
-  params: Promise<{ id: string; detailId: string }>;
+  params: { id: string; detailId: string };
 }
 
 // Handler untuk Customer menyetujui/menolak biaya tambahan
@@ -19,9 +19,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const orderId = parseInt(resolvedParams.id);
-    const detailId = parseInt(resolvedParams.detailId);
+    const orderId = parseInt(params.id);
+    const detailId = parseInt(params.detailId);
     const customerId = parseInt(authResult.user!.userId);
     const { status } = await request.json();
 
@@ -62,7 +61,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string; detailId: string } }) {
   try {
     // Validate Bearer token - customer or provider
     const authHeader = request.headers.get('authorization');
@@ -73,9 +72,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return createErrorResponse(authResult.message || 'Authentication failed', authResult.status || 401);
     }
 
-    const resolvedParams = await params;
-    const orderId = parseInt(resolvedParams.id);
-    const detailId = parseInt(resolvedParams.detailId);
+    const orderId = parseInt(params.id);
+    const detailId = parseInt(params.detailId);
     const userId = parseInt(authResult.user!.userId);
     const userRole = authResult.user!.roleName;
 

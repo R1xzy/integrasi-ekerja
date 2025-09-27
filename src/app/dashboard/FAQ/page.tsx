@@ -203,7 +203,7 @@ function ReusableTable<T extends object>({
 // =================================================================
 // Modal Component
 // =================================================================
-const FAQModal = ({ modalOpen, setModalOpen, editId, question, setQuestion, answer, setAnswer, category, setCategory, categories, newCategory, setNewCategory, handleSubmit, loading, errorMsg }: any) => {
+const FAQModal = ({ modalOpen, setModalOpen, editId, question, setQuestion, answer, setAnswer, category, setCategory, categories, newCategory, setNewCategory, handleSubmit, loading, errorMsg }) => {
   if (!modalOpen) return null;
 
   return (
@@ -266,7 +266,7 @@ const FAQModal = ({ modalOpen, setModalOpen, editId, question, setQuestion, answ
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="">Pilih kategori</option>
-                {categories.map((cat: any) => (
+                {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
