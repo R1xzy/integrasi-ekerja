@@ -1,3 +1,4 @@
+// src/app/dashboard/orders/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,12 +8,13 @@ import ReusableTable, { Column } from "@/components/ReusableTable";
 import { authenticatedFetch } from "@/lib/auth-client";
 import { formatCurrency } from "@/lib/utils";
 import { formatDate } from "@/lib/utils_new";
+import Image from "next/image"; // Import Image
 
-// Tipe data disesuaikan dengan respons dari API /api/admin/orders
+// Tipe data disesuaikan dengan respons dari API
 interface Customer {
   id: string;
   fullName: string;
-  profile?: { photo?: string };
+  profilePictureUrl?: string | null; // Disesuaikan dengan skema
 }
 
 interface Provider {
@@ -61,7 +63,7 @@ export default function OrdersPage() {
       const response = await authenticatedFetch('/api/admin/orders');
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Gagal mengambil data pesanan.");
+        throw new Error(errorData.error || "Gagal mengambil data pesanan.");
       }
       const data: { data: OrdersResponse['data'] } = await response.json();
       
@@ -80,38 +82,32 @@ export default function OrdersPage() {
   }, []);
 
   const getStatusBadge = (status: string) => {
-    const statusClassMap = {
+    const statusClassMap: Record<string, string> = {
       'COMPLETED': "bg-green-100 text-green-800",
       'IN_PROGRESS': "bg-blue-100 text-blue-800",
       'PENDING_ACCEPTANCE': "bg-yellow-100 text-yellow-800",
-      'PENDING': "bg-yellow-100 text-yellow-800", // Fallback for 'pending'
       'CANCELLED_BY_CUSTOMER': "bg-red-100 text-red-800",
-      'CANCELLED': "bg-red-100 text-red-800", // Fallback for 'cancelled'
       'REJECTED_BY_PROVIDER': "bg-red-100 text-red-800",
     };
-    const statusIconMap = {
+    const statusIconMap: Record<string, React.ReactNode> = {
       'COMPLETED': <CheckCircle className="w-3 h-3 mr-1" />,
       'IN_PROGRESS': <Clock className="w-3 h-3 mr-1" />,
       'PENDING_ACCEPTANCE': <AlertCircle className="w-3 h-3 mr-1" />,
-      'PENDING': <AlertCircle className="w-3 h-3 mr-1" />,
       'CANCELLED_BY_CUSTOMER': <XCircle className="w-3 h-3 mr-1" />,
-      'CANCELLED': <XCircle className="w-3 h-3 mr-1" />,
       'REJECTED_BY_PROVIDER': <XCircle className="w-3 h-3 mr-1" />,
     };
-    const statusTextMap = {
+    const statusTextMap: Record<string, string> = {
       'COMPLETED': "Selesai",
       'IN_PROGRESS': "Berlangsung",
       'PENDING_ACCEPTANCE': "Menunggu",
-      'PENDING': "Menunggu",
       'CANCELLED_BY_CUSTOMER': "Dibatalkan",
-      'CANCELLED': "Dibatalkan",
       'REJECTED_BY_PROVIDER': "Ditolak",
     }
 
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClassMap[status as keyof typeof statusClassMap] || 'bg-gray-100 text-gray-800'}`}>
-        {statusIconMap[status as keyof typeof statusIconMap]}
-        {statusTextMap[status as keyof typeof statusTextMap] || status.replace(/_/g, ' ')}
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClassMap[status] || 'bg-gray-100 text-gray-800'}`}>
+        {statusIconMap[status]}
+        {statusTextMap[status] || status.replace(/_/g, ' ')}
       </span>
     );
   };
@@ -123,9 +119,13 @@ export default function OrdersPage() {
         accessorKey: "customer.fullName",
         cell: (row) => (
             <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-600 text-sm font-medium">{row.customer.fullName.charAt(0)}</span>
-                </div>
+                <Image 
+                    src={row.customer.profilePictureUrl || '/default-avatar.png'} 
+                    alt={row.customer.fullName}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-full object-cover"
+                />
                 <span>{row.customer.fullName}</span>
             </div>
         ),
@@ -135,14 +135,6 @@ export default function OrdersPage() {
     {
         header: "Penyedia",
         accessorKey: "provider.fullName",
-        cell: (row) => (
-            <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-blue-200 flex items-center justify-center">
-                    <span className="text-blue-600 text-sm font-medium">{row.provider.fullName.charAt(0)}</span>
-                </div>
-                <span>{row.provider.fullName}</span>
-            </div>
-        ),
         sortable: true,
         sortAccessor: (row) => row.provider.fullName
     },
@@ -182,7 +174,7 @@ export default function OrdersPage() {
         header: "Aksi",
         cell: (row) => (
             <Link href={`/dashboard/orders/${row.id}`} className="text-blue-600 hover:text-blue-900">
-                <Eye className="w-4 h-4"/>
+                <Eye className="w-5 h-5"/>
             </Link>
         )
     }
@@ -205,19 +197,17 @@ export default function OrdersPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 text-gray-600">
       <div className="max-w-7xl mx-auto">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Kelola Pesanan</h1>
           <p className="text-gray-600 mt-2">Monitor dan kelola semua pesanan di platform</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
+              <div className="p-3 bg-green-100 rounded-lg">
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
@@ -228,7 +218,7 @@ export default function OrdersPage() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-3 bg-blue-100 rounded-lg">
                 <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
@@ -239,7 +229,7 @@ export default function OrdersPage() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
+              <div className="p-3 bg-yellow-100 rounded-lg">
                 <AlertCircle className="w-6 h-6 text-yellow-600" />
               </div>
               <div className="ml-4">
@@ -250,7 +240,7 @@ export default function OrdersPage() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
+              <div className="p-3 bg-red-100 rounded-lg">
                 <XCircle className="w-6 h-6 text-red-600" />
               </div>
               <div className="ml-4">
@@ -261,12 +251,11 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Orders Table - Menggunakan ReusableTable */}
         <ReusableTable
           data={orders || []}
           columns={columns}
           enableSearch
-          searchPlaceholder="Cari pesanan..."
+          searchPlaceholder="Cari berdasarkan nama, layanan..."
           enablePagination
           itemsPerPage={10}
         />

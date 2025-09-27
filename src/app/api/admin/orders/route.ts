@@ -11,134 +11,73 @@ import {
   SEARCH_FIELDS,
   SORT_FIELDS 
 } from '@/lib/data-table-helpers';
-
 export async function GET(request: NextRequest) {
   try {
-    // Validate Bearer token - admin only
-    /*const authResult = await requireAuth(request, ['admin']);
+    const authResult = await requireAuth(request, ['admin']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
-    }*/
-
-    const url = new URL(request.url);
-    
-    // Parse data table parameters (search, sort, pagination)
-    const tableParams = parseDataTableParams(url.searchParams);
-    
-    // Additional filters
-    const status = url.searchParams.get('status');
-    const dateFrom = url.searchParams.get('dateFrom');
-    const dateTo = url.searchParams.get('dateTo');
-    const minAmount = url.searchParams.get('minAmount');
-    const maxAmount = url.searchParams.get('maxAmount');
-    
-    // Validate sort field
-    const validatedSortBy = validateSortField(tableParams.sortBy, SORT_FIELDS.orders);
-
-    // Build where clause
-    const whereClause: Record<string, any> = {};
-    
-    if (status) {
-      whereClause.status = status;
     }
 
-    if (dateFrom || dateTo) {
-      whereClause.orderDate = {};
-      if (dateFrom) {
-        whereClause.orderDate.gte = new Date(dateFrom);
-      }
-      if (dateTo) {
-        whereClause.orderDate.lte = new Date(dateTo);
-      }
-    }
-
-    if (minAmount || maxAmount) {
-      whereClause.finalAmount = {};
-      if (minAmount) {
-        whereClause.finalAmount.gte = parseFloat(minAmount);
-      }
-      if (maxAmount) {
-        whereClause.finalAmount.lte = parseFloat(maxAmount);
-      }
-    }
-
-    // Add search functionality
-    if (tableParams.search) {
-      const searchWhere = buildSearchWhere(tableParams.search, SEARCH_FIELDS.orders);
-      whereClause.AND = [searchWhere];
-    }
-
-    // Get total count for pagination
-    const total = await prisma.order.count({ where: whereClause });
-
-    // Build order by clause
-    const orderBy = validatedSortBy 
-      ? buildOrderBy(validatedSortBy, tableParams.sortOrder)
-      : { orderDate: 'desc' };
-
-    // Get orders with pagination
+    // --- Menghitung Statistik Pesanan ---
+    const [
+        totalOrders,
+        completedOrders,
+        inProgressOrders,
+        pendingOrders,
+        cancelledOrders
+    ] = await prisma.$transaction([
+        prisma.order.count(),
+        prisma.order.count({ where: { status: 'COMPLETED' } }),
+        prisma.order.count({ where: { status: 'IN_PROGRESS' } }),
+        prisma.order.count({ where: { status: 'PENDING_ACCEPTANCE' } }),
+        prisma.order.count({ where: { 
+            status: { in: ['CANCELLED_BY_CUSTOMER', 'REJECTED_BY_PROVIDER'] } 
+        }}),
+    ]);
+    
+    // --- Mengambil semua pesanan (tanpa paginasi untuk saat ini) ---
+    // Logika paginasi Anda sebelumnya dapat ditambahkan kembali di sini jika diperlukan
     const orders = await prisma.order.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        orderDate: true,
-        scheduledDate: true,
-        status: true,
-        jobAddress: true,
-        district: true,
-        subDistrict: true,
-        ward: true,
-        jobDescriptionNotes: true,
-        finalAmount: true,
-        information: true,
-        createdAt: true,
-        updatedAt: true,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
         customer: {
           select: {
             id: true,
             fullName: true,
-            email: true,
-            phoneNumber: true
-          }
+            profilePictureUrl: true, // Mengambil URL foto profil
+          },
         },
         provider: {
           select: {
             id: true,
             fullName: true,
-            email: true,
-            phoneNumber: true
-          }
+          },
         },
         providerService: {
           select: {
             id: true,
             serviceTitle: true,
-            price: true,
-            category: {
-              select: {
-                name: true
-              }
-            }
-          }
-        }
+          },
+        },
       },
-      orderBy,
-      skip: calculateSkip(tableParams.page, tableParams.limit),
-      take: tableParams.limit
     });
 
-    // Create standardized response
-    const response = createDataTableResponse(orders, total, tableParams);
-    
+    // --- Membuat nomor pesanan unik jika belum ada ---
+    const ordersWithNumber = orders.map(order => ({
+        ...order,
+        orderNumber: `ORD-${order.id.toString().padStart(6, '0')}`
+    }));
+
     return createSuccessResponse({
-      ...response,
-      filters: {
-        status,
-        dateFrom,
-        dateTo,
-        minAmount,
-        maxAmount
-      }
+      orders: ordersWithNumber,
+      // Menambahkan statistik ke dalam respons
+      totalOrders,
+      completedOrders,
+      inProgressOrders,
+      pendingOrders,
+      cancelledOrders,
     }, 'Orders retrieved successfully');
 
   } catch (error) {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent, type ChangeEvent, useEffect } from "react"; // Menambahkan useEffect
+import { useState, type FormEvent, type ChangeEvent, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useDebounce } from 'use-debounce';
 
-// --- KUMPULAN IKON SVG (TIDAK PERLU IMPORT) ---
+// --- KUMPULAN IKON SVG (TIDAK BERUBAH) ---
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
 const MailIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-400"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>;
 const LockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
@@ -28,29 +29,117 @@ export default function RegisterPage() {
     phoneNumber: "",
     address: "",
   });
-  const [confirmPassword, setConfirmPassword] = useState(""); // State baru untuk konfirmasi password
-  const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null); // State untuk status kecocokan
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<Role>("customer");
   const [ktpDocument, setKtpDocument] = useState<File | null>(null);
   const [certificateDocument, setCertificateDocument] = useState<File | null>(null);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null); // Error dari API
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // --- VALIDASI REAL-TIME ---
+  // --- STATE BARU UNTUK VALIDASI ---
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
+  });
+
+  // --- DEBOUNCING UNTUK CEK KEUNIKAN ---
+  const [debouncedEmail] = useDebounce(formData.email, 500);
+  const [debouncedPhoneNumber] = useDebounce(formData.phoneNumber, 500);
+
+  // --- LOGIKA VALIDASI DINAMIS ---
+  const validateField = useCallback((name: string, value: string) => {
+      let errorMsg = '';
+      switch (name) {
+          case 'password':
+              if (value.length < 8) {
+                  errorMsg = 'Password harus minimal 8 karakter.';
+              } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+                  errorMsg = 'Kombinasi huruf besar, kecil, dan angka.';
+              }
+              break;
+          case 'confirmPassword':
+              if (formData.password !== value) {
+                  errorMsg = 'Password dan konfirmasi tidak cocok.';
+              }
+              break;
+          case 'email':
+              if (!/\S+@\S+\.\S+/.test(value)) {
+                  errorMsg = 'Format email tidak valid.';
+              }
+              break;
+          case 'phoneNumber':
+              // Memeriksa apakah hanya berisi angka dan panjangnya 10-14 digit
+              if (!/^\d{10,14}$/.test(value)) {
+                  errorMsg = 'Nomor telepon harus 10-14 digit angka.';
+              }
+              break;
+          case 'fullName':
+              if (!value.trim()) {
+                  errorMsg = 'Nama lengkap tidak boleh kosong.';
+              }
+              break;
+      }
+      setErrors(prev => ({ ...prev, [name]: errorMsg }));
+      return !errorMsg; // return true jika valid
+  }, [formData.password]);
+
+  // --- EFEK UNTUK CEK KEUNIKAN EMAIL (DEBOUNCED) ---
   useEffect(() => {
-    if (formData.password && confirmPassword) {
-      setPasswordMatch(formData.password === confirmPassword);
-    } else {
-      setPasswordMatch(null); // Reset jika salah satu kosong
-    }
-  }, [formData.password, confirmPassword]);
+    const checkEmailUniqueness = async () => {
+        // Hanya cek jika format email dasar sudah benar dan tidak kosong
+        if (debouncedEmail && !errors.email) {
+            try {
+                // TODO: Buat endpoint API ini di backend Anda
+                // Contoh: GET /api/auth/check-uniqueness?field=email&value=...
+                const response = await fetch(`/api/auth/check-uniqueness?field=email&value=${debouncedEmail}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.isUnique) {
+                        setErrors(prev => ({ ...prev, email: 'Email ini sudah terdaftar.' }));
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memeriksa keunikan email:", err);
+            }
+        }
+    };
+    checkEmailUniqueness();
+  }, [debouncedEmail, errors.email]);
+
+  // --- EFEK UNTUK CEK KEUNIKAN NOMOR TELEPON (DEBOUNCED) ---
+  useEffect(() => {
+    const checkPhoneUniqueness = async () => {
+        if (debouncedPhoneNumber && !errors.phoneNumber) {
+             try {
+                // TODO: Buat endpoint API ini di backend Anda
+                // Contoh: GET /api/auth/check-uniqueness?field=phoneNumber&value=...
+                const response = await fetch(`/api/auth/check-uniqueness?field=phoneNumber&value=${debouncedPhoneNumber}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.isUnique) {
+                        setErrors(prev => ({ ...prev, phoneNumber: 'Nomor telepon ini sudah terdaftar.' }));
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memeriksa keunikan nomor telepon:", err);
+            }
+        }
+    };
+    checkPhoneUniqueness();
+  }, [debouncedPhoneNumber, errors.phoneNumber]);
+
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    validateField(name, value);
   };
   
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -61,16 +150,23 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setApiError(null);
+    setSuccess(null);
 
-    // Pengecekan akhir sebelum submit
-    if (formData.password !== confirmPassword) {
-      setError("Password dan konfirmasi password tidak cocok.");
+    // --- PENGECEKAN VALIDASI FINAL SEBELUM SUBMIT ---
+    const isFullNameValid = validateField('fullName', formData.fullName);
+    const isEmailValid = validateField('email', formData.email);
+    const isPhoneValid = validateField('phoneNumber', formData.phoneNumber);
+    const isPasswordValid = validateField('password', formData.password);
+    const isConfirmPasswordValid = validateField('confirmPassword', confirmPassword);
+
+    // Cek juga error dari state, karena cek keunikan bersifat async
+    if (!isFullNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid || !isConfirmPasswordValid || errors.email || errors.phoneNumber) {
+      setApiError("Harap perbaiki semua kesalahan pada form sebelum mendaftar.");
       return;
     }
-
+    
     setIsLoading(true);
-    setError(null);
-    setSuccess(null);
 
     const data = new FormData();
     Object.keys(formData).forEach(key => data.append(key, formData[key as keyof typeof formData]));
@@ -78,7 +174,7 @@ export default function RegisterPage() {
 
     if (role === 'provider') {
       if (!ktpDocument || !certificateDocument) {
-        setError('Untuk Penyedia Jasa, KTP dan Sertifikat wajib diunggah.');
+        setApiError('Untuk Penyedia Jasa, KTP dan Sertifikat wajib diunggah.');
         setIsLoading(false);
         return;
       }
@@ -94,7 +190,7 @@ export default function RegisterPage() {
       setSuccess('Registrasi berhasil! Anda akan dialihkan ke halaman login.');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err: any) {
-      setError(err.message);
+      setApiError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -123,27 +219,30 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white py-8 px-6 shadow-xl rounded-xl">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Nama Lengkap</label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><UserIcon /></div>
-                <input id="fullName" name="fullName" type="text" required onChange={handleChange} className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Masukkan nama lengkap"/>
+                <input id="fullName" name="fullName" type="text" required onChange={handleChange} className={`appearance-none block w-full pl-10 pr-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${errors.fullName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`} placeholder="Masukkan nama lengkap"/>
               </div>
+              {errors.fullName && <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>}
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><MailIcon /></div>
-                <input id="email" name="email" type="email" autoComplete="email" required onChange={handleChange} className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Masukkan email"/>
+                <input id="email" name="email" type="email" autoComplete="email" required onChange={handleChange} className={`appearance-none block w-full pl-10 pr-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`} placeholder="Masukkan email"/>
               </div>
+              {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
             </div>
              <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">Nomor Telepon</label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><PhoneIcon /></div>
-                <input id="phoneNumber" name="phoneNumber" type="tel" required onChange={handleChange} className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Masukkan nomor telepon"/>
+                <input id="phoneNumber" name="phoneNumber" type="tel" required onChange={handleChange} className={`appearance-none block w-full pl-10 pr-3 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${errors.phoneNumber ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`} placeholder="081234567890"/>
               </div>
+              {errors.phoneNumber && <p className="mt-1 text-xs text-red-600">{errors.phoneNumber}</p>}
             </div>
              <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700">Alamat</label>
@@ -156,15 +255,15 @@ export default function RegisterPage() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><LockIcon /></div>
-                <input id="password" name="password" type={showPassword ? "text" : "password"} required onChange={handleChange} className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Masukkan password"/>
+                <input id="password" name="password" type={showPassword ? "text" : "password"} required onChange={handleChange} className={`appearance-none block w-full pl-10 pr-10 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`} placeholder="Masukkan password"/>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <button type="button" className="text-gray-400 hover:text-gray-500" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
               </div>
+               {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
             </div>
-            {/* --- INPUT KONFIRMASI PASSWORD BARU --- */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Konfirmasi Password</label>
               <div className="mt-1 relative">
@@ -175,9 +274,12 @@ export default function RegisterPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   required
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onPaste={(e) => e.preventDefault()} // Mencegah paste
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      validateField('confirmPassword', e.target.value);
+                  }}
+                  onPaste={(e) => e.preventDefault()}
+                  className={`appearance-none block w-full pl-10 pr-10 py-2 border rounded-md placeholder-gray-400 focus:outline-none sm:text-sm ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                   placeholder="Ketik ulang password"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -186,13 +288,7 @@ export default function RegisterPage() {
                   </button>
                 </div>
               </div>
-              {/* Pesan status real-time */}
-              {passwordMatch === true && (
-                <p className="mt-2 text-xs text-green-600">✔ Password cocok</p>
-              )}
-              {passwordMatch === false && (
-                <p className="mt-2 text-xs text-red-600">✖ Password tidak cocok</p>
-              )}
+              {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>}
             </div>
 
             <div className={role === 'provider' ? 'block' : 'hidden'}>
@@ -217,7 +313,7 @@ export default function RegisterPage() {
                 </div>
             </div>
             
-            {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>}
+            {apiError && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{apiError}</p>}
             {success && <p className="text-sm text-green-600 bg-green-50 p-3 rounded-md">{success}</p>}
 
             <div>
@@ -231,4 +327,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

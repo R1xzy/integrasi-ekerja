@@ -14,17 +14,16 @@ export async function GET(request: NextRequest) {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    // --- PERBAIKAN: Mengambil data harian dari tabel Order, bukan Payment ---
-    const dailyRevenueRaw = await prisma.order.groupBy({
+    const dailyRevenueRaw = await prisma.payment.groupBy({
       by: ['createdAt'],
       where: {
-        status: 'COMPLETED', // Menggunakan status 'COMPLETED'
+        status: 'SUCCESS',
         createdAt: {
           gte: sevenDaysAgo,
         },
       },
       _sum: {
-        finalAmount: true, // Menjumlahkan 'finalAmount'
+        amount: true,
       },
       orderBy: {
         createdAt: 'asc',
@@ -35,8 +34,7 @@ export async function GET(request: NextRequest) {
     dailyRevenueRaw.forEach(item => {
         const date = item.createdAt.toISOString().split('T')[0];
         const currentRevenue = dailyRevenueMap.get(date) || 0;
-        // Menggunakan 'finalAmount' agar sesuai dengan query
-        dailyRevenueMap.set(date, currentRevenue + (item._sum.finalAmount || 0));
+        dailyRevenueMap.set(date, currentRevenue + (item._sum.amount || 0));
     });
 
     const dailyRevenueChartData = [];
@@ -72,20 +70,20 @@ export async function GET(request: NextRequest) {
       prisma.providerService.count(),
       prisma.review.count(),
       prisma.payment.count(),
-      prisma.order.aggregate({
-        _sum: { finalAmount: true },
-        where: { status: 'COMPLETED' },
-      }),
+      prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS' } }),
       prisma.user.count({ where: { verificationStatus: 'PENDING' } }),
       prisma.reviewReport.count({ where: { status: 'PENDING_REVIEW' } }),
+      
+      // --- PERBAIKAN PADA QUERY INI ---
       prisma.order.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
+          // Menggunakan 'select' untuk mengambil kolom spesifik dari customer
           customer: {
             select: {
               fullName: true,
-              profilePictureUrl: true,
+              profilePictureUrl: true, // Mengambil langsung dari kolom yang benar
             },
           },
           providerService: {
@@ -103,10 +101,7 @@ export async function GET(request: NextRequest) {
         orders: { total: totalOrders, recent: recentOrders },
         services: { total: totalServices },
         reviews: { total: totalReviews },
-        payments: { 
-            total: totalPayments, 
-            revenue: totalRevenue._sum.finalAmount || 0 
-        },
+        payments: { total: totalPayments, revenue: totalRevenue._sum.amount || 0 },
         pending: { verifications: pendingVerifications, reports: pendingReports },
         dailyRevenue: dailyRevenueChartData,
       },
