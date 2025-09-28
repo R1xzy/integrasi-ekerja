@@ -157,7 +157,7 @@ export default function CustomerChatAccess() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center">
           <MessageCircle className="w-6 h-6 mr-2 text-blue-500" />
