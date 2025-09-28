@@ -7,8 +7,7 @@ import { StartChatButton } from '@/components/chat/StartChatButton';
 import { authenticatedFetch } from '@/lib/auth-client';
 import Avatar from '@/components/Avatar';
 
-
-// --- Tipe Data (Disesuaikan dengan API) ---
+// --- Tipe Data (Disesuaikan dengan API baru) ---
 interface Review {
   id: number;
   rating: number;
@@ -17,28 +16,31 @@ interface Review {
   customer: {
     fullName: string;
     profilePictureUrl: string | null;
+    email: string;
   }
 }
+
 interface ServiceDetail {
   id: number;
-  serviceTitle: string; // Menggunakan serviceTitle sesuai API
+  serviceName: string;
   description: string;
   price: number;
+  providerName: string;
+  providerId: number;
+  providerProfilePicture: string | null;
+  providerEmail: string;
   category: {
     name: string;
   };
-  provider: {
-    id: number;
-    fullName: string;
-    profilePictureUrl: string | null;
-    averageRating: number; // Menggunakan averageRating sesuai API
-    totalReviews: number; // Menggunakan totalReviews sesuai API
-    email: string;
+  rating: {
+    average: number;
+    count: number;
   };
+  completedOrdersCount: number;
   reviews: Review[];
 }
 
-// --- Komponen Modal Pemesanan (Tidak Berubah) ---
+// --- Komponen Modal Pemesanan (Sedikit penyesuaian) ---
 const OrderModal = ({ service, onClose, onSubmit, isSubmitting }: { service: ServiceDetail; onClose: () => void; onSubmit: (data: any) => void; isSubmitting: boolean; }) => {
     const [schedule, setSchedule] = useState('');
     const [jobAddress, setJobAddress] = useState('');
@@ -75,8 +77,8 @@ const OrderModal = ({ service, onClose, onSubmit, isSubmitting }: { service: Ser
                     <div className="p-6 space-y-4">
                         <div>
                             <p className="text-sm text-gray-500">Layanan:</p>
-                            {/* Menggunakan serviceTitle */}
-                            <p className="font-semibold text-lg">{service.serviceTitle}</p>
+                            {/* Menggunakan serviceName dari API baru */}
+                            <p className="font-semibold text-lg">{service.serviceName}</p>
                         </div>
                         <div>
                             <label htmlFor="schedule" className="block text-sm font-medium text-gray-700 mb-2 flex items-center m-2">
@@ -122,32 +124,21 @@ export default function ServiceDetailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ====================================================================
-  // PERBAIKAN: Mengadopsi pola pengambilan data dari `provider/services`
+  // DIUBAH: Mengambil data dari satu endpoint public
   // ====================================================================
   const fetchServiceDetails = useCallback(async () => {
     if (!serviceId) return;
     setIsLoading(true);
     setError(null);
     try {
-      // Siapkan kedua panggilan API secara paralel
-      const [serviceResponse, reviewsResponse] = await Promise.all([
-        fetch(`/api/services/search?id=${serviceId}`, { cache: 'no-store' }),
-        fetch(`/api/reviews?providerServiceId=${serviceId}`, { cache: 'no-store' })
-      ]);
+      const response = await fetch(`/api/services/public/${serviceId}`, { cache: 'no-store' });
+      const result = await response.json();
 
-      // Olah hasil dari detail layanan
-      const serviceResult = await serviceResponse.json();
-      if (!serviceResponse.ok || !serviceResult.success || serviceResult.data.length === 0) {
-        throw new Error("Layanan tidak ditemukan.");
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Layanan tidak ditemukan.");
       }
-      const mainServiceData = serviceResult.data[0];
-
-      // Olah hasil dari ulasan
-      const reviewsResult = await reviewsResponse.json();
-      const reviews = reviewsResponse.ok && reviewsResult.success ? reviewsResult.data : [];
-
-      // Gabungkan dan set state
-      setService({ ...mainServiceData, reviews });
+      
+      setService(result.data);
 
     } catch (err: any) {
       setError(err.message);
@@ -197,7 +188,7 @@ export default function ServiceDetailPage() {
       setIsOrdering(false);
     }
   };
-  
+ 
   if (isLoading) return <div className="text-center py-20">Memuat detail layanan...</div>;
   if (error) return <div className="text-center py-20 text-red-500">Error: {error}</div>;
   if (!service) return <div className="text-center py-20">Layanan tidak ditemukan.</div>;
@@ -216,70 +207,79 @@ export default function ServiceDetailPage() {
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{service.serviceTitle}</h1>
-                <div className="flex items-center space-x-4 mb-6 text-gray-600">
-                    <div className="flex items-center"><Tag className="mr-2 h-5 w-5 text-blue-500"/> {service.category.name}</div>
-                    <div className="flex items-center"><Star className="mr-1 h-5 w-5 text-yellow-500" fill="currentColor"/> <span className="font-bold text-yellow-500">{(service.provider.averageRating || 0).toFixed(1)}</span><span className="ml-1 text-gray-500">({service.reviews.length} ulasan)</span></div>
-                    <div className="flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-green-500"/> {service.provider.totalReviews} ulasan total</div>
-                </div>
-                <p className="text-gray-700 leading-relaxed mb-8">{service.description}</p>
-                <div className="mt-12">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Ulasan Pelanggan</h2>
-                  <div className="space-y-6">
-                      {service.reviews.length > 0 ? (
-                          service.reviews.map(review => (
-                              <div key={review.id} className="border-b pb-6">
-                                  <div className="flex items-start">
-                                      <Avatar
-                                                        src={service.provider.profilePictureUrl}
-                                                        email={service.provider.email}
-                                                        alt={service.provider.fullName}
-                                                        size={48} // 48px (w-12 h-12)
-                                                        className="mr-4"
-                                                    />
-                                      <div>
-                                          <p className="font-bold">{review.customer.fullName}</p>
-                                          <div className="flex items-center">
-                                              {[...Array(5)].map((_, i) => ( <Star key={i} className={`h-5 w-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor"/> ))}
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <p className="mt-3 text-gray-600">{review.comment}</p>
-                              </div>
-                          ))
-                      ) : (<p className="text-gray-500">Belum ada ulasan untuk layanan ini.</p>)}
+                {/* DIUBAH: Menggunakan properti dari API baru */}
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{service.serviceName}</h1>
+              <div className="flex items-center space-x-4 mb-6 text-gray-600">
+                  <div className="flex items-center"><Tag className="mr-2 h-5 w-5 text-blue-500"/> {service.category.name}</div>
+                  <div className="flex items-center">
+                    <Star className="mr-1 h-5 w-5 text-yellow-500" fill="currentColor"/> 
+                    <span className="font-bold text-yellow-500">{(service.rating.average || 0).toFixed(1)}</span>
+                    <span className="ml-1 text-gray-500">({service.rating.count} ulasan)</span>
                   </div>
+                  <div className="flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-green-500"/> {service.completedOrdersCount} pesanan selesai</div>
+              </div>
+              <p className="text-gray-700 leading-relaxed mb-8">{service.description}</p>
+              
+              <div className="mt-12">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Ulasan Pelanggan</h2>
+                <div className="space-y-6">
+                    {service.reviews.length > 0 ? (
+                        service.reviews.map(review => (
+                            <div key={review.id} className="border-b pb-6">
+                                <div className="flex items-start">
+                                    <Avatar
+                                        src={review.customer.profilePictureUrl}
+                                        // Email customer tidak ada di API, bisa diganti dengan nama atau ID unik jika Avatar memerlukan
+                                        email={review.customer.email}
+                                        alt={review.customer.fullName}
+                                        size={48}
+                                        className="mr-4"
+                                    />
+                                    <div>
+                                        <p className="font-bold">{review.customer.fullName}</p>
+                                        <div className="flex items-center">
+                                            {[...Array(5)].map((_, i) => ( <Star key={i} className={`h-5 w-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`} fill="currentColor"/> ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="mt-3 text-gray-600">{review.comment}</p>
+                            </div>
+                        ))
+                    ) : (<p className="text-gray-500">Belum ada ulasan untuk layanan ini.</p>)}
                 </div>
+              </div>
             </div>
+            
             <div className="lg:col-span-1 items-center">
               <div className="bg-gray-50 p-6 rounded-lg shadow-md sticky top-28 items-center">
-                  <div className="text-center border-b pb-4 mb-4">
-        <Avatar
-            src={service.provider.profilePictureUrl}
-            email={service.provider.email}
-            alt={service.provider.fullName}
-            size={80} 
-           
-            className="mx-auto mb-4" 
-        />
-        <h3 className="text-xl font-bold">{service.provider.fullName}</h3>
-        <p className="text-sm text-gray-500">Penyedia Jasa</p>
-    </div>
-                  <div className="text-2xl text-center font-bold text-gray-800 my-4">Rp{new Intl.NumberFormat('id-ID').format(service.price)}</div>
-                  <p className="text-xs text-center text-gray-500 mb-6">Harga final dapat bervariasi</p>
-                  <div className="space-y-3">
-                      <button 
-                          onClick={() => setIsModalOpen(true)}
-                          className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-lg"
-                      >
-                          <ShoppingCart className="mr-3 h-6 w-6"/>
-                          Pesan Sekarang
-                      </button>
-                      <StartChatButton
-                        participantId={service.provider.id}
+                  {/* DIUBAH: Menggunakan properti dari API baru */}
+                <div className="text-center border-b pb-4 mb-4">
+                  <Avatar
+                    src={service.providerProfilePicture}
+                    // Email provider tidak ada di API, diganti dengan nama provider
+                    email={service.providerEmail}
+                    alt={service.providerName}
+                    size={80} 
+                    className="mx-auto mb-4" 
+                  />
+                  <h3 className="text-xl font-bold">{service.providerName}</h3>
+                  <p className="text-sm text-gray-500">Penyedia Jasa</p>
+                </div>
+                <div className="text-2xl text-center font-bold text-gray-800 my-4">Rp{new Intl.NumberFormat('id-ID').format(service.price)}</div>
+                <p className="text-xs text-center text-gray-500 mb-6">Harga final dapat bervariasi</p>
+                <div className="space-y-3">
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-lg"
+                    >
+                        <ShoppingCart className="mr-3 h-6 w-6"/>
+                        Pesan Sekarang
+                    </button>
+                    <StartChatButton
+                        participantId={service.providerId}
                         buttonText="Chat Provider"
-                      />
-                  </div>
+                    />
+                </div>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 "use client";
-
+import Link from 'next/link';
 import { useState, useEffect } from "react";
 import { X, CheckCircle, XCircle, FileText } from "lucide-react";
 import ReusableTable from "@/components/ReusableTable";
@@ -216,6 +216,25 @@ export default function ManageProvidersPage() {
           enablePagination
           itemsPerPage={10}
         />
+        <Link 
+      href="/dashboard/providers/verify"
+      className="
+        inline-flex items-center justify-center 
+        px-5 py-2.5 
+        font-semibold text-sm text-white 
+        bg-blue-600 
+        rounded-lg 
+        shadow-sm 
+        hover:bg-blue-700 
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+        transition-all duration-200 ease-in-out
+        transform hover:-translate-y-0.5
+        mt-6
+      "
+    >
+      <CheckCircle className="w-4 h-4 mr-2" />
+      Lihat halaman verifikasi penyedia jasa
+    </Link>
       </div>
 
       {/* --- MODAL KONFIRMASI --- */}

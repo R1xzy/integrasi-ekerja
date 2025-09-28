@@ -3,13 +3,17 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Shield, Clock, Check, X, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { authenticatedFetch } from '@/lib/auth-client';
+import Avatar from '@/components/Avatar'; // ✨ 1. Impor komponen Avatar
 
+// ✨ 2. Perbarui Tipe Data untuk menyertakan info Avatar
 interface ChatAccessRequest {
   id: number;
   orderId: number;
   requestedBy: {
     id: number;
     fullName: string;
+    profilePictureUrl: string | null; // Diperlukan untuk Avatar
+    email: string;  
   };
   reason: string;
   status: 'PENDING' | 'APPROVED' | 'DENIED';
@@ -55,29 +59,36 @@ export default function CustomerChatAccess() {
     fetchData();
   }, []);
 
+  // ✨ 3. Perbaiki fetchData agar lebih tahan banting
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
+      const fetchJson = async (url: string) => {
+        const response = await authenticatedFetch(url);
+        if (!response.ok) {
+          throw new Error(`Gagal memuat dari ${url}: Status ${response.status}`);
+        } 
+        // Cek jika body kosong sebelum parsing JSON
+        const text = await response.text();
+        return text ? JSON.parse(text) : { success: true, data: [] }; // Return default jika kosong
+      };
+
       // Fetch access requests
-      const requestsResponse = await authenticatedFetch('/api/customer/chat-access/requests');
-      const requestsData = await requestsResponse.json();
-      
+      const requestsData = await fetchJson('/api/customer/chat-access/requests');
       if (requestsData.success) {
         setAccessRequests(requestsData.data);
       }
 
-      // Fetch conversations with admin access info
-      const conversationsResponse = await authenticatedFetch('/api/customer/chat-access/conversations');
-      const conversationsData = await conversationsResponse.json();
-      
+      // Fetch conversations
+      const conversationsData = await fetchJson('/api/customer/chat-access/conversations');
       if (conversationsData.success) {
         setConversations(conversationsData.data);
       }
       
     } catch (error: any) {
       console.error('Error fetching chat access data:', error);
-      alert(error.message || 'Terjadi kesalahan saat memuat data');
+      // alert(error.message || 'Terjadi kesalahan saat memuat data');
     } finally {
       setLoading(false);
     }
@@ -182,6 +193,14 @@ export default function CustomerChatAccess() {
             {accessRequests.filter(r => r.status === 'PENDING').map((request) => (
               <div key={request.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4 flex-1">
+                     <Avatar
+                        src={request.requestedBy.profilePictureUrl}
+                        email={request.requestedBy.email}
+                        alt={request.requestedBy.fullName}
+                        size={40}
+                        className="flex-shrink-0"
+                     />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Shield className="w-4 h-4 text-blue-500" />
@@ -228,6 +247,7 @@ export default function CustomerChatAccess() {
                     <X className="w-4 h-4" />
                     Tolak
                   </button>
+                </div>
                 </div>
               </div>
             ))}

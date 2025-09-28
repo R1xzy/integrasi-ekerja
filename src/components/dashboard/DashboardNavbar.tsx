@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, } from "lucide-react";
 import { useState } from "react";
 
 interface NavItem {
@@ -16,8 +16,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/providers", label: "Penyedia" },
   { href: "/dashboard/customers", label: "Pelanggan" },
   { href: "/dashboard/services", label: "Layanan" },
-  { href: "/dashboard/hidden-reviews", label: "Ulasan Tersembunyi" },
   { href: "/dashboard/reported-reviews", label: "Laporan Ulasan" },
+  { href: "/dashboard/chat-history", label: "Akses Chat" },
 ];
 
 export default function DashboardNavbar() {
@@ -72,7 +72,7 @@ export default function DashboardNavbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 text-md">
             {navItems.map((item) => (
               <Link
                 key={item.href}

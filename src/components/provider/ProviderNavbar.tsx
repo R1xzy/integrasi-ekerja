@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, X, BarChart3, Briefcase, ShoppingBag, Settings, MessageSquare } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, ReactNode } from "react";
 
+// Interface untuk NavItem (tidak berubah)
 interface NavItem {
   href: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
+}
+
+// **PERUBAHAN 1: Tambahkan interface untuk data user**
+interface UserData {
+  name: string;
+  [key: string]: any;
 }
 
 const navItems: NavItem[] = [
@@ -16,13 +23,28 @@ const navItems: NavItem[] = [
   { href: "/provider/services", label: "Layanan Saya", icon: <Briefcase className="w-4 h-4" /> },
   { href: "/provider/orders", label: "Pesanan Masuk", icon: <ShoppingBag className="w-4 h-4" /> },
   { href: "/provider/profile", label: "Profil", icon: <Settings className="w-4 h-4" /> },
-  {href: "/chat",label: "Inbox",icon: <MessageSquare className="w-4 h-4" />,},
+  { href: "/provider/chat", label: "Inbox", icon: <MessageSquare className="w-4 h-4" /> },
 ];
 
 export default function ProviderNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // **PERUBAHAN 2: Tambahkan state untuk menyimpan data user**
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // **PERUBAHAN 3: useEffect untuk mengambil data user dari localStorage**
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      try {
+        const parsedUser: UserData = JSON.parse(userString);
+        setUser(parsedUser);
+      } catch (e) {
+        console.error("Gagal parse user dari localStorage", e);
+      }
+    }
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -43,12 +65,17 @@ export default function ProviderNavbar() {
     return pathname.startsWith(href);
   };
 
+  // **PERUBAHAN 4: Saring item menu untuk desktop**
+  const desktopNavItems = navItems.filter(
+    (item) => item.href !== "/provider/profile"
+  );
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 duraytion-300">
+    <header className="bg-white shadow-sm border-b border-gray-200 duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/provider/dashboard" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">E</span>
             </div>
@@ -57,7 +84,7 @@ export default function ProviderNavbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6">
-            {navItems.map((item) => (
+            {desktopNavItems.map((item) => ( // Menggunakan item yang sudah difilter
               <Link
                 key={item.href}
                 href={item.href}
@@ -75,13 +102,28 @@ export default function ProviderNavbar() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            <span className="text-gray-700 font-medium">Provider</span>
+            {/* **PERUBAHAN 5: Ganti span statis dengan Link dinamis** */}
+            {user ? (
+              <Link
+                href="/provider/profile"
+                className={`font-medium hidden sm:inline transition-colors ${
+                  isActiveLink("/provider/profile")
+                    ? "text-green-600"
+                    : "text-gray-700 hover:text-green-600"
+                }`}
+              >
+                {user.name}
+              </Link>
+            ) : (
+              <span className="text-gray-700 font-medium hidden sm:inline">Provider</span>
+            )}
+
             <button
               onClick={handleLogout}
               className="flex items-center space-x-1 text-red-600 hover:text-red-700 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              <span>Keluar</span>
+              <span className="hidden sm:inline">Keluar</span>
             </button>
 
             {/* Mobile menu button */}
@@ -89,16 +131,12 @@ export default function ProviderNavbar() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 rounded-md text-gray-700 hover:text-green-600 hover:bg-gray-100"
             >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation with Animation */}
+        {/* Mobile Navigation */}
         <div
           className={`
             md:hidden border-gray-200 overflow-hidden
@@ -106,8 +144,8 @@ export default function ProviderNavbar() {
             ${isMobileMenuOpen ? 'max-h-96 py-4 border-t' : 'max-h-0'}
           `}
         >
-          <nav className="flex flex-col space-y-2">
-            {navItems.map((item) => (
+          <nav className="flex flex-col space-y-2 px-4">
+            {navItems.map((item) => ( // Menggunakan navItems asli untuk mobile
               <Link
                 key={item.href}
                 href={item.href}

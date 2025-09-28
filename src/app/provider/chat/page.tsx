@@ -73,25 +73,8 @@ const ChatListPage = () => {
             
         </header>
         <main>
-          <Link 
-      href="/customer/chat-access"
-      className="
-        inline-flex items-center justify-center 
-        px-5 py-2.5 
-        font-semibold text-sm text-white 
-        bg-blue-600 
-        rounded-lg 
-        shadow-sm 
-        hover:bg-blue-700 
-        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-        transition-all duration-200 ease-in-out
-        transform hover:-translate-y-0.5
-        mb-6
-      "
-    >
-      <MessageSquare className="w-4 h-4 mr-2" />
-      Ingin memberikan access chat ke admin?
-    </Link>
+          
+
           {conversations.length > 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               {conversations.map((convo) => {

@@ -1,9 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MessageCircle, Eye, Clock, User, Calendar, Search, Filter, ExternalLink, Shield } from 'lucide-react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
+import { 
+  MessageCircle, 
+  Eye, 
+  Clock, 
+  User, 
+  Shield, 
+  PlusCircle, 
+  X, 
+  Search, 
+  ChevronDown, 
+  Loader2 
+} from 'lucide-react';
 import { authenticatedFetch } from '@/lib/auth-client';
 
+// --- Interface (Tidak ada perubahan) ---
 interface AdminAccessibleChat {
   id: number;
   orderId: number;
@@ -39,364 +51,440 @@ interface ChatMessage {
   };
 }
 
+interface Conversation {
+  id: number;
+  orderId: number | null;
+  createdAt: string;
+  customer: {
+      id: number;
+      fullName: string;
+  } | null;
+  provider: {
+      id: number;
+      fullName: string;
+  } | null;
+  order: {
+    id: number;
+    service: {
+      name: string;
+    }
+  } | null;
+}
+
+// --- Komponen Modal (Tidak ada perubahan) ---
+const RequestAccessModal = ({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data: { conversationId: number; reason: string }) => void; }) => {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchAllConversations = async () => {
+      setLoading(true);
+      try {
+        const response = await authenticatedFetch(`/api/admin/conversations?q=${searchTerm}`);
+        const data = await response.json();
+        if (data.success) {
+          setConversations(data.data);
+        } else {
+          console.error("Gagal memuat percakapan:", data.error);
+          setConversations([]);
+        }
+      } catch (error) {
+        console.error("Gagal memuat percakapan:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const handler = setTimeout(() => {
+        fetchAllConversations();
+    }, 500);
+
+    return () => {
+        clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  const handleToggle = (id: number) => {
+    setExpandedId(currentId => (currentId === id ? null : id));
+    setReason('');
+  };
+
+  const handleSubmit = async (conversationId: number) => {
+    setIsSubmitting(true);
+    await onSubmit({ conversationId, reason });
+    setIsSubmitting(false);
+    setExpandedId(null);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col" style={{ height: 'clamp(400px, 80vh, 700px)' }}>
+        <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-800">Pilih Percakapan untuk Direquest</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="p-4 border-b flex-shrink-0">
+            <div className="relative">
+                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Cari nama customer atau provider..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2">
+            {loading ? (
+                <div className="flex justify-center items-center h-full text-gray-500">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <span className="ml-3">Memuat percakapan...</span>
+                </div>
+            ) : conversations.length > 0 ? (
+                <div className="space-y-2">
+                    {conversations.map((conv) => (
+                        <div key={conv.id} className="border rounded-lg overflow-hidden transition-shadow hover:shadow-md">
+                            <button onClick={() => handleToggle(conv.id)} className="w-full flex justify-between items-center text-left p-3 hover:bg-gray-50 focus:outline-none">
+                                <div>
+                                    <p className="font-semibold text-gray-800">
+                                      {conv.order?.service.name || 'Percakapan Umum'}
+                                      {conv.orderId && <span className="text-gray-500 font-normal"> (Order #{conv.orderId})</span>}
+                                    </p>
+                                    <p className="text-sm text-gray-600">{conv.customer?.fullName || 'N/A'} ↔ {conv.provider?.fullName || 'N/A'}</p>
+                                </div>
+                                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${expandedId === conv.id ? 'rotate-180' : ''}`} />
+                            </button>
+                            {expandedId === conv.id && (
+                                <div className="p-4 border-t bg-gray-50/50">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Alasan Permintaan Akses</label>
+                                    <textarea
+                                        rows={3}
+                                        value={reason}
+                                        onChange={(e) => setReason(e.target.value)}
+                                        placeholder="Tuliskan alasan Anda memerlukan akses ke percakapan ini..."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <div className="text-right mt-3">
+                                        <button
+                                            onClick={() => handleSubmit(conv.id)}
+                                            disabled={isSubmitting}
+                                            className="px-5 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+                                        >
+                                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Kirim Permintaan'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-10 text-gray-500">
+                    <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                    Tidak ada percakapan ditemukan.
+                </div>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+};
+const ChatViewModal = ({ 
+    chatDetail, 
+    messages, 
+    loadingMessages, 
+    onClose 
+}: { 
+    chatDetail: AdminAccessibleChat; 
+    messages: ChatMessage[]; 
+    loadingMessages: boolean; 
+    onClose: () => void;
+}) => {
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Auto-scroll ke pesan terakhir
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    const isAccessExpired = (expiresAt: string) => new Date(expiresAt) <= new Date();
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl flex flex-col" style={{ height: 'clamp(500px, 90vh, 800px)' }}>
+                {/* Header Modal */}
+                <div className="p-4 border-b border-gray-200 flex-shrink-0">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Percakapan Order #{chatDetail.orderId}
+                            </h2>
+                            <div className="text-sm text-gray-600 mt-1">
+                                <p><span className='font-medium'>Customer:</span> {chatDetail.customer.fullName}</p>
+                                <p><span className='font-medium'>Provider:</span> {chatDetail.provider.fullName}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            isAccessExpired(chatDetail.accessExpiresAt)
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                                <Eye className="w-3 h-3 mr-1.5" />
+                                {isAccessExpired(chatDetail.accessExpiresAt) ? 'Akses Expired' : 'Akses Aktif'}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1.5">
+                                Berakhir: {new Date(chatDetail.accessExpiresAt).toLocaleString('id-ID')}
+                            </p>
+                        </div>
+                        <button onClick={onClose} className="ml-4 text-gray-400 hover:text-gray-600">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Body Modal (Area Pesan) */}
+                <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+                    {loadingMessages ? (
+                        <div className="flex items-center justify-center h-full">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                        </div>
+                    ) : messages.length > 0 ? (
+                        <div className="space-y-4">
+                            {messages.map((message) => {
+                                const isCustomer = message.sender.role.roleName === 'customer';
+                                return (
+                                    <div key={message.id} className={`flex gap-3 ${isCustomer ? 'justify-start' : 'justify-end'}`}>
+                                        <div className={`max-w-md px-4 py-3 rounded-xl ${
+                                            isCustomer ? 'bg-white text-gray-800 shadow-sm' : 'bg-blue-500 text-white'
+                                        }`}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-semibold">{message.sender.fullName}</span>
+                                                <span className={`text-xs capitalize px-1.5 py-0.5 rounded-full ${
+                                                    isCustomer ? 'bg-gray-200 text-gray-600' : 'bg-blue-400 text-blue-100'
+                                                }`}>
+                                                    {message.sender.role.roleName}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm whitespace-pre-wrap">{message.messageContent}</p>
+                                            <p className={`text-xs mt-2 text-right ${isCustomer ? 'text-gray-500' : 'text-blue-200'}`}>
+                                                {new Date(message.sentAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                            <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
+                            <p>Tidak ada pesan ditemukan</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ♻️ --- Komponen Utama Halaman (Struktur Diubah) --- ♻️
 export default function AdminChatHistory() {
   const [accessibleChats, setAccessibleChats] = useState<AdminAccessibleChat[]>([]);
-  const [selectedChat, setSelectedChat] = useState<AdminAccessibleChat | null>(null);
+  const [selectedChat, setSelectedChat] = useState<AdminAccessibleChat | null>(null); // Sekarang digunakan untuk membuka modal
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterExpiry, setFilterExpiry] = useState<string>('all');
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   useEffect(() => {
     fetchAccessibleChats();
   }, []);
 
   const fetchAccessibleChats = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await authenticatedFetch('/api/admin/chat-access/accessible');
       const data = await response.json();
-      
       if (data.success) {
         setAccessibleChats(data.data);
-      } else {
-        throw new Error(data.error || 'Gagal memuat data chat');
-      }
-    } catch (error: any) {
-      console.error('Error fetching accessible chats:', error);
-      alert(error.message || 'Terjadi kesalahan saat memuat data');
-    } finally {
-      setLoading(false);
-    }
+      } else { throw new Error(data.error || 'Gagal memuat data chat'); }
+    } catch (error: any) { alert(error.message); } 
+    finally { setLoading(false); }
   };
 
   const fetchChatMessages = async (chatId: number) => {
+    setLoadingMessages(true);
+    setChatMessages([]); // Kosongkan pesan lama saat memuat yang baru
     try {
-      setLoadingMessages(true);
       const response = await authenticatedFetch(`/api/admin/chat-access/messages/${chatId}`);
       const data = await response.json();
-      
       if (data.success) {
         setChatMessages(data.data.messages || []);
-      } else {
-        throw new Error(data.error || 'Gagal memuat pesan chat');
-      }
-    } catch (error: any) {
-      console.error('Error fetching chat messages:', error);
-      alert(error.message || 'Terjadi kesalahan saat memuat pesan');
-      setChatMessages([]);
-    } finally {
-      setLoadingMessages(false);
-    }
+      } else { throw new Error(data.error || 'Gagal memuat pesan chat'); }
+    } catch (error: any) { alert(error.message); } 
+    finally { setLoadingMessages(false); }
   };
 
+  const handleRequestAccess = async ({ conversationId, reason }: { conversationId: number; reason: string }) => {
+    try {
+      const response = await authenticatedFetch('/api/admin/chat-access/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId, reason }),
+      });
+      const result = await response.json();
+      if (!response.ok) { throw new Error(result.error || 'Gagal mengirim permintaan.'); }
+      alert('Permintaan akses berhasil dikirim!');
+      setIsRequestModalOpen(false);
+    } catch (error: any) { alert(`Error: ${error.message}`); }
+  };
+
+  // Fungsi untuk membuka modal chat
   const handleChatSelect = (chat: AdminAccessibleChat) => {
     setSelectedChat(chat);
     fetchChatMessages(chat.id);
   };
 
-  // Filter chats based on search and expiry
+  // Fungsi untuk menutup modal chat
+  const handleCloseChatModal = () => {
+    setSelectedChat(null);
+    setChatMessages([]);
+  };
+
   const filteredChats = accessibleChats.filter(chat => {
     const matchesSearch = searchTerm === '' || 
       chat.customer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.provider.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.service.name.toLowerCase().includes(searchTerm.toLowerCase());
-
     const now = new Date();
     const expiresAt = new Date(chat.accessExpiresAt);
-    
     const matchesExpiry = filterExpiry === 'all' || 
       (filterExpiry === 'active' && expiresAt > now) ||
       (filterExpiry === 'expired' && expiresAt <= now);
-    
     return matchesSearch && matchesExpiry;
   });
 
-  const isAccessExpired = (expiresAt: string) => {
-    return new Date(expiresAt) <= new Date();
-  };
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-300 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-300 rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  const isAccessExpired = (expiresAt: string) => new Date(expiresAt) <= new Date();
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {isRequestModalOpen && <RequestAccessModal onClose={() => setIsRequestModalOpen(false)} onSubmit={handleRequestAccess} />}
+      
+      {/* Render modal chat jika ada chat yang dipilih */}
+      {selectedChat && (
+        <ChatViewModal 
+            chatDetail={selectedChat}
+            messages={chatMessages}
+            loadingMessages={loadingMessages}
+            onClose={handleCloseChatModal}
+        />
+      )}
+
+      {/* Header Halaman */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <Shield className="w-6 h-6 mr-2 text-blue-500" />
-            Chat History Admin
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Lihat riwayat chat yang telah diberikan akses oleh customer
-          </p>
-        </div>
-        
-        <button
-          onClick={fetchAccessibleChats}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Refresh
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-        {/* Chat List */}
-        <div className="lg:col-span-1 bg-white rounded-lg shadow flex flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <div className="space-y-3">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Cari customer, provider, atau layanan..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-              </div>
-              
-              <select
-                value={filterExpiry}
-                onChange={(e) => setFilterExpiry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <Shield className="w-6 h-6 mr-2 text-blue-500" />
+                  Chat History Admin
+              </h1>
+              <p className="text-gray-600 mt-1">
+                  Lihat riwayat chat dan ajukan permintaan akses baru
+              </p>
+          </div>
+          <div className="flex items-center gap-4">
+              <button
+                  onClick={() => setIsRequestModalOpen(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
               >
-                <option value="all">Semua Chat</option>
-                <option value="active">Akses Aktif</option>
-                <option value="expired">Akses Expired</option>
-              </select>
-            </div>
+                  <PlusCircle className="w-5 h-5" />
+                  Request Akses
+              </button>
+              <button
+                  onClick={fetchAccessibleChats}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                  Refresh
+              </button>
           </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {filteredChats.length > 0 ? (
-              <div className="divide-y divide-gray-200">
-                {filteredChats.map((chat) => {
-                  const expired = isAccessExpired(chat.accessExpiresAt);
-                  
-                  return (
-                    <button
-                      key={chat.id}
-                      onClick={() => handleChatSelect(chat)}
-                      className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                        selectedChat?.id === chat.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-2 h-2 rounded-full ${expired ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                            <h3 className="font-medium text-gray-900 truncate">
-                              {chat.customer.fullName}
-                            </h3>
-                          </div>
-                          
-                          <p className="text-sm text-gray-600 truncate mb-1">
-                            Provider: {chat.provider.fullName}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate mb-2">
-                            {chat.service.name} • Order #{chat.orderId}
-                          </p>
-                          
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{chat.messageCount} pesan</span>
-                          </div>
-                          
-                          <p className="text-xs text-gray-500 mt-1">
-                            Akses {expired ? 'berakhir' : 'berakhir'}: {new Date(chat.accessExpiresAt).toLocaleDateString('id-ID')}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
-                <p className="text-center">
-                  {searchTerm || filterExpiry !== 'all' 
-                    ? 'Tidak ada chat ditemukan dengan filter ini'
-                    : 'Tidak ada chat yang dapat diakses'
-                  }
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Chat Messages */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow flex flex-col">
-          {selectedChat ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <User className="w-5 h-5 mr-2 text-blue-500" />
-                      {selectedChat.customer.fullName}
-                    </h2>
-                    <div className="text-sm text-gray-600 space-y-1 mt-1">
-                      <p>Provider: {selectedChat.provider.fullName}</p>
-                      <p>Layanan: {selectedChat.service.name}</p>
-                      <p>Order: #{selectedChat.orderId}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      isAccessExpired(selectedChat.accessExpiresAt)
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      <Eye className="w-3 h-3 mr-1" />
-                      {isAccessExpired(selectedChat.accessExpiresAt) ? 'Akses Expired' : 'Akses Aktif'}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Berakhir: {new Date(selectedChat.accessExpiresAt).toLocaleString('id-ID')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4">
-                {loadingMessages ? (
-                  <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
-                  </div>
-                ) : chatMessages.length > 0 ? (
-                  <div className="space-y-4">
-                    {chatMessages.map((message) => {
-                      const isCustomer = message.sender.role.roleName === 'customer';
-                      
-                      return (
-                        <div key={message.id} className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
-                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            isCustomer 
-                              ? 'bg-gray-100 text-gray-900' 
-                              : 'bg-blue-500 text-white'
-                          }`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium">
-                                {message.sender.fullName}
-                              </span>
-                              <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                isCustomer 
-                                  ? 'bg-gray-200 text-gray-600' 
-                                  : 'bg-blue-400 text-blue-100'
-                              }`}>
-                                {isCustomer ? 'Customer' : 'Provider'}
-                              </span>
-                            </div>
-                            <p className="text-sm">{message.messageContent}</p>
-                            <p className={`text-xs mt-1 ${
-                              isCustomer ? 'text-gray-500' : 'text-blue-100'
-                            }`}>
-                              {new Date(message.sentAt).toLocaleString('id-ID')}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                    <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
-                    <p>Tidak ada pesan ditemukan</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Access Warning */}
-              {isAccessExpired(selectedChat.accessExpiresAt) && (
-                <div className="p-4 bg-red-50 border-t border-red-200">
-                  <div className="flex items-center text-red-800 text-sm">
-                    <Clock className="w-4 h-4 mr-2" />
-                    Akses untuk melihat chat ini telah berakhir pada {new Date(selectedChat.accessExpiresAt).toLocaleString('id-ID')}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <MessageCircle className="w-16 h-16 mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Pilih Chat untuk Dilihat</h3>
-              <p className="text-center">
-                Pilih salah satu chat dari daftar di sebelah kiri untuk melihat riwayat percakapan
-              </p>
-            </div>
-          )}
-        </div>
       </div>
+      
+      {/* Konten Utama: Filter dan Daftar Chat */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Cari customer, provider, layanan..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                </div>
+                <select
+                    value={filterExpiry}
+                    onChange={(e) => setFilterExpiry(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                    <option value="all">Semua Status Akses</option>
+                    <option value="active">Akses Aktif</option>
+                    <option value="expired">Akses Expired</option>
+                </select>
+            </div>
+        </div>
 
-      {/* Statistics */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <MessageCircle className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Total Chat</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {accessibleChats.length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Eye className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Akses Aktif</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {accessibleChats.filter(chat => !isAccessExpired(chat.accessExpiresAt)).length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Clock className="w-5 h-5 text-red-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Akses Expired</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {accessibleChats.filter(chat => isAccessExpired(chat.accessExpiresAt)).length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <User className="w-5 h-5 text-purple-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Unique Customers</p>
-              <p className="text-lg font-semibold text-gray-900">
-                {new Set(accessibleChats.map(chat => chat.customer.id)).size}
-              </p>
-            </div>
-          </div>
+        {/* Daftar Chat */}
+        <div>
+            {loading ? (
+                <div className="text-center p-10">Memuat data...</div>
+            ) : filteredChats.length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                    {filteredChats.map((chat) => {
+                        const expired = isAccessExpired(chat.accessExpiresAt);
+                        return (
+                            <button
+                                key={chat.id}
+                                onClick={() => handleChatSelect(chat)}
+                                className="w-full text-left p-4 hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${expired ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                            <h3 className="font-semibold text-gray-900 truncate">{chat.customer.fullName}</h3>
+                                        </div>
+                                        <p className="text-sm text-gray-600 truncate">Provider: {chat.provider.fullName}</p>
+                                        <p className="text-xs text-gray-500 truncate mt-1">{chat.service.name} • Order #{chat.orderId}</p>
+                                    </div>
+                                    <div className="text-right text-xs text-gray-500 ml-2 flex-shrink-0">
+                                        <p className="flex items-center gap-1.5"><MessageCircle className="w-3 h-3" /> {chat.messageCount}</p>
+                                        <p className={`mt-1 font-medium ${expired ? 'text-red-600' : 'text-green-600'}`}>{expired ? 'Berakhir' : 'Aktif'}</p>
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center text-gray-500 p-10">
+                    <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
+                    <p className="text-center text-sm">Tidak ada chat ditemukan.</p>
+                </div>
+            )}
         </div>
       </div>
     </div>

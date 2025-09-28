@@ -10,8 +10,8 @@ import {
   ShoppingBag,
   Settings,
   Search,
+  MessageSquare,
 } from "lucide-react";
-import { MessageSquare, Loader2 } from 'lucide-react';
 import { useState, useEffect, ReactNode } from "react";
 
 interface NavItem {
@@ -25,6 +25,7 @@ interface UserData {
   [key: string]: any;
 }
 
+// Daftar item navigasi utama
 const navItems: NavItem[] = [
   {
     href: "/customer/dashboard",
@@ -61,7 +62,6 @@ export default function CustomerNavbar() {
 
   useEffect(() => {
     setHasHydrated(true);
-
     const userString = localStorage.getItem("user");
     if (userString) {
       try {
@@ -82,12 +82,14 @@ export default function CustomerNavbar() {
   };
 
   const isActiveLink = (href: string) => {
-    return (
-      pathname.startsWith(href) &&
-      (href !== "/customer/dashboard" ||
-        pathname === "/customer/dashboard")
-    );
+    return pathname.startsWith(href);
   };
+
+  // **PERUBAHAN 1: Saring item menu untuk desktop**
+  // Hapus "Profil" dari navigasi utama di desktop karena sudah diwakili oleh nama user.
+  const desktopNavItems = navItems.filter(
+    (item) => item.href !== "/customer/profile"
+  );
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -105,7 +107,8 @@ export default function CustomerNavbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6">
-            {navItems.map((item) => (
+            {/* Menggunakan item yang sudah difilter */}
+            {desktopNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -126,15 +129,23 @@ export default function CustomerNavbar() {
             <div className="flex items-center space-x-4 min-w-[150px] justify-end">
               {hasHydrated && user ? (
                 <>
-                  <span className="text-gray-700 font-medium hidden sm:inline">
+                  {/* **PERUBAHAN 2: Ubah nama user menjadi Link** */}
+                  <Link
+                    href="/customer/profile"
+                    className={`font-medium hidden sm:inline transition-colors ${
+                      isActiveLink("/customer/profile")
+                        ? "text-blue-600"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
                     {user.name}
-                  </span>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center space-x-1 text-red-600 hover:text-red-700"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Keluar</span>
+                    <span className="hidden sm:inline">Keluar</span>
                   </button>
                 </>
               ) : (
@@ -168,31 +179,33 @@ export default function CustomerNavbar() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        <div
-          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? "max-h-96 py-4 border-t" : "max-h-0"
-          }`}
-        >
-          <nav className="flex flex-col space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors ${
-                  isActiveLink(item.href)
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
+      {/* Mobile Navigation */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          isMobileMenuOpen ? "max-h-96 py-4 border-t" : "max-h-0"
+        }`}
+      >
+        <nav className="flex flex-col space-y-2 px-4">
+          {/* **PERUBAHAN 3: Tetap gunakan navItems asli untuk mobile** */}
+          {/* Di sini, "Profil" akan selalu ditampilkan */}
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md font-medium transition-colors ${
+                isActiveLink(item.href)
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   );

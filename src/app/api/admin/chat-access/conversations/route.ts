@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     // Use auth helper to verify customer role
-    const authResult = await requireAuth(request, ['customer']);
+    const authResult = await requireAuth(request, ['customer', 'admin']);
     if (authResult instanceof NextResponse) {
       return authResult; // Return error response
     }
